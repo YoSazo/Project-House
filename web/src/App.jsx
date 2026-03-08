@@ -1,0 +1,1095 @@
+﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import * as THREE from "three";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8787";
+const HOUSE_TARGET_OPTIONS = [3, 5, 10, 20];
+const ROBOT_TARGET_OPTIONS = [9, 18, 36];
+
+const colorMap = {
+  empty: "#6b1d1d",
+  reserved: "#b8860b",
+  filled: "#0a7a43"
+};
+
+const robotColorMap = {
+  idle: "#7f8ea3",
+  waiting_component: "#f4d35e",
+  placing: "#3ddc97",
+  moving: "#7aa2ff"
+};
+
+const terrainColorMap = {
+  raw: "#5e3e2d",
+  grading: "#8b5a36",
+  compacted: "#8a7d4a",
+  ready: "#3a6f54"
+};
+
+const stageOrder = ["site_prep", "surveying", "foundation", "framing", "mep", "finishing", "sealing", "community_assembly", "complete"];
+
+const stageLabels = {
+  site_prep: "Site Prep",
+  surveying: "Surveying",
+  foundation: "Foundation",
+  framing: "Framing",
+  mep: "MEP",
+  finishing: "Finishing",
+  sealing: "Sealing",
+  community_assembly: "Community Assembly",
+  complete: "Complete"
+};
+
+const TERRAIN_HEIGHT_SCALE = 0.8;
+const TERRAIN_BASE_Y = -0.55;
+
+const obstacleColorMap = {
+  root: "#9a6d3a",
+  rock: "#6e7580",
+  debris: "#8a5a44"
+};
+
+function GridScene({ cells }) {
+  return (
+    <Canvas camera={{ position: [16, 14, 20], fov: 55 }}>
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[10, 20, 10]} intensity={0.8} />
+      <group position={[-4.5, 0, -4.5]}>
+        {cells.map((cell) => (
+          <mesh key={cell.id} position={[cell.x, cell.z, cell.y]}>
+            <boxGeometry args={[0.92, 0.92, 0.92]} />
+            <meshStandardMaterial color={colorMap[cell.status] || "#444"} opacity={cell.status === "empty" ? 0.35 : 1} transparent />
+          </mesh>
+        ))}
+      </group>
+      <gridHelper args={[16, 16, "#666", "#333"]} />
+      <OrbitControls makeDefault />
+    </Canvas>
+  );
+}
+
+function InstancedCells({ positions, color, opacity, size = [0.9, 0.9, 0.9] }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const temp = new THREE.Object3D();
+
+    positions.forEach((pos, index) => {
+      temp.position.set(pos[0], pos[1], pos[2]);
+      temp.updateMatrix();
+      ref.current.setMatrixAt(index, temp.matrix);
+    });
+
+    ref.current.instanceMatrix.needsUpdate = true;
+  }, [positions]);
+
+  if (!positions.length) return null;
+
+  return (
+    <instancedMesh ref={ref} args={[null, null, positions.length]}>
+      <boxGeometry args={size} />
+      <meshStandardMaterial color={color} opacity={opacity} transparent />
+    </instancedMesh>
+  );
+}
+
+function AnimatedCarrier({ robot, start, end }) {
+  const groupRef = useRef(null);
+  const cargoRef = useRef(null);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+
+    const t = state.clock.getElapsedTime() * 0.22 + robot.id * 0.173;
+    const shuttling = robot.status === "placing" || robot.status === "moving";
+    const waiting = robot.status === "waiting_component";
+
+    let progress = 1;
+    if (shuttling) {
+      const loop = t % 1;
+      progress = loop < 0.5 ? loop * 2 : (1 - loop) * 2;
+    } else if (waiting) {
+      progress = 0.06 + 0.03 * Math.sin(t * 6);
+    } else if (robot.status === "idle") {
+      progress = 0.88 + 0.04 * Math.sin(t * 2.2);
+    }
+
+    const x = start[0] + (end[0] - start[0]) * progress;
+    const z = start[2] + (end[2] - start[2]) * progress;
+    const arc = shuttling ? Math.sin(Math.PI * Math.max(0, Math.min(1, progress))) * 1.2 : 0.25;
+    const y = start[1] + (end[1] - start[1]) * progress + arc;
+
+    groupRef.current.position.set(x, y, z);
+
+    if (cargoRef.current) {
+      cargoRef.current.visible = shuttling || waiting;
+      cargoRef.current.rotation.y += 0.02;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <mesh>
+        <sphereGeometry args={[0.35, 14, 14]} />
+        <meshStandardMaterial
+          color={robotColorMap[robot.status] || "#ffffff"}
+          emissive={robotColorMap[robot.status] || "#ffffff"}
+          emissiveIntensity={0.35}
+        />
+      </mesh>
+      <mesh ref={cargoRef} position={[0, 0.6, 0]}>
+        <boxGeometry args={[0.45, 0.45, 0.45]} />
+        <meshStandardMaterial color="#9fc6ff" emissive="#3d7fff" emissiveIntensity={0.2} />
+      </mesh>
+    </group>
+  );
+}
+
+function SuburbScene({ houses, cells, terrain, robots, selectedHouse }) {
+  const layout = useMemo(() => {
+    const ordered = [...houses].sort((a, b) => a.id - b.id);
+    const cols = Math.max(1, Math.ceil(Math.sqrt(ordered.length || 1)));
+    const spacing = 14;
+    const houseMap = new Map();
+
+    ordered.forEach((house, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      houseMap.set(house.id, { x: col * spacing, z: row * spacing });
+    });
+
+    return {
+      houseMap,
+      cols,
+      rows: Math.max(1, Math.ceil(ordered.length / cols)),
+      spacing
+    };
+  }, [houses]);
+
+  const houseStageById = useMemo(() => {
+    return new Map(houses.map((house) => [house.id, house.stage]));
+  }, [houses]);
+
+  const groupedCells = useMemo(() => {
+    const groups = {
+      reserved: [],
+      filled: []
+    };
+
+    cells.forEach((cell) => {
+      const offset = layout.houseMap.get(cell.house_id);
+      if (!offset) return;
+
+      const position = [offset.x + cell.x, cell.z, offset.z + cell.y];
+      if (cell.status === "reserved") groups.reserved.push(position);
+      else if (cell.status === "filled") groups.filled.push(position);
+    });
+
+    return groups;
+  }, [cells, layout.houseMap]);
+
+  const groupedTerrain = useMemo(() => {
+    const groups = {
+      raw: [],
+      grading: [],
+      compacted: [],
+      ready: [],
+      root: [],
+      rock: [],
+      debris: []
+    };
+
+    terrain.forEach((cell) => {
+      const offset = layout.houseMap.get(cell.house_id);
+      if (!offset) return;
+
+      const key = Object.hasOwn(groups, cell.status) ? cell.status : "raw";
+      const y = TERRAIN_BASE_Y + Number(cell.current_grade || 0) * TERRAIN_HEIGHT_SCALE;
+      const x = offset.x + cell.x;
+      const z = offset.z + cell.y;
+
+      groups[key].push([x, y, z]);
+
+      const obstacleType = cell.obstacle_type;
+      const obstacleCleared = Boolean(cell.obstacle_cleared);
+      if (!obstacleCleared && Object.hasOwn(obstacleColorMap, obstacleType)) {
+        groups[obstacleType].push([x, y + 0.2, z]);
+      }
+    });
+
+    return groups;
+  }, [terrain, layout.houseMap]);
+
+  const terrainHeightByCell = useMemo(() => {
+    const map = new Map();
+    terrain.forEach((cell) => {
+      map.set(`${cell.house_id}:${cell.x}:${cell.y}`, Number(cell.current_grade || 0));
+    });
+    return map;
+  }, [terrain]);
+
+  const worldWidth = Math.max(layout.cols * layout.spacing, layout.spacing);
+  const worldDepth = Math.max(layout.rows * layout.spacing, layout.spacing);
+  const bayCenter = [worldWidth / 2 - 2.5, 0.55, -7];
+
+  const robotMarkers = useMemo(() => {
+    return robots
+      .filter((robot) => robot.active_house_id && layout.houseMap.has(robot.active_house_id))
+      .map((robot) => {
+        const offset = layout.houseMap.get(robot.active_house_id);
+        const laneOffset = ((robot.id % 7) - 3) * 0.65;
+        const stage = houseStageById.get(robot.active_house_id);
+        const terrainGrade = terrainHeightByCell.get(`${robot.active_house_id}:${robot.pos_x}:${robot.pos_y}`) ?? 0;
+        const terrainTopY = TERRAIN_BASE_Y + terrainGrade * TERRAIN_HEIGHT_SCALE + 0.1;
+        const blockY = robot.pos_z + 0.9;
+
+        return {
+          id: robot.id,
+          status: robot.status,
+          start: [bayCenter[0] + laneOffset, bayCenter[1], bayCenter[2]],
+          end: [offset.x + robot.pos_x, stage === "site_prep" ? terrainTopY + 0.2 : blockY, offset.z + robot.pos_y]
+        };
+      });
+  }, [robots, layout.houseMap, bayCenter, houseStageById, terrainHeightByCell]);
+
+  const selectedOffset = selectedHouse ? layout.houseMap.get(selectedHouse) : null;
+  const target = [worldWidth / 2 - 2.5, 0, worldDepth / 2 - 2.5];
+
+  return (
+    <Canvas camera={{ position: [worldWidth * 0.7, Math.max(20, worldWidth * 0.5), worldDepth * 1.05], fov: 55 }}>
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[40, 50, 20]} intensity={0.9} />
+
+      <group position={[bayCenter[0], 0, bayCenter[2]]}>
+        <mesh position={[0, -0.4, 0]}>
+          <boxGeometry args={[12.5, 0.35, 4.4]} />
+          <meshStandardMaterial color="#2e4158" />
+        </mesh>
+        <mesh position={[0, 0.35, 0]}>
+          <boxGeometry args={[11.8, 0.18, 3.4]} />
+          <meshStandardMaterial color="#1a6e9c" emissive="#0b3f5a" emissiveIntensity={0.2} />
+        </mesh>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <mesh key={i} position={[-4 + (i % 4) * 2.7, 0.25 + Math.floor(i / 4) * 0.52, -0.6 + (i % 2) * 1.2]}>
+            <boxGeometry args={[0.9, 0.45, 0.9]} />
+            <meshStandardMaterial color="#9fc6ff" />
+          </mesh>
+        ))}
+      </group>
+
+      {Array.from(layout.houseMap.entries()).map(([houseId, offset]) => (
+        <mesh key={houseId} position={[offset.x + 4.5, -0.72, offset.z + 4.5]}>
+          <boxGeometry args={[10.2, 0.05, 10.2]} />
+          <meshStandardMaterial color={selectedHouse === houseId ? "#1d3b57" : "#132234"} />
+        </mesh>
+      ))}
+
+      <InstancedCells positions={groupedTerrain.raw} color={terrainColorMap.raw} opacity={0.92} size={[0.95, 0.16, 0.95]} />
+      <InstancedCells positions={groupedTerrain.grading} color={terrainColorMap.grading} opacity={0.92} size={[0.95, 0.16, 0.95]} />
+      <InstancedCells positions={groupedTerrain.compacted} color={terrainColorMap.compacted} opacity={0.92} size={[0.95, 0.16, 0.95]} />
+      <InstancedCells positions={groupedTerrain.ready} color={terrainColorMap.ready} opacity={0.96} size={[0.95, 0.16, 0.95]} />
+
+      <InstancedCells positions={groupedTerrain.root} color={obstacleColorMap.root} opacity={0.95} size={[0.24, 0.4, 0.24]} />
+      <InstancedCells positions={groupedTerrain.rock} color={obstacleColorMap.rock} opacity={0.95} size={[0.42, 0.28, 0.42]} />
+      <InstancedCells positions={groupedTerrain.debris} color={obstacleColorMap.debris} opacity={0.95} size={[0.3, 0.2, 0.3]} />
+
+      <InstancedCells positions={groupedCells.reserved} color={colorMap.reserved} opacity={0.95} />
+      <InstancedCells positions={groupedCells.filled} color={colorMap.filled} opacity={1} />
+
+      {robotMarkers.map((robot) => (
+        <mesh key={`target-${robot.id}`} position={robot.end}>
+          <sphereGeometry args={[0.14, 10, 10]} />
+          <meshStandardMaterial color="#9ec5ff" opacity={0.35} transparent />
+        </mesh>
+      ))}
+
+      {robotMarkers.map((robot) => (
+        <AnimatedCarrier key={robot.id} robot={robot} start={robot.start} end={robot.end} />
+      ))}
+
+      {selectedOffset ? (
+        <mesh position={[selectedOffset.x + 4.5, 2.6, selectedOffset.z + 4.5]}>
+          <boxGeometry args={[10.8, 5.6, 10.8]} />
+          <meshBasicMaterial color="#f4d35e" wireframe transparent opacity={0.8} />
+        </mesh>
+      ) : null}
+
+      <gridHelper args={[Math.max(worldWidth, worldDepth) + 12, Math.max(layout.cols, layout.rows) * 12, "#4e6075", "#243245"]} position={target} />
+      <OrbitControls makeDefault target={target} />
+    </Canvas>
+  );
+}
+
+function CurveChart({ points }) {
+  const width = 420;
+  const height = 170;
+  const pad = 28;
+
+  if (!points.length) {
+    return <div className="chart-empty">No curve points yet. Run an experiment reset and test load points.</div>;
+  }
+
+  const xs = points.map((p) => Number(p.active_houses));
+  const ys = points.map((p) => Number(p.avg_efficiency));
+  const xMin = Math.min(...xs);
+  const xMax = Math.max(...xs);
+  const yMin = 0;
+  const yMax = 100;
+
+  const scaleX = (v) => (xMax === xMin ? width / 2 : pad + ((v - xMin) / (xMax - xMin)) * (width - pad * 2));
+  const scaleY = (v) => height - pad - ((v - yMin) / (yMax - yMin)) * (height - pad * 2);
+
+  const polyline = points
+    .map((p) => `${scaleX(Number(p.active_houses))},${scaleY(Number(p.avg_efficiency))}`)
+    .join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg" role="img" aria-label="Efficiency vs houses">
+      <line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="#4d627c" />
+      <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="#4d627c" />
+      <polyline fill="none" stroke="#45d483" strokeWidth="3" points={polyline} />
+      {points.map((p) => {
+        const x = scaleX(Number(p.active_houses));
+        const y = scaleY(Number(p.avg_efficiency));
+        return (
+          <g key={`${p.active_houses}-${p.samples}`}>
+            <circle cx={x} cy={y} r="4" fill="#ffd166" />
+            <text x={x} y={height - 8} textAnchor="middle" fontSize="10" fill="#c7d7ea">{p.active_houses}</text>
+            <text x={x + 6} y={y - 6} fontSize="10" fill="#c7d7ea">{Number(p.avg_efficiency).toFixed(0)}%</text>
+          </g>
+        );
+      })}
+      <text x={width / 2} y={height - 2} textAnchor="middle" fontSize="10" fill="#8da8c8">Active Houses</text>
+      <text x={10} y={12} fontSize="10" fill="#8da8c8">Efficiency %</text>
+    </svg>
+  );
+}
+
+function SiteHeatmap({ probes }) {
+  const ordered = [...probes]
+    .sort((a, b) => Number(a.probe_y) - Number(b.probe_y) || Number(a.probe_x) - Number(b.probe_x))
+    .slice(0, 20);
+
+  const colorForStatus = (status) => {
+    if (status === "BUILDABLE") return "#2e8b57";
+    if (status === "MARGINAL") return "#c49a3a";
+    return "#8f2c2c";
+  };
+
+  if (!ordered.length) {
+    return <div className="chart-empty">No survey probes yet for this house.</div>;
+  }
+
+  return (
+    <div className="heatmap-grid">
+      {ordered.map((probe, idx) => (
+        <div key={`${probe.id ?? idx}-${probe.probe_x}-${probe.probe_y}`} className="heatmap-cell" style={{ background: colorForStatus(probe.status) }} title={`${probe.status} | R=${Number(probe.penetration_resistance ?? 0).toFixed(1)} | M=${Number(probe.moisture_pct ?? 0).toFixed(1)}%`}>
+          <span>{probe.status?.charAt(0) ?? "-"}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MaintenanceTimeline({ rows }) {
+  if (!rows?.length) {
+    return <div className="chart-empty">No maintenance records yet.</div>;
+  }
+
+  const now = Date.now();
+
+  return (
+    <div className="maintenance-list">
+      {rows.map((item) => {
+        const expires = item.ttl_expires_at ? new Date(item.ttl_expires_at).getTime() : null;
+        const alert = item.alert_at ? new Date(item.alert_at).getTime() : null;
+        const applied = item.coating_applied_at ? new Date(item.coating_applied_at).getTime() : null;
+
+        const totalWindow = expires && applied ? Math.max(1, expires - applied) : 1;
+        const elapsed = expires && applied ? Math.max(0, Math.min(totalWindow, now - applied)) : 0;
+        const progressPct = Math.max(0, Math.min(100, 100 - (elapsed / totalWindow) * 100));
+
+        const daysRemaining = expires ? Math.max(0, Math.round((expires - now) / 86400000)) : null;
+        const alertIn = alert ? Math.round((alert - now) / 86400000) : null;
+
+        return (
+          <div key={`maint-${item.house_id}`} className="maintenance-row">
+            <div className="maintenance-head">
+              <strong>{item.house_name ?? `House ${item.house_id}`}</strong>
+              <small>Coating v{item.coating_version}</small>
+            </div>
+            <div className="maintenance-bar">
+              <div className="maintenance-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            <small>
+              TTL: {daysRemaining ?? "-"} days remaining
+              {alertIn !== null ? ` | Alert in ${alertIn} days` : ""}
+              {item.status === "alert" ? " | ALERT" : ""}
+            </small>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+export default function App() {
+  const [state, setState] = useState(null);
+  const [selectedHouse, setSelectedHouse] = useState(null);
+  const [cells, setCells] = useState([]);
+  const [suburbCells, setSuburbCells] = useState([]);
+  const [suburbTerrain, setSuburbTerrain] = useState([]);
+  const [error, setError] = useState("");
+  const [targetHouses, setTargetHouses] = useState(3);
+  const [targetRobots, setTargetRobots] = useState(9);
+  const [curve, setCurve] = useState([]);
+  const [matrix, setMatrix] = useState([]);
+  const [soilLibrary, setSoilLibrary] = useState([]);
+  const [siteProbes, setSiteProbes] = useState([]);
+  const [maintenanceAlerts, setMaintenanceAlerts] = useState([]);
+  const [isMutating, setIsMutating] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    let wsConnected = false;
+
+    const fetchState = async () => {
+      try {
+        const [stateResp, curveResp, matrixResp, soilResp, maintenanceResp] = await Promise.all([
+          fetch(`${API_BASE}/api/state`),
+          fetch(`${API_BASE}/api/metrics/curve`),
+          fetch(`${API_BASE}/api/metrics/matrix`),
+          fetch(`${API_BASE}/api/soil-library`),
+          fetch(`${API_BASE}/api/maintenance-alerts`)
+        ]);
+        const data = await stateResp.json();
+        const curveData = await curveResp.json();
+        const matrixData = await matrixResp.json();
+        const soilData = await soilResp.json();
+        const maintenanceData = await maintenanceResp.json();
+
+        if (!isMounted) return;
+        setState(data);
+        setCurve(curveData);
+        setMatrix(matrixData);
+        setSoilLibrary(Array.isArray(soilData) ? soilData : []);
+        setMaintenanceAlerts(Array.isArray(maintenanceData) ? maintenanceData : []);
+        setTargetHouses(data.houses?.length || 0);
+        setTargetRobots(data.robots?.length || 0);
+
+        setSelectedHouse((prev) => {
+          const hasPrev = data.houses?.some((h) => h.id === prev);
+          return prev && hasPrev ? prev : (data.houses?.[0]?.id ?? null);
+        });
+
+        if (!wsConnected) {
+          setError("");
+        }
+      } catch (e) {
+        if (!wsConnected && isMounted) {
+          setError(e.message);
+        }
+      }
+    };
+
+    fetchState();
+    const pollId = setInterval(fetchState, 5000);
+
+    const ws = new WebSocket(API_BASE.replace(/^http/, "ws") + "/ws");
+    ws.onopen = () => {
+      wsConnected = true;
+      if (isMounted) setError("");
+    };
+    ws.onmessage = (event) => {
+      const payload = JSON.parse(event.data);
+      if (payload.type === "state") setState(payload.data);
+      if (payload.type === "error") setError(payload.data.message);
+    };
+    ws.onerror = () => {
+      wsConnected = false;
+      setError("WebSocket disconnected (polling fallback active)");
+    };
+    ws.onclose = () => {
+      wsConnected = false;
+      setError("WebSocket disconnected (polling fallback active)");
+    };
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollId);
+      ws.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedHouse) return;
+
+    Promise.all([
+      fetch(`${API_BASE}/api/houses/${selectedHouse}/grid`),
+      fetch(`${API_BASE}/api/site-heatmap/${selectedHouse}`)
+    ])
+      .then(async ([gridResp, heatmapResp]) => {
+        const [gridData, heatmapData] = await Promise.all([gridResp.json(), heatmapResp.json()]);
+        setCells(Array.isArray(gridData) ? gridData : []);
+        setSiteProbes(Array.isArray(heatmapData) ? heatmapData : []);
+      })
+      .catch((e) => setError(e.message));
+  }, [selectedHouse, state?.metrics?.sampled_at]);
+
+  useEffect(() => {
+    const activeHouseCount = state?.houses?.length ?? 0;
+    if (!activeHouseCount) {
+      setSuburbCells([]);
+      setSuburbTerrain([]);
+      return;
+    }
+
+    Promise.all([
+      fetch(`${API_BASE}/api/suburb/grid?max_houses=${Math.max(activeHouseCount, 1)}`),
+      fetch(`${API_BASE}/api/suburb/terrain?max_houses=${Math.max(activeHouseCount, 1)}`)
+    ])
+      .then(async ([gridResp, terrainResp]) => {
+        const [gridData, terrainData] = await Promise.all([gridResp.json(), terrainResp.json()]);
+        setSuburbCells(gridData);
+        setSuburbTerrain(terrainData);
+      })
+      .catch((e) => setError(e.message));
+  }, [state?.houses?.length, state?.metrics?.sampled_at]);
+
+  const refreshCharts = async () => {
+    const [curveResp, matrixResp, soilResp, maintenanceResp] = await Promise.all([
+      fetch(`${API_BASE}/api/metrics/curve`),
+      fetch(`${API_BASE}/api/metrics/matrix`),
+      fetch(`${API_BASE}/api/soil-library`),
+      fetch(`${API_BASE}/api/maintenance-alerts`)
+    ]);
+    setCurve(await curveResp.json());
+    setMatrix(await matrixResp.json());
+    setSoilLibrary(await soilResp.json());
+    setMaintenanceAlerts(await maintenanceResp.json());
+  };
+
+  const applyHouses = async (value) => {
+    setIsMutating(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/pipeline/target`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_houses: Number(value) })
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Failed to scale houses");
+      setState(payload.state);
+      setTargetHouses(payload.state?.houses?.length || Number(value));
+      await refreshCharts();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const applyRobots = async (value) => {
+    setIsMutating(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/robots/target`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_robots: Number(value) })
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Failed to scale robots");
+      setState(payload.state);
+      setTargetRobots(payload.state?.robots?.length || Number(value));
+      await refreshCharts();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const resetExperiment = async () => {
+    setIsMutating(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/experiment/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_houses: targetHouses, target_robots: targetRobots })
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Failed to reset experiment");
+      setState(payload.state);
+      await refreshCharts();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const metrics = state?.metrics;
+  const houses = state?.houses ?? [];
+  const robots = state?.robots ?? [];
+
+  const houseStatus = useMemo(() => {
+    if (!state?.cellCounts) return {};
+    return state.cellCounts.reduce((acc, row) => {
+      acc[row.house_id] ??= { empty: 0, reserved: 0, filled: 0 };
+      acc[row.house_id][row.status] = Number(row.count);
+      return acc;
+    }, {});
+  }, [state]);
+
+  const terrainStatus = useMemo(() => {
+    if (!state?.terrainCounts) return {};
+    return state.terrainCounts.reduce((acc, row) => {
+      acc[row.house_id] ??= {
+        total: 0,
+        ready: 0,
+        avg_grade_error: Number(row.avg_grade_error ?? 0),
+        avg_compaction: Number(row.avg_compaction ?? 0)
+      };
+      const count = Number(row.count);
+      acc[row.house_id].total += count;
+      if (row.status === "ready") {
+        acc[row.house_id].ready += count;
+      }
+      acc[row.house_id].avg_grade_error = Number(row.avg_grade_error ?? acc[row.house_id].avg_grade_error ?? 0);
+      acc[row.house_id].avg_compaction = Number(row.avg_compaction ?? acc[row.house_id].avg_compaction ?? 0);
+      return acc;
+    }, {});
+  }, [state]);
+
+  const terrainObstacleMap = useMemo(() => {
+    if (!state?.terrainObstacles) return {};
+    return state.terrainObstacles.reduce((acc, row) => {
+      acc[row.house_id] = Number(row.obstacles_remaining ?? 0);
+      return acc;
+    }, {});
+  }, [state]);
+
+  const assemblyStatus = useMemo(() => {
+    if (!state?.assemblyCounts) return {};
+    return state.assemblyCounts.reduce((acc, row) => {
+      acc[row.house_id] ??= {
+        total: 0,
+        activated: 0,
+        failed: 0,
+        in_progress: 0
+      };
+
+      const count = Number(row.count ?? 0);
+      acc[row.house_id].total += count;
+
+      if (row.status === "activated") {
+        acc[row.house_id].activated += count;
+      } else if (row.status === "failed") {
+        acc[row.house_id].failed += count;
+      } else {
+        acc[row.house_id].in_progress += count;
+      }
+
+      return acc;
+    }, {});
+  }, [state]);
+
+  const maintenanceByHouse = useMemo(() => {
+    const rows = state?.maintenance ?? [];
+    return rows.reduce((acc, row) => {
+      acc[row.house_id] = row;
+      return acc;
+    }, {});
+  }, [state]);
+
+  const surveySummaryByHouse = useMemo(() => {
+    const rows = state?.surveySummary ?? [];
+    return rows.reduce((acc, row) => {
+      acc[row.house_id] = row;
+      return acc;
+    }, {});
+  }, [state]);
+
+  const terrainOverall = useMemo(() => {
+    const rows = state?.terrainCounts ?? [];
+    return rows.reduce((acc, row) => {
+      const count = Number(row.count ?? 0);
+      acc.total += count;
+      if (row.status === "ready") acc.ready += count;
+      return acc;
+    }, { total: 0, ready: 0 });
+  }, [state]);
+
+  const causalGlobal = state?.causalGlobal ?? {};
+
+  const causalByHouse = useMemo(() => {
+    const rows = state?.causalByHouse ?? [];
+    return rows.reduce((acc, row) => {
+      acc[row.house_id] = row;
+      return acc;
+    }, {});
+  }, [state]);
+
+  return (
+    <div className="layout">
+      <header>
+        <h1>House Brain Mission Control</h1>
+        <p>Neon + scheduler + stigmergic grid dispatch</p>
+      </header>
+
+      {error ? <div className="error">{error}</div> : null}
+
+      <section className="controls panel">
+        <h2>Experiment Controls</h2>
+
+        <div className="control-block">
+          <h3>Houses</h3>
+          <div className="button-row">
+            {HOUSE_TARGET_OPTIONS.map((n) => (
+              <button key={n} className={`pill ${targetHouses === n ? "active" : ""}`} onClick={() => applyHouses(n)} disabled={isMutating}>
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="slider-row">
+            <input
+              type="range"
+              min="1"
+              max="40"
+              value={targetHouses}
+              onChange={(e) => setTargetHouses(Number(e.target.value))}
+              onMouseUp={(e) => applyHouses(Number(e.currentTarget.value))}
+              onTouchEnd={(e) => applyHouses(Number(e.currentTarget.value))}
+            />
+            <span>{targetHouses}</span>
+          </div>
+        </div>
+
+        <div className="control-block">
+          <h3>Robots</h3>
+          <div className="button-row">
+            {ROBOT_TARGET_OPTIONS.map((n) => (
+              <button key={n} className={`pill ${targetRobots === n ? "active" : ""}`} onClick={() => applyRobots(n)} disabled={isMutating}>
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="slider-row">
+            <input
+              type="range"
+              min="3"
+              max="60"
+              value={targetRobots}
+              onChange={(e) => setTargetRobots(Number(e.target.value))}
+              onMouseUp={(e) => applyRobots(Number(e.currentTarget.value))}
+              onTouchEnd={(e) => applyRobots(Number(e.currentTarget.value))}
+            />
+            <span>{targetRobots}</span>
+          </div>
+        </div>
+
+        <div className="button-row">
+          <button className="pill action" onClick={resetExperiment} disabled={isMutating}>Reset Experiment Window</button>
+        </div>
+
+        <CurveChart points={curve} />
+      </section>
+
+      <section className="kpis">
+        <article><span>Active Houses</span><strong>{houses.length}</strong></article>
+        <article><span>Active Robots</span><strong>{robots.length}</strong></article>
+        <article><span>Idle</span><strong>{Number(metrics?.robot_idle_percent ?? 0).toFixed(1)}%</strong></article>
+        <article><span>Throughput</span><strong>{Number(metrics?.throughput_cells_per_hour ?? 0).toFixed(1)} cells/h</strong></article>
+        <article><span>Efficiency</span><strong>{Number(metrics?.pipeline_efficiency ?? 0).toFixed(1)}%</strong></article>
+        <article><span>Cells Filled</span><strong>{metrics?.cells_filled ?? 0} / {metrics?.total_cells ?? 0}</strong></article>
+        <article><span>Terrain Ready (cells)</span><strong>{terrainOverall.ready} / {terrainOverall.total}</strong></article>
+        <article><span>Obstacles Left</span><strong>{Number(metrics?.obstacle_cells_remaining ?? 0)}</strong></article>
+        <article><span>Avg Grade Error</span><strong>{Number(metrics?.avg_grade_error ?? 0).toFixed(3)}</strong></article>
+        <article><span>Avg Compaction</span><strong>{Number(metrics?.avg_compaction ?? 0).toFixed(3)}</strong></article>
+        <article><span>Kits Activated</span><strong>{Number(metrics?.community_kits_activated ?? 0)}</strong></article>
+        <article><span>Kits Pending</span><strong>{Number(metrics?.community_kits_pending ?? 0)}</strong></article>
+        <article><span>Kits Failed</span><strong>{Number(metrics?.community_kits_failed ?? 0)}</strong></article>
+        <article><span>Active Surveys</span><strong>{Number(metrics?.active_surveys ?? 0)}</strong></article>
+        <article><span>Soil Recipes Learned</span><strong>{Number(metrics?.soil_recipes_learned ?? 0)}</strong></article>
+        <article><span>Blocks QC Passed</span><strong>{Number(metrics?.blocks_verified ?? 0)}</strong></article>
+        <article><span>Blocks QC Failed</span><strong>{Number(metrics?.blocks_failed_qc ?? 0)}</strong></article>
+        <article><span>Avg TTL (days)</span><strong>{Number(metrics?.avg_ttl_days ?? 0).toFixed(0)}</strong></article>
+        <article><span>Maintenance Alerts</span><strong>{Number(metrics?.houses_in_maintenance ?? 0)}</strong></article>
+        <article><span>Corrections</span><strong>{Number(metrics?.placement_corrections ?? 0)}</strong></article>
+        <article><span>Insert Fails</span><strong>{Number(metrics?.placement_failures ?? 0)}</strong></article>
+        <article><span>Avg Retries</span><strong>{Number(metrics?.avg_retries_per_placement ?? 0).toFixed(2)}</strong></article>
+      </section>
+
+      <section className="panel">
+        <h2>Causal Chain</h2>
+        <div className="causal-grid">
+          <article>
+            <span>Survey Approval</span>
+            <strong>{Number(causalGlobal.approved_sites ?? 0)} / {Number(causalGlobal.surveyed_houses ?? 0)}</strong>
+          </article>
+          <article>
+            <span>QC Pass Rate</span>
+            <strong>{Number(causalGlobal.inline_total ?? 0) > 0 ? ((Number(causalGlobal.inline_passed ?? 0) / Number(causalGlobal.inline_total ?? 1)) * 100).toFixed(1) : "0.0"}%</strong>
+          </article>
+          <article>
+            <span>QC Retry Rate</span>
+            <strong>{Number(causalGlobal.inline_avg_retries ?? 0).toFixed(2)}</strong>
+          </article>
+          <article>
+            <span>Confidence (S/L)</span>
+            <strong>{Number(causalGlobal.avg_short_confidence ?? 0).toFixed(2)} / {Number(causalGlobal.avg_long_confidence ?? 0).toFixed(2)}</strong>
+          </article>
+          <article>
+            <span>TTL Spread</span>
+            <strong>{Number(causalGlobal.min_ttl_days ?? 0)}-{Number(causalGlobal.max_ttl_days ?? 0)} d</strong>
+          </article>
+          <article>
+            <span>Moisture Risk (Unsealed to Sealed)</span>
+            <strong>{Number(causalGlobal.unsealed_moisture_risk ?? 0).toFixed(2)} to {Number(causalGlobal.sealed_moisture_risk ?? 0).toFixed(2)}</strong>
+          </article>
+        </div>
+        {selectedHouse && causalByHouse[selectedHouse] ? (
+          <div className="causal-chain">
+            <strong>{causalByHouse[selectedHouse].name}</strong>
+            <small>{`${causalByHouse[selectedHouse].survey_status} survey to QC ${Number(causalByHouse[selectedHouse].qc_passed ?? 0)}/${Number(causalByHouse[selectedHouse].qc_total ?? 0)} to conf ${Number(causalByHouse[selectedHouse].short_confidence ?? 0).toFixed(2)}/${Number(causalByHouse[selectedHouse].long_confidence ?? 0).toFixed(2)} to TTL ${causalByHouse[selectedHouse].ttl_days ?? "-"}d to coating v${causalByHouse[selectedHouse].coating_version ?? "-"} to moisture risk ${Number(causalByHouse[selectedHouse].moisture_risk ?? 0).toFixed(2)}`}</small>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="panel">
+        <h2>Experiment Matrix (Houses x Robots)</h2>
+        <table>
+          <thead>
+            <tr><th>Houses</th><th>Robots</th><th>Efficiency</th><th>Idle</th><th>Throughput</th><th>Terrain Ready</th><th>Obstacles</th><th>Grade Err</th><th>Compaction</th><th>Kits Activated</th><th>Surveys</th><th>Soils</th><th>QC Pass</th><th>QC Fail</th><th>Maint</th><th>Avg TTL</th><th>Avg Retries</th><th>Avg Failures</th><th>Samples</th></tr>
+          </thead>
+          <tbody>
+            {matrix.slice(-20).map((row) => (
+              <tr key={`${row.active_houses}-${row.active_robots}`}>
+                <td>{row.active_houses}</td>
+                <td>{row.active_robots}</td>
+                <td>{Number(row.avg_efficiency).toFixed(1)}%</td>
+                <td>{Number(row.avg_idle).toFixed(1)}%</td>
+                <td>{Number(row.avg_throughput).toFixed(1)}</td>
+                <td>{Number(row.avg_terrain_ready ?? 0).toFixed(1)}%</td>
+                <td>{Number(row.avg_obstacles_remaining ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_grade_error ?? 0).toFixed(3)}</td>
+                <td>{Number(row.avg_compaction ?? 0).toFixed(3)}</td>
+                <td>{Number(row.avg_kits_activated ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_active_surveys ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_soil_recipes ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_blocks_verified ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_blocks_failed ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_maintenance_houses ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_ttl_days ?? 0).toFixed(0)}</td>
+                <td>{Number(row.avg_retries ?? 0).toFixed(2)}</td>
+                <td>{Number(row.avg_failures ?? 0).toFixed(2)}</td>
+                <td>{row.samples}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="split">
+        <div className="panel">
+          <h2>Site Heatmap: House {selectedHouse ?? "-"}</h2>
+          <SiteHeatmap probes={siteProbes} />
+        </div>
+
+        <div className="panel">
+          <h2>Maintenance Timeline</h2>
+          <MaintenanceTimeline rows={maintenanceAlerts.length ? maintenanceAlerts : (state?.maintenance ?? [])} />
+        </div>
+      </section>
+
+      <section className="panel">
+        <h2>Soil Library</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Signature</th>
+              <th>Recipe</th>
+              <th>Short Conf</th>
+              <th>Long Conf</th>
+              <th>Cycles</th>
+              <th>Erosion</th>
+              <th>Verified</th>
+            </tr>
+          </thead>
+          <tbody>
+            {soilLibrary.slice(0, 40).map((row) => (
+              <tr key={row.soil_signature}>
+                <td>{row.soil_signature}</td>
+                <td>{row.recipe ? JSON.stringify(row.recipe) : "-"}</td>
+                <td>{Number(row.short_term_confidence ?? 0).toFixed(2)}</td>
+                <td>{Number(row.long_term_confidence ?? 0).toFixed(2)}</td>
+                <td>{Number(row.weathering_cycles_tested ?? 0)}</td>
+                <td>{Number(row.erosion_score ?? 0).toFixed(2)}</td>
+                <td>{Number(row.total_blocks_verified ?? 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="board">
+        {stageOrder.map((stage) => (
+          <div key={stage} className="column">
+            <h3>{stageLabels[stage] ?? stage}</h3>
+            {houses.filter((h) => h.stage === stage).map((house) => {
+              const c = houseStatus[house.id] || { empty: 0, reserved: 0, filled: 0 };
+              const total = c.empty + c.reserved + c.filled || 1;
+              const fillPct = Math.round((c.filled / total) * 100);
+
+              const terrain = terrainStatus[house.id] || { total: 0, ready: 0, avg_grade_error: 0, avg_compaction: 0 };
+              const terrainPct = terrain.total > 0 ? Math.round((terrain.ready / terrain.total) * 100) : 0;
+              const obstaclesRemaining = Number(terrainObstacleMap[house.id] ?? 0);
+
+              const kits = assemblyStatus[house.id] || { total: 0, activated: 0, failed: 0, in_progress: 0 };
+              const kitPct = kits.total > 0 ? Math.round((kits.activated / kits.total) * 100) : 0;
+
+              const survey = surveySummaryByHouse[house.id] || { probes: 0, buildable: 0, marginal: 0, reject: 0 };
+              const surveyPct = Number(survey.probes ?? 0) > 0
+                ? Math.round((Number(survey.buildable ?? 0) / Number(survey.probes)) * 100)
+                : 0;
+
+              const sealingPct = Math.round(Math.max(0, Math.min(1, Number(house.sealing_progress ?? 0))) * 100);
+              const maintenanceRow = maintenanceByHouse[house.id];
+
+              const progressPct = stage === "site_prep"
+                ? terrainPct
+                : stage === "surveying"
+                  ? surveyPct
+                  : stage === "sealing"
+                    ? sealingPct
+                    : (stage === "community_assembly" ? kitPct : fillPct);
+
+              const progressLabel = stage === "site_prep"
+                ? "site-ready"
+                : stage === "surveying"
+                  ? "buildable"
+                  : stage === "sealing"
+                    ? "sealed"
+                    : (stage === "community_assembly" ? "kits-activated" : "filled");
+
+              const detailLine = stage === "community_assembly"
+                ? `kits: ${kits.activated}/${kits.total || 0} | failed: ${kits.failed}`
+                : stage === "surveying"
+                  ? `probes: ${survey.probes || 0} | reject: ${survey.reject || 0}`
+                  : stage === "sealing"
+                    ? `sealing: ${sealingPct}% | status: ${house.sealing_complete ? "complete" : "in-progress"}`
+                    : `grade err: ${Number(terrain.avg_grade_error ?? 0).toFixed(3)} | compact: ${Number(terrain.avg_compaction ?? 0).toFixed(3)}`;
+
+              return (
+                <button
+                  key={house.id}
+                  className={`card ${selectedHouse === house.id ? "active" : ""}`}
+                  onClick={() => setSelectedHouse(house.id)}
+                >
+                  <strong>{house.name}</strong>
+                  <small>{progressPct}% {progressLabel}</small>
+                  <small>{detailLine}</small>
+                  <small>survey: {house.survey_status ?? "pending"} | zone: {house.site_zone ?? "BUILDABLE"}</small>
+                  <small>soil: {house.soil_signature ?? "-"}</small>
+                  <small>sealed: {house.sealing_complete ? "yes" : "no"} | cluster: {house.cluster_id ?? "unassigned"}</small>
+                  <small>obstacles: {obstaclesRemaining} | ttl: {maintenanceRow?.ttl_days ?? "-"}d</small>
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </section>
+
+      <section className="panel grid">
+        <h2>Suburb 3D: All Active Houses + Robots</h2>
+        <div className="canvas-wrap suburb-wrap">
+          <SuburbScene houses={houses} cells={suburbCells} terrain={suburbTerrain} robots={robots} selectedHouse={selectedHouse} />
+        </div>
+      </section>
+
+      <section className="split">
+        <div className="panel grid">
+          <h2>3D Grid: House {selectedHouse ?? "-"}</h2>
+          <div className="canvas-wrap">
+            <GridScene cells={cells} />
+          </div>
+        </div>
+
+        <div className="panel">
+          <h2>Robots</h2>
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Status</th><th>House</th><th>Pos</th></tr>
+            </thead>
+            <tbody>
+              {robots.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.id}</td>
+                  <td>{r.status}</td>
+                  <td>{r.active_house_id ?? "-"}</td>
+                  <td>{r.pos_x},{r.pos_y},{r.pos_z}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h2>Fabricator Queue</h2>
+          <ul className="queue">
+            {(state?.fabricatorQueue ?? []).map((q) => (
+              <li key={q.status}>{q.status}: {q.count}</li>
+            ))}
+          </ul>
+
+          <h2>Community Assembly Queue</h2>
+          <ul className="queue">
+            {(state?.assemblyQueue ?? []).map((q) => (
+              <li key={`assembly-${q.status}`}>{q.status}: {q.count}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
