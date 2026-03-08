@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   font-family: "Segoe UI", Tahoma, sans-serif;
   color: #f3f5f8;
   background: radial-gradient(circle at top left, #16263d, #0b1018 55%);
@@ -307,4 +307,165 @@ th, td {
   padding: 8px;
   display: grid;
   gap: 4px;
+}
+
+.tab-strip {
+  padding: 8px 12px;
+}
+
+.overlay-row {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 10px;
+}
+
+.suburb-wrap {
+  position: relative;
+}
+
+.robot-role-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.role-chip {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  border-radius: 9px;
+  border: 1px solid rgba(148, 180, 212, 0.35);
+  background: rgba(9, 24, 38, 0.9);
+  color: #e8eef7;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.role-chip.active {
+  border-color: #f4d35e;
+}
+
+.role-chip .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.role-chip small {
+  color: #9bb2cc;
+}
+
+.role-scaler {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(110px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.role-scaler label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #9bb2cc;
+}
+
+.role-scaler input {
+  width: 100%;
+  background: rgba(11, 25, 40, 0.95);
+  border: 1px solid rgba(148, 180, 212, 0.35);
+  border-radius: 6px;
+  color: #e8eef7;
+  padding: 6px;
+}
+
+.robot-spec-split {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.spec-grid article {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.spec-grid span {
+  color: #9bb2cc;
+  font-size: 0.82rem;
+}
+
+.spec-grid strong {
+  font-size: 0.9rem;
+}
+
+.robot-design-wrap {
+  height: 340px;
+  background: #0c1118;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.contract-box {
+  margin-top: 10px;
+  background: rgba(8, 22, 35, 0.8);
+  border: 1px solid rgba(136, 171, 204, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.contract-box summary {
+  cursor: pointer;
+  color: #c7d7ea;
+}
+
+.contract-box pre {
+  margin: 8px 0 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(2, 8, 18, 0.7);
+  overflow: auto;
+  font-size: 0.8rem;
+}
+
+.muted-note {
+  color: #9bb2cc;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1200px) {
+  .robot-role-grid,
+  .role-scaler,
+  .robot-spec-split,
+  .spec-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.heatmap-cell small {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: #d9ebff;
+}
+
+.survey-meta {
+  margin-top: 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.survey-meta small {
+  color: #9bb2cc;
+  font-size: 0.8rem;
 }

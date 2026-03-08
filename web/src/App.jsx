@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -20,6 +20,166 @@ const robotColorMap = {
   moving: "#7aa2ff"
 };
 
+const roleColorMap = {
+  survey: "#56b4ff",
+  excavator: "#c28f5c",
+  fabricator: "#9f7aea",
+  verification: "#f6d365",
+  assembly: "#3ddc97",
+  sealer: "#66d9ef",
+  logistics: "#f4978e"
+};
+
+const robotRoleCatalog = [
+  {
+    id: "survey",
+    label: "Survey",
+    primaryJobs: "Probe grid, soil sample",
+    requiredDof: "3 (XYZ)",
+    forceNeeds: "200N penetration",
+    dataInterface: "probe(x,y,depth) -> soil_signature",
+    commands: ["probe(x,y,depth)", "classify(zone)", "emitSurvey(house_id)"],
+    emits: {
+      table: "site_surveys",
+      payload: {
+        house_id: "uuid",
+        probe_x: 10,
+        probe_y: 5,
+        depth_meters: 2.4,
+        soil_signature: "clay44_sand33_silt23_org2_sal0.6",
+        status: "BUILDABLE",
+        surface_tilt_deg: 4.2,
+        foot_balance_score: 0.93,
+        sleeve_seat_score: 0.88,
+        max_probe_depth_m: 2.4,
+        confidence: 0.87
+      }
+    },
+    c2a: "Constraint: expensive CPT rigs. Transmutation: lightweight repeated probes + Bayesian confidence over multiple probe points."
+  },
+  {
+    id: "excavator",
+    label: "Excavator",
+    primaryJobs: "Grade, compact, dig",
+    requiredDof: "4 (XYZ+tilt)",
+    forceNeeds: "1kN compaction",
+    dataInterface: "grade(area,slope), compact(target)",
+    commands: ["grade(area,slope)", "compact(target)", "clearObstacle(type)"],
+    emits: {
+      table: "terrain_cells",
+      payload: {
+        house_id: "uuid",
+        x: 4,
+        y: 3,
+        status: "ready",
+        current_grade: 0.02,
+        compaction_score: 0.91
+      }
+    },
+    c2a: "Constraint: unstructured terrain. Transmutation: turn terrain prep into a measurable grid where each cell reaches grade+compaction thresholds."
+  },
+  {
+    id: "fabricator",
+    label: "Fabricator",
+    primaryJobs: "Mix soil, form blocks",
+    requiredDof: "3 (mixer+extrude)",
+    forceNeeds: "500N pressure",
+    dataInterface: "produce(signature) -> block_id",
+    commands: ["readSoil(signature)", "selectRecipe(signature)", "produce(signature)"],
+    emits: {
+      table: "soil_library",
+      payload: {
+        soil_signature: "clay44_sand33_silt23_org2_sal0.6",
+        recipe: { clay: 45, sand: 40, lime: 10, cement: 5 },
+        short_term_confidence: 0.88,
+        total_blocks_verified: 120
+      }
+    },
+    c2a: "Constraint: fixed material recipe fails across soils. Transmutation: inline soil signature routing to adaptive recipe library."
+  },
+  {
+    id: "verification",
+    label: "Verification",
+    primaryJobs: "QC test, weathering",
+    requiredDof: "2 (test+move)",
+    forceNeeds: "100N penetrometer",
+    dataInterface: "qc(block_id) -> pass/metrics",
+    commands: ["qc(block_id)", "runWeathering(signature)", "updateConfidence(signature)"],
+    emits: {
+      table: "block_verifications",
+      payload: {
+        house_id: "uuid",
+        soil_signature: "clay44_sand33_silt23_org2_sal0.6",
+        penetration_resistance: 162.4,
+        moisture_pct: 13.7,
+        density: 1810,
+        passed: true,
+        verification_mode: "inline"
+      }
+    },
+    c2a: "Constraint: slow destructive testing. Transmutation: risk-based QC where known high-confidence soils skip full verification."
+  },
+  {
+    id: "assembly",
+    label: "Assembly",
+    primaryJobs: "Place blocks, impedance",
+    requiredDof: "4 (XYZ+rotate)",
+    forceNeeds: "50N Z-force",
+    dataInterface: "place(block_id,x,y,z) -> success",
+    commands: ["claimCell(house_id)", "moveTo(x,y,z)", "place(block_id,x,y,z)"],
+    emits: {
+      table: "grid_cells",
+      payload: {
+        house_id: "uuid",
+        x: 6,
+        y: 2,
+        z: 1,
+        status: "filled",
+        component_type: "wall",
+        filled_at: "timestamp"
+      }
+    },
+    c2a: "Constraint: no tactile sensors (numb fingers). Transmutation: use motor impedance deviation on Z trajectory as force proxy for insertion correction."
+  },
+  {
+    id: "sealer",
+    label: "Sealer",
+    primaryJobs: "Coat exterior",
+    requiredDof: "3 (XYZ spray)",
+    forceNeeds: "10N pressure",
+    dataInterface: "seal(surface) -> done",
+    commands: ["spray(surface)", "verifyCoverage(house_id)", "completeSealing(house_id)"],
+    emits: {
+      table: "house_maintenance",
+      payload: {
+        house_id: "uuid",
+        coating_version: 2,
+        ttl_days: 3650,
+        ttl_expires_at: "timestamp",
+        status: "ok"
+      }
+    },
+    c2a: "Constraint: seam-by-seam sealing bottleneck. Transmutation: blanket-seal all exterior surfaces in parallel with all robots."
+  },
+  {
+    id: "logistics",
+    label: "Logistics",
+    primaryJobs: "Material cart",
+    requiredDof: "3 (XYZ cart)",
+    forceNeeds: "500kg carry",
+    dataInterface: "move(material, location)",
+    commands: ["pickup(material)", "move(material,location)", "stageForRobot(robot_id)"],
+    emits: {
+      table: "fabricator_queue",
+      payload: {
+        status: "ready",
+        count: 8,
+        material_type: "wall_block"
+      }
+    },
+    c2a: "Constraint: assembly idle due to transport lag. Transmutation: explicit logistics role with pre-staging near active houses."
+  }
+];
 const terrainColorMap = {
   raw: "#5e3e2d",
   grading: "#8b5a36",
@@ -95,7 +255,7 @@ function InstancedCells({ positions, color, opacity, size = [0.9, 0.9, 0.9] }) {
   );
 }
 
-function AnimatedCarrier({ robot, start, end }) {
+function AnimatedCarrier({ robot, start, end, colorOverride }) {
   const groupRef = useRef(null);
   const cargoRef = useRef(null);
 
@@ -134,8 +294,8 @@ function AnimatedCarrier({ robot, start, end }) {
       <mesh>
         <sphereGeometry args={[0.35, 14, 14]} />
         <meshStandardMaterial
-          color={robotColorMap[robot.status] || "#ffffff"}
-          emissive={robotColorMap[robot.status] || "#ffffff"}
+          color={colorOverride || robotColorMap[robot.status] || "#ffffff"}
+          emissive={colorOverride || robotColorMap[robot.status] || "#ffffff"}
           emissiveIntensity={0.35}
         />
       </mesh>
@@ -147,7 +307,7 @@ function AnimatedCarrier({ robot, start, end }) {
   );
 }
 
-function SuburbScene({ houses, cells, terrain, robots, selectedHouse }) {
+function SuburbScene({ houses, cells, terrain, robots, selectedHouse, roleByRobotId, showRoleOverlay }) {
   const layout = useMemo(() => {
     const ordered = [...houses].sort((a, b) => a.id - b.id);
     const cols = Math.max(1, Math.ceil(Math.sqrt(ordered.length || 1)));
@@ -248,6 +408,7 @@ function SuburbScene({ houses, cells, terrain, robots, selectedHouse }) {
         return {
           id: robot.id,
           status: robot.status,
+          role: roleByRobotId?.[robot.id] || "logistics",
           start: [bayCenter[0] + laneOffset, bayCenter[1], bayCenter[2]],
           end: [offset.x + robot.pos_x, stage === "site_prep" ? terrainTopY + 0.2 : blockY, offset.z + robot.pos_y]
         };
@@ -306,7 +467,13 @@ function SuburbScene({ houses, cells, terrain, robots, selectedHouse }) {
       ))}
 
       {robotMarkers.map((robot) => (
-        <AnimatedCarrier key={robot.id} robot={robot} start={robot.start} end={robot.end} />
+        <AnimatedCarrier
+          key={robot.id}
+          robot={robot}
+          start={robot.start}
+          end={robot.end}
+          colorOverride={showRoleOverlay ? roleColorMap[robot.role] : null}
+        />
       ))}
 
       {selectedOffset ? (
@@ -385,8 +552,9 @@ function SiteHeatmap({ probes }) {
   return (
     <div className="heatmap-grid">
       {ordered.map((probe, idx) => (
-        <div key={`${probe.id ?? idx}-${probe.probe_x}-${probe.probe_y}`} className="heatmap-cell" style={{ background: colorForStatus(probe.status) }} title={`${probe.status} | R=${Number(probe.penetration_resistance ?? 0).toFixed(1)} | M=${Number(probe.moisture_pct ?? 0).toFixed(1)}%`}>
+        <div key={`${probe.id ?? idx}-${probe.probe_x}-${probe.probe_y}`} className="heatmap-cell" style={{ background: colorForStatus(probe.status), outline: probe.densified ? "2px solid #8fd3ff" : "none" }} title={`${probe.status} | conf=${Number(probe.confidence ?? 0).toFixed(2)} | tilt=${Number(probe.surface_tilt_deg ?? 0).toFixed(1)} | foot=${Number(probe.foot_balance_score ?? 0).toFixed(2)} | sleeve=${Number(probe.sleeve_seat_score ?? 0).toFixed(2)}`}>
           <span>{probe.status?.charAt(0) ?? "-"}</span>
+          <small>{Number(probe.confidence ?? 0).toFixed(2)}</small>
         </div>
       ))}
     </div>
@@ -434,6 +602,283 @@ function MaintenanceTimeline({ rows }) {
     </div>
   );
 }
+function RobotDesignModel({ role }) {
+  const color = roleColorMap[role] || "#8aa4c8";
+
+  if (role === "excavator") {
+    return (
+      <group>
+        <mesh position={[0, 0.15, 0]}>
+          <boxGeometry args={[1.4, 0.35, 0.85]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        <mesh position={[0.65, 0.32, 0]} rotation={[0, 0, -0.45]}>
+          <boxGeometry args={[0.8, 0.12, 0.12]} />
+          <meshStandardMaterial color="#d9e4f2" />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (role === "fabricator") {
+    return (
+      <group>
+        <mesh>
+          <cylinderGeometry args={[0.45, 0.45, 0.9, 16]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        <mesh position={[0.55, 0.1, 0]}>
+          <boxGeometry args={[0.38, 0.24, 0.38]} />
+          <meshStandardMaterial color="#d9e4f2" />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (role === "verification") {
+    return (
+      <group>
+        <mesh>
+          <sphereGeometry args={[0.42, 20, 20]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        <mesh position={[0, -0.44, 0]}>
+          <cylinderGeometry args={[0.08, 0.08, 0.5, 12]} />
+          <meshStandardMaterial color="#f7f7f7" />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (role === "assembly") {
+    return (
+      <group>
+        <mesh>
+          <boxGeometry args={[0.9, 0.34, 0.9]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        <mesh position={[0, 0.38, 0]}>
+          <boxGeometry args={[0.18, 0.65, 0.18]} />
+          <meshStandardMaterial color="#e4eef9" />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (role === "sealer") {
+    return (
+      <group>
+        <mesh>
+          <boxGeometry args={[1.0, 0.28, 0.7]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        <mesh position={[0.52, 0.22, 0]} rotation={[0, 0, -0.25]}>
+          <boxGeometry args={[0.62, 0.07, 0.07]} />
+          <meshStandardMaterial color="#d7ecff" emissive="#4fb7ff" emissiveIntensity={0.25} />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (role === "logistics") {
+    return (
+      <group>
+        <mesh>
+          <boxGeometry args={[1.1, 0.22, 0.85]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        <mesh position={[0, 0.27, 0]}>
+          <boxGeometry args={[0.75, 0.25, 0.5]} />
+          <meshStandardMaterial color="#e4eef9" />
+        </mesh>
+      </group>
+    );
+  }
+
+  return (
+    <group>
+      <mesh>
+        <boxGeometry args={[0.8, 0.3, 0.8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      <mesh position={[0, 0.36, 0]}>
+        <cylinderGeometry args={[0.2, 0.2, 0.45, 12]} />
+        <meshStandardMaterial color="#d9e4f2" />
+      </mesh>
+    </group>
+  );
+}
+
+function RobotDesignScene({ role }) {
+  return (
+    <div className="robot-design-wrap">
+      <Canvas camera={{ position: [2.2, 1.9, 2.3], fov: 46 }}>
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[4, 5, 3]} intensity={1.1} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.45, 0]}>
+          <circleGeometry args={[1.5, 48]} />
+          <meshStandardMaterial color="#102235" />
+        </mesh>
+        <RobotDesignModel role={role} />
+        <OrbitControls makeDefault autoRotate autoRotateSpeed={0.7} enableZoom={false} />
+      </Canvas>
+    </div>
+  );
+}
+
+function RobotSpecTab({
+  robots,
+  houses,
+  roleRuntime,
+  selectedRoleId,
+  setSelectedRoleId,
+  roleTargets,
+  setRoleTargets,
+  onScaleRobots,
+  isMutating,
+  showRoleOverlay,
+  setShowRoleOverlay,
+  metrics
+}) {
+  const selectedRole = robotRoleCatalog.find((r) => r.id === selectedRoleId) || robotRoleCatalog[0];
+  const [c2aOutput, setC2aOutput] = useState(selectedRole.c2a);
+
+  useEffect(() => {
+    setC2aOutput(selectedRole.c2a);
+  }, [selectedRole]);
+
+  const totalTarget = Object.values(roleTargets).reduce((sum, value) => sum + Number(value || 0), 0);
+
+  return (
+    <>
+      <section className="panel">
+        <h2>Robot Roles</h2>
+        <table>
+          <thead>
+            <tr><th>Role</th><th>Primary Jobs</th><th>Required DOF</th><th>Force/Speed Needs</th><th>Data Interface</th><th>Active</th></tr>
+          </thead>
+          <tbody>
+            {robotRoleCatalog.map((role) => (
+              <tr key={role.id}>
+                <td>{role.label}</td>
+                <td>{role.primaryJobs}</td>
+                <td>{role.requiredDof}</td>
+                <td>{role.forceNeeds}</td>
+                <td><code>{role.dataInterface}</code></td>
+                <td>{roleRuntime[role.id]?.count ?? 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="panel">
+        <h2>Simulation Integration</h2>
+        <div className="robot-role-grid">
+          {robotRoleCatalog.map((role) => (
+            <button
+              key={role.id}
+              className={`role-chip ${selectedRole.id === role.id ? "active" : ""}`}
+              onClick={() => setSelectedRoleId(role.id)}
+            >
+              <span className="dot" style={{ background: roleColorMap[role.id] }} />
+              <strong>{role.label}</strong>
+              <small>{roleRuntime[role.id]?.count ?? 0} active</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="role-scaler">
+          {robotRoleCatalog.map((role) => (
+            <label key={`target-${role.id}`}>
+              <span>{role.label}</span>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={Number(roleTargets[role.id] ?? 0)}
+                onChange={(e) => setRoleTargets((prev) => ({ ...prev, [role.id]: Number(e.target.value || 0) }))}
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="button-row">
+          <button className="pill action" onClick={() => onScaleRobots(totalTarget)} disabled={isMutating}>Scale Robots ({totalTarget})</button>
+          <button className={`pill ${showRoleOverlay ? "active" : ""}`} onClick={() => setShowRoleOverlay((v) => !v)}>
+            {showRoleOverlay ? "Role Colors On" : "Role Colors Off"}
+          </button>
+        </div>
+        <p className="muted-note">Role scaling rolls up to total robot count in the current sim. Runtime assignment is stage-driven.</p>
+      </section>
+
+      <section className="split robot-spec-split">
+        <div className="panel">
+          <h2>{selectedRole.label} Spec</h2>
+          <div className="spec-grid">
+            <article><span>Primary Jobs</span><strong>{selectedRole.primaryJobs}</strong></article>
+            <article><span>Required DOF</span><strong>{selectedRole.requiredDof}</strong></article>
+            <article><span>Force/Speed Needs</span><strong>{selectedRole.forceNeeds}</strong></article>
+            <article><span>Data Interface</span><strong><code>{selectedRole.dataInterface}</code></strong></article>
+            <article><span>Runtime Active</span><strong>{roleRuntime[selectedRole.id]?.count ?? 0}</strong></article>
+            <article><span>Utilization</span><strong>{Number(roleRuntime[selectedRole.id]?.utilization ?? 0).toFixed(1)}%</strong></article>
+          </div>
+
+          <h3>Commands</h3>
+          <ul className="queue">
+            {selectedRole.commands.map((cmd) => (<li key={cmd}><code>{cmd}</code></li>))}
+          </ul>
+
+          <div className="button-row">
+            <button className="pill" onClick={() => setC2aOutput(selectedRole.c2a)}>Run C2A on {selectedRole.label}</button>
+          </div>
+          <div className="causal-chain">
+            <strong>C2A Output</strong>
+            <small>{c2aOutput}</small>
+          </div>
+
+          <details className="contract-box" open>
+            <summary>Interface Contract ({selectedRole.emits.table})</summary>
+            <pre>{JSON.stringify(selectedRole.emits.payload, null, 2)}</pre>
+          </details>
+        </div>
+
+        <div className="panel">
+          <h2>{selectedRole.label} Design</h2>
+          <RobotDesignScene role={selectedRole.id} />
+          <p className="muted-note">Left side is the build contract. Right side is a stylized robot concept for the hardware cofounder.</p>
+        </div>
+      </section>
+
+      <section className="panel">
+        <h2>Per-Role Runtime Metrics</h2>
+        <table>
+          <thead>
+            <tr><th>Role</th><th>Active</th><th>Idle</th><th>Moving</th><th>Placing</th><th>Waiting</th><th>Utilization</th></tr>
+          </thead>
+          <tbody>
+            {robotRoleCatalog.map((role) => {
+              const row = roleRuntime[role.id] || { count: 0, idle: 0, moving: 0, placing: 0, waiting_component: 0, utilization: 0 };
+              return (
+                <tr key={`metric-${role.id}`}>
+                  <td>{role.label}</td>
+                  <td>{row.count}</td>
+                  <td>{row.idle}</td>
+                  <td>{row.moving}</td>
+                  <td>{row.placing}</td>
+                  <td>{row.waiting_component}</td>
+                  <td>{Number(row.utilization).toFixed(1)}%</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <small className="muted-note">Live context: {houses.length} houses, {robots.length} robots, throughput {Number(metrics?.throughput_cells_per_hour ?? 0).toFixed(1)} cells/h.</small>
+      </section>
+    </>
+  );
+}
+
 export default function App() {
   const [state, setState] = useState(null);
   const [selectedHouse, setSelectedHouse] = useState(null);
@@ -443,6 +888,14 @@ export default function App() {
   const [error, setError] = useState("");
   const [targetHouses, setTargetHouses] = useState(3);
   const [targetRobots, setTargetRobots] = useState(9);
+  const [activeTab, setActiveTab] = useState("mission");
+  const [selectedRoleId, setSelectedRoleId] = useState("assembly");
+  const [showRoleOverlay, setShowRoleOverlay] = useState(true);
+  const [roleTargets, setRoleTargets] = useState(() => robotRoleCatalog.reduce((acc, role) => {
+    acc[role.id] = 0;
+    return acc;
+  }, {}));
+  const roleTargetsSeededRef = useRef(false);
   const [curve, setCurve] = useState([]);
   const [matrix, setMatrix] = useState([]);
   const [soilLibrary, setSoilLibrary] = useState([]);
@@ -633,6 +1086,70 @@ export default function App() {
   const houses = state?.houses ?? [];
   const robots = state?.robots ?? [];
 
+  const houseStageMap = useMemo(() => {
+    return houses.reduce((acc, house) => {
+      acc[house.id] = house.stage;
+      return acc;
+    }, {});
+  }, [houses]);
+
+  const robotRoleById = useMemo(() => {
+    const map = {};
+
+    robots.forEach((robot) => {
+      const stage = robot.active_house_id ? houseStageMap[robot.active_house_id] : null;
+
+      if (stage === "site_prep") map[robot.id] = "excavator";
+      else if (stage === "surveying") map[robot.id] = "survey";
+      else if (stage === "sealing") map[robot.id] = "sealer";
+      else if (stage && ["foundation", "framing", "mep", "finishing"].includes(stage)) map[robot.id] = "assembly";
+      else if (robot.status === "waiting_component") map[robot.id] = "logistics";
+      else if (robot.status === "placing") map[robot.id] = "assembly";
+      else if (robot.status === "moving") map[robot.id] = "logistics";
+      else if (robot.id % 3 === 0) map[robot.id] = "verification";
+      else if (robot.id % 3 === 1) map[robot.id] = "fabricator";
+      else map[robot.id] = "logistics";
+    });
+
+    return map;
+  }, [robots, houseStageMap]);
+
+  const roleRuntime = useMemo(() => {
+    const base = robotRoleCatalog.reduce((acc, role) => {
+      acc[role.id] = { count: 0, idle: 0, moving: 0, placing: 0, waiting_component: 0, utilization: 0 };
+      return acc;
+    }, {});
+
+    robots.forEach((robot) => {
+      const roleId = robotRoleById[robot.id] || "logistics";
+      const row = base[roleId];
+      row.count += 1;
+      if (robot.status === "idle") row.idle += 1;
+      if (robot.status === "moving") row.moving += 1;
+      if (robot.status === "placing") row.placing += 1;
+      if (robot.status === "waiting_component") row.waiting_component += 1;
+    });
+
+    Object.values(base).forEach((row) => {
+      row.utilization = row.count > 0 ? ((row.count - row.idle) / row.count) * 100 : 0;
+    });
+
+    return base;
+  }, [robots, robotRoleById]);
+
+  useEffect(() => {
+    if (roleTargetsSeededRef.current) return;
+    if (!state || robots.length === 0) return;
+
+    const next = robotRoleCatalog.reduce((acc, role) => {
+      acc[role.id] = roleRuntime[role.id]?.count ?? 0;
+      return acc;
+    }, {});
+
+    setRoleTargets(next);
+    roleTargetsSeededRef.current = true;
+  }, [state, robots.length, roleRuntime]);
+
   const houseStatus = useMemo(() => {
     if (!state?.cellCounts) return {};
     return state.cellCounts.reduce((acc, row) => {
@@ -711,7 +1228,14 @@ export default function App() {
     }, {});
   }, [state]);
 
-  const terrainOverall = useMemo(() => {
+
+  const surveyRunsByHouse = useMemo(() => {
+    const rows = state?.surveyRuns ?? [];
+    return rows.reduce((acc, row) => {
+      acc[row.house_id] = row;
+      return acc;
+    }, {});
+  }, [state]);  const terrainOverall = useMemo(() => {
     const rows = state?.terrainCounts ?? [];
     return rows.reduce((acc, row) => {
       const count = Number(row.count ?? 0);
@@ -738,6 +1262,15 @@ export default function App() {
         <p>Neon + scheduler + stigmergic grid dispatch</p>
       </header>
 
+      <section className="panel tab-strip">
+        <div className="button-row">
+          <button className={`pill ${activeTab === "mission" ? "active" : ""}`} onClick={() => setActiveTab("mission")}>Mission Control</button>
+          <button className={`pill ${activeTab === "robot_spec" ? "active" : ""}`} onClick={() => setActiveTab("robot_spec")}>Robot Spec</button>
+        </div>
+      </section>
+
+      {activeTab === "mission" ? (
+      <>
       {error ? <div className="error">{error}</div> : null}
 
       <section className="controls panel">
@@ -991,6 +1524,7 @@ export default function App() {
                   <small>{progressPct}% {progressLabel}</small>
                   <small>{detailLine}</small>
                   <small>survey: {house.survey_status ?? "pending"} | zone: {house.site_zone ?? "BUILDABLE"}</small>
+                  <small>uncertainty: {Number(house.survey_uncertainty_remaining ?? 0).toFixed(2)} | probes: {house.survey_probe_count ?? 0}</small>
                   <small>soil: {house.soil_signature ?? "-"}</small>
                   <small>sealed: {house.sealing_complete ? "yes" : "no"} | cluster: {house.cluster_id ?? "unassigned"}</small>
                   <small>obstacles: {obstaclesRemaining} | ttl: {maintenanceRow?.ttl_days ?? "-"}d</small>
@@ -1004,7 +1538,20 @@ export default function App() {
       <section className="panel grid">
         <h2>Suburb 3D: All Active Houses + Robots</h2>
         <div className="canvas-wrap suburb-wrap">
-          <SuburbScene houses={houses} cells={suburbCells} terrain={suburbTerrain} robots={robots} selectedHouse={selectedHouse} />
+          <div className="button-row overlay-row">
+            <button className={`pill ${showRoleOverlay ? "active" : ""}`} onClick={() => setShowRoleOverlay((v) => !v)}>
+              {showRoleOverlay ? "Role Colors Enabled" : "Role Colors Disabled"}
+            </button>
+          </div>
+          <SuburbScene
+            houses={houses}
+            cells={suburbCells}
+            terrain={suburbTerrain}
+            robots={robots}
+            selectedHouse={selectedHouse}
+            roleByRobotId={robotRoleById}
+            showRoleOverlay={showRoleOverlay}
+          />
         </div>
       </section>
 
@@ -1020,13 +1567,14 @@ export default function App() {
           <h2>Robots</h2>
           <table>
             <thead>
-              <tr><th>ID</th><th>Status</th><th>House</th><th>Pos</th></tr>
+              <tr><th>ID</th><th>Status</th><th>Role</th><th>House</th><th>Pos</th></tr>
             </thead>
             <tbody>
               {robots.map((r) => (
                 <tr key={r.id}>
                   <td>{r.id}</td>
                   <td>{r.status}</td>
+                  <td>{robotRoleById[r.id] ?? "-"}</td>
                   <td>{r.active_house_id ?? "-"}</td>
                   <td>{r.pos_x},{r.pos_y},{r.pos_z}</td>
                 </tr>
@@ -1049,9 +1597,39 @@ export default function App() {
           </ul>
         </div>
       </section>
+      </>
+      ) : (
+        <RobotSpecTab
+          robots={robots}
+          houses={houses}
+          roleRuntime={roleRuntime}
+          selectedRoleId={selectedRoleId}
+          setSelectedRoleId={setSelectedRoleId}
+          roleTargets={roleTargets}
+          setRoleTargets={setRoleTargets}
+          onScaleRobots={applyRobots}
+          isMutating={isMutating}
+          showRoleOverlay={showRoleOverlay}
+          setShowRoleOverlay={setShowRoleOverlay}
+          metrics={metrics}
+        />
+      )}
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

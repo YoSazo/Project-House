@@ -1,4 +1,4 @@
-﻿import { pool, withTx } from "./db.js";
+import { pool, withTx } from "./db.js";
 
 const STAGE_ORDER = ["site_prep", "surveying", "foundation", "framing", "mep", "finishing", "sealing", "community_assembly", "complete"];
 const CLUSTER_ASSIGNABLE_STAGES = ["site_prep", "surveying", "foundation", "framing", "mep", "finishing", "sealing"];
@@ -49,6 +49,12 @@ const COMMUNITY_QA_BASE_PASS = Number(process.env.COMMUNITY_QA_BASE_PASS || 0.84
 
 const SURVEY_PROBE_COUNT = Number(process.env.SURVEY_PROBE_COUNT || 20);
 const SURVEY_REJECT_RATIO = Number(process.env.SURVEY_REJECT_RATIO || 0.3);
+const SURVEY_GRID_WIDTH = Number(process.env.SURVEY_GRID_WIDTH || 5);
+const SURVEY_GRID_STEP = Number(process.env.SURVEY_GRID_STEP || 5);
+const SURVEY_MAX_ROUNDS = Number(process.env.SURVEY_MAX_ROUNDS || 4);
+const SURVEY_PROBE_BUDGET = Number(process.env.SURVEY_PROBE_BUDGET || 48);
+const SURVEY_CONVERGENCE_DELTA = Number(process.env.SURVEY_CONVERGENCE_DELTA || 0.03);
+const SURVEY_BOUNDARY_STABILITY = Number(process.env.SURVEY_BOUNDARY_STABILITY || 0.05);
 const SEALING_STEP_PER_ROBOT = Number(process.env.SEALING_STEP_PER_ROBOT || 0.06);
 const SEALING_STEP_MIN = Number(process.env.SEALING_STEP_MIN || 0.12);
 const WEATHERING_IDLE_SECONDS = Number(process.env.WEATHERING_IDLE_SECONDS || 30);
@@ -259,35 +265,317 @@ async function weatheringTestTx(client, soilSignature) {
   return { longTermConfidence, erosionScore, capillaryRise, cycles, passed: longTermPassed };
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function classifySurveySignal({ penetration, organic, salinity, footBalance, sleeveSeat, braceFailure, partialPenetration }) {
+  if (organic > 11 || salinity > 3.2 || penetration < 58 || (braceFailure && sleeveSeat < 0.35)) {
+    return { status: "REJECT", reason: "weak_shallow_support" };
+  }
+
+  if (penetration < 105 || partialPenetration || footBalance < 0.68 || sleeveSeat < 0.66) {
+    return { status: "MARGINAL", reason: "needs_neighbor_confirmation" };
+  }
+
+  return { status: "BUILDABLE", reason: "stable_support_response" };
+}
+
+function deriveSurveyConfidence({ status, footBalance, sleeveSeat, penetration, organic, salinity, braceFailure, partialPenetration }) {
+  const base = status === "BUILDABLE" ? 0.83 : (status === "MARGINAL" ? 0.58 : 0.36);
+  const contact = ((footBalance + sleeveSeat) / 2) * 0.2;
+  const forceTerm = clamp((penetration - 60) / 160, 0, 1) * 0.12;
+  const chemistryPenalty = clamp((organic - 8) / 10, 0, 1) * 0.08 + clamp((salinity - 2) / 3, 0, 1) * 0.08;
+  const failurePenalty = (braceFailure ? 0.16 : 0) + (partialPenetration ? 0.1 : 0);
+  return clamp(base + contact + forceTerm - chemistryPenalty - failurePenalty + randRange(-0.03, 0.03), 0.05, 0.99);
+}
+
+function buildSurveyProbe(point, roundIndex = 0, densified = false) {
+  const soilSignature = generateSoilSignature();
+  const parsed = parseSoilSignature(soilSignature);
+
+  const surfaceTilt = clamp(randRange(0.2, 8.5) + (densified ? randRange(0, 2.8) : 0), 0.1, 14.8);
+  const footBalance = clamp(0.92 - surfaceTilt * 0.035 + randRange(-0.15, 0.09), 0.08, 0.99);
+  const sleeveSeat = clamp(0.9 - parsed.organic * 0.03 - parsed.salinity * 0.05 + randRange(-0.1, 0.1), 0.05, 0.99);
+  const braceFailure = sleeveSeat < 0.34 || (footBalance < 0.4 && Math.random() < 0.92);
+  const partialPenetration = !braceFailure && (footBalance < 0.62 || sleeveSeat < 0.63 || Math.random() < 0.12);
+
+  const maxProbeDepth = braceFailure
+    ? randRange(0.55, 1.5)
+    : (partialPenetration ? randRange(1.1, 2.2) : randRange(2.0, 3.3));
+
+  const moisture = clamp(6 + Math.random() * 35 + parsed.organic * 0.2, 4, 52);
+
+  let basePen = 65 + footBalance * 75 + sleeveSeat * 80 - parsed.organic * 2.2 - parsed.salinity * 7 + randRange(-18, 18);
+  if (braceFailure) basePen -= 32;
+  if (partialPenetration) basePen -= 14;
+  const penetrationCurve = [
+    clamp(basePen - 28 + randRange(-7, 7), 20, 260),
+    clamp(basePen - 8 + randRange(-7, 7), 20, 280),
+    clamp(basePen + 11 + randRange(-8, 8), 20, 320),
+    clamp(basePen + 28 + randRange(-9, 9), 20, 360)
+  ];
+
+  const penetration = penetrationCurve[penetrationCurve.length - 1];
+  const classification = classifySurveySignal({
+    penetration,
+    organic: parsed.organic,
+    salinity: parsed.salinity,
+    footBalance,
+    sleeveSeat,
+    braceFailure,
+    partialPenetration
+  });
+
+  const confidence = deriveSurveyConfidence({
+    status: classification.status,
+    footBalance,
+    sleeveSeat,
+    penetration,
+    organic: parsed.organic,
+    salinity: parsed.salinity,
+    braceFailure,
+    partialPenetration
+  });
+
+  return {
+    probe_x: point.x,
+    probe_y: point.y,
+    depth_meters: roundIndex === 0 ? randRange(2.0, 3.1) : randRange(1.6, 2.8),
+    soil_signature: soilSignature,
+    status: classification.status,
+    penetration_resistance: penetration,
+    moisture_pct: moisture,
+    organic_pct: parsed.organic,
+    salinity: parsed.salinity,
+    surface_tilt_deg: surfaceTilt,
+    foot_balance_score: footBalance,
+    sleeve_seat_score: sleeveSeat,
+    outer_brace_status: braceFailure ? "failed" : (partialPenetration ? "partial" : "stable"),
+    max_probe_depth_m: maxProbeDepth,
+    penetration_curve: penetrationCurve,
+    brace_failure: braceFailure,
+    partial_penetration: partialPenetration,
+    confidence,
+    classification_reason: classification.reason,
+    densified,
+    round_index: roundIndex
+  };
+}
+
+function inferSurveyNeighborhood(probes) {
+  return probes.map((probe) => {
+    const neighbors = probes.filter((other) => {
+      if (other === probe) return false;
+      const dx = Math.abs(Number(other.probe_x) - Number(probe.probe_x));
+      const dy = Math.abs(Number(other.probe_y) - Number(probe.probe_y));
+      return dx <= SURVEY_GRID_STEP && dy <= SURVEY_GRID_STEP;
+    });
+
+    const buildableNear = neighbors.filter((n) => n.status === "BUILDABLE").length;
+    const rejectNear = neighbors.filter((n) => n.status === "REJECT").length;
+
+    const updated = { ...probe };
+
+    if (updated.status === "MARGINAL" && buildableNear >= 3 && rejectNear === 0) {
+      updated.classification_reason = "neighbor_supported";
+      updated.confidence = clamp(Number(updated.confidence) + 0.08, 0.05, 0.99);
+    }
+
+    if (updated.status === "BUILDABLE" && rejectNear >= 2 && Number(updated.confidence) < 0.8) {
+      updated.status = "MARGINAL";
+      updated.classification_reason = "contradictory_neighbors";
+      updated.confidence = clamp(Number(updated.confidence) - 0.14, 0.05, 0.99);
+    }
+
+    if (updated.status === "REJECT" && buildableNear >= 3 && Number(updated.confidence) < 0.45) {
+      updated.status = "MARGINAL";
+      updated.classification_reason = "local_anomaly";
+      updated.confidence = clamp(Number(updated.confidence) + 0.1, 0.05, 0.99);
+    }
+
+    return updated;
+  });
+}
+
+function computeSurveyUncertainty(probes) {
+  if (!probes.length) {
+    return { uncertainty: 1, buildableRatio: 0, rejectRatio: 0, marginalRatio: 0 };
+  }
+
+  const total = probes.length;
+  const buildable = probes.filter((p) => p.status === "BUILDABLE").length;
+  const reject = probes.filter((p) => p.status === "REJECT").length;
+  const marginal = probes.filter((p) => p.status === "MARGINAL").length;
+  const lowConfidence = probes.filter((p) => Number(p.confidence) < 0.72).length;
+
+  const uncertainty = clamp((marginal / total) * 0.65 + (lowConfidence / total) * 0.35, 0, 1);
+
+  return {
+    uncertainty,
+    buildableRatio: buildable / total,
+    rejectRatio: reject / total,
+    marginalRatio: marginal / total
+  };
+}
+
+function recommendBuildZone(probes) {
+  const buildable = probes.filter((p) => p.status === "BUILDABLE");
+  if (!buildable.length) return "none";
+
+  const zones = {
+    zone_nw: { score: 0, count: 0 },
+    zone_ne: { score: 0, count: 0 },
+    zone_sw: { score: 0, count: 0 },
+    zone_se: { score: 0, count: 0 }
+  };
+
+  for (const p of buildable) {
+    const x = Number(p.probe_x);
+    const y = Number(p.probe_y);
+    const zone = x < 10 ? (y < 10 ? "zone_nw" : "zone_sw") : (y < 10 ? "zone_ne" : "zone_se");
+    zones[zone].score += Number(p.confidence || 0);
+    zones[zone].count += 1;
+  }
+
+  let best = "zone_nw";
+  let bestValue = -1;
+  for (const [zone, val] of Object.entries(zones)) {
+    const avg = val.count > 0 ? val.score / val.count : 0;
+    if (avg > bestValue) {
+      bestValue = avg;
+      best = zone;
+    }
+  }
+
+  return best;
+}
+
+function nextDensificationPoints(probes, existingSet) {
+  const uncertain = probes
+    .filter((p) => p.status === "MARGINAL" || Number(p.confidence) < 0.72 || String(p.classification_reason || "").includes("neighbor"))
+    .sort((a, b) => Number(a.confidence) - Number(b.confidence))
+    .slice(0, 6);
+
+  const points = [];
+  for (const probe of uncertain) {
+    const offsets = [
+      [2, 0],
+      [-2, 0],
+      [0, 2],
+      [0, -2]
+    ];
+
+    for (const [ox, oy] of offsets) {
+      const x = clamp(Number(probe.probe_x) + ox, 0, (SURVEY_GRID_WIDTH - 1) * SURVEY_GRID_STEP);
+      const y = clamp(Number(probe.probe_y) + oy, 0, (SURVEY_GRID_WIDTH - 1) * SURVEY_GRID_STEP);
+      const key = `${x}:${y}`;
+      if (!existingSet.has(key)) {
+        existingSet.add(key);
+        points.push({ x, y });
+      }
+    }
+  }
+
+  return points.slice(0, 10);
+}
+
 async function surveyHouseTx(client, houseId) {
   await client.query(`UPDATE houses SET survey_status = 'surveying' WHERE id = $1`, [houseId]);
   await client.query(`DELETE FROM site_surveys WHERE house_id = $1`, [houseId]);
 
-  const probes = [];
+  await client.query(
+    `INSERT INTO survey_runs (house_id, run_status, uncertainty_remaining, probe_budget, probes_used, densification_rounds, boundary_shift, stopped_reason, recommended_build_zone, updated_at)
+     VALUES ($1, 'running', 1, $2, 0, 0, 1, NULL, NULL, NOW())
+     ON CONFLICT (house_id) DO UPDATE
+       SET run_status = 'running',
+           uncertainty_remaining = 1,
+           probe_budget = EXCLUDED.probe_budget,
+           probes_used = 0,
+           densification_rounds = 0,
+           boundary_shift = 1,
+           stopped_reason = NULL,
+           recommended_build_zone = NULL,
+           updated_at = NOW()`,
+    [houseId, SURVEY_PROBE_BUDGET]
+  );
+
+  const coarsePoints = [];
   for (let i = 0; i < SURVEY_PROBE_COUNT; i += 1) {
-    const soilSignature = generateSoilSignature();
-    const penetration = 50 + Math.random() * 200;
-    const moisture = 5 + Math.random() * 40;
-    const parsed = parseSoilSignature(soilSignature);
-    const organic = Math.min(20, parsed.organic + Math.random() * 2.5);
-    const salinity = parsed.salinity;
-
-    const status = organic > 10 || salinity > 3 || penetration < 60
-      ? 'REJECT'
-      : (penetration < 100 ? 'MARGINAL' : 'BUILDABLE');
-
-    probes.push({
-      probe_x: (i % 5) * 5,
-      probe_y: Math.floor(i / 5) * 5,
-      depth_meters: 2 + Math.random() * 1.5,
-      soil_signature: soilSignature,
-      status,
-      penetration_resistance: penetration,
-      moisture_pct: moisture,
-      organic_pct: organic,
-      salinity
+    coarsePoints.push({
+      x: (i % SURVEY_GRID_WIDTH) * SURVEY_GRID_STEP,
+      y: Math.floor(i / SURVEY_GRID_WIDTH) * SURVEY_GRID_STEP
     });
   }
+
+  const seen = new Set(coarsePoints.map((p) => `${p.x}:${p.y}`));
+  let probes = coarsePoints.map((point) => buildSurveyProbe(point, 0, false));
+  probes = inferSurveyNeighborhood(probes);
+
+  let { uncertainty, buildableRatio, rejectRatio } = computeSurveyUncertainty(probes);
+  let previousUncertainty = 1;
+  let previousRejectRatio = rejectRatio;
+  let previousBuildRatio = buildableRatio;
+  let boundaryShift = 1;
+  let densificationRounds = 0;
+  let stopReason = "round_limit";
+
+  for (let round = 1; round <= SURVEY_MAX_ROUNDS; round += 1) {
+    if (probes.length >= SURVEY_PROBE_BUDGET) {
+      stopReason = "probe_budget_exhausted";
+      break;
+    }
+
+    if (Math.abs(previousUncertainty - uncertainty) <= SURVEY_CONVERGENCE_DELTA && boundaryShift <= SURVEY_BOUNDARY_STABILITY) {
+      stopReason = "confidence_converged";
+      break;
+    }
+
+    const candidates = nextDensificationPoints(probes, seen);
+    if (!candidates.length) {
+      stopReason = "no_uncertain_regions";
+      break;
+    }
+
+    const remaining = Math.max(0, SURVEY_PROBE_BUDGET - probes.length);
+    const additions = candidates.slice(0, remaining).map((point) => buildSurveyProbe(point, round, true));
+    if (!additions.length) {
+      stopReason = "probe_budget_exhausted";
+      break;
+    }
+
+    probes = inferSurveyNeighborhood(probes.concat(additions));
+    densificationRounds += 1;
+
+    previousUncertainty = uncertainty;
+    previousRejectRatio = rejectRatio;
+    previousBuildRatio = buildableRatio;
+
+    const next = computeSurveyUncertainty(probes);
+    uncertainty = next.uncertainty;
+    rejectRatio = next.rejectRatio;
+    buildableRatio = next.buildableRatio;
+
+    boundaryShift = Math.abs(rejectRatio - previousRejectRatio) + Math.abs(buildableRatio - previousBuildRatio);
+  }
+
+  probes = inferSurveyNeighborhood(probes);
+  const finalStats = computeSurveyUncertainty(probes);
+  uncertainty = finalStats.uncertainty;
+  rejectRatio = finalStats.rejectRatio;
+
+  const rejectCount = probes.filter((probe) => probe.status === "REJECT").length;
+  const buildable = probes.filter((probe) => probe.status === "BUILDABLE");
+
+  const dominantSignature = (() => {
+    const source = buildable.length ? buildable : probes;
+    const counts = new Map();
+    for (const p of source) counts.set(p.soil_signature, (counts.get(p.soil_signature) || 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || generateSoilSignature();
+  })();
+
+  const approved = rejectRatio <= SURVEY_REJECT_RATIO && uncertainty <= 0.42;
+  const recommendedBuildZone = recommendBuildZone(probes);
 
   for (const probe of probes) {
     await client.query(
@@ -302,9 +590,21 @@ async function surveyHouseTx(client, houseId) {
         moisture_pct,
         organic_pct,
         salinity,
+        surface_tilt_deg,
+        foot_balance_score,
+        sleeve_seat_score,
+        outer_brace_status,
+        max_probe_depth_m,
+        penetration_curve,
+        brace_failure,
+        partial_penetration,
+        confidence,
+        classification_reason,
+        densified,
+        round_index,
         notes,
         surveyed_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'scheduler', NOW())`,
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18,$19,$20,$21,$22,$23,NOW())`,
       [
         houseId,
         probe.probe_x,
@@ -315,15 +615,23 @@ async function surveyHouseTx(client, houseId) {
         probe.penetration_resistance,
         probe.moisture_pct,
         probe.organic_pct,
-        probe.salinity
+        probe.salinity,
+        probe.surface_tilt_deg,
+        probe.foot_balance_score,
+        probe.sleeve_seat_score,
+        probe.outer_brace_status,
+        probe.max_probe_depth_m,
+        JSON.stringify(probe.penetration_curve),
+        probe.brace_failure,
+        probe.partial_penetration,
+        probe.confidence,
+        probe.classification_reason,
+        probe.densified,
+        probe.round_index,
+        probe.densified ? "scheduler_densified" : "scheduler_coarse"
       ]
     );
   }
-
-  const rejectCount = probes.filter((probe) => probe.status === 'REJECT').length;
-  const buildable = probes.filter((probe) => probe.status === 'BUILDABLE');
-  const dominantSignature = buildable[0]?.soil_signature ?? probes[0]?.soil_signature ?? generateSoilSignature();
-  const approved = rejectCount <= Math.floor(SURVEY_PROBE_COUNT * SURVEY_REJECT_RATIO);
 
   await ensureSoilLibraryRow(client, dominantSignature);
 
@@ -331,18 +639,52 @@ async function surveyHouseTx(client, houseId) {
     `UPDATE houses
      SET survey_status = $2,
          soil_signature = $3,
-         site_zone = $4
+         site_zone = $4,
+         recommended_build_zone = $5,
+         survey_uncertainty_remaining = $6,
+         survey_stop_reason = $7,
+         survey_probe_count = $8
      WHERE id = $1`,
-    [houseId, approved ? 'approved' : 'rejected', dominantSignature, approved ? 'BUILDABLE' : 'REJECT']
+    [
+      houseId,
+      approved ? "approved" : "rejected",
+      dominantSignature,
+      approved ? "BUILDABLE" : "REJECT",
+      recommendedBuildZone,
+      uncertainty,
+      stopReason,
+      probes.length
+    ]
+  );
+
+  const runStatus = stopReason === "probe_budget_exhausted"
+    ? "budget_exhausted"
+    : (uncertainty > 0.5 ? "unstable" : "complete");
+
+  await client.query(
+    `UPDATE survey_runs
+     SET run_status = $2,
+         uncertainty_remaining = $3,
+         probes_used = $4,
+         densification_rounds = $5,
+         boundary_shift = $6,
+         stopped_reason = $7,
+         recommended_build_zone = $8,
+         updated_at = NOW()
+     WHERE house_id = $1`,
+    [houseId, runStatus, uncertainty, probes.length, densificationRounds, boundaryShift, stopReason, recommendedBuildZone]
   );
 
   return {
-    status: approved ? 'approved' : 'rejected',
+    status: approved ? "approved" : "rejected",
     rejectCount,
-    probes
+    probes,
+    uncertainty,
+    densificationRounds,
+    stopReason,
+    recommendedBuildZone
   };
 }
-
 async function completeSealingTx(client, { houseId, soilSignature }) {
   await ensureSoilLibraryRow(client, soilSignature);
 
@@ -1406,7 +1748,7 @@ export async function schedulerTick() {
 }
 
 export async function sampleMetrics() {
-  const [counts, robotTime, houseTime, placementStats, terrainStats, communityStats, surveyStats, soilStats, blockStats, maintenanceStats] = await Promise.all([
+  const [counts, robotTime, houseTime, placementStats, terrainStats, communityStats, surveyStats, soilStats, blockStats, maintenanceStats, surveyRunStats] = await Promise.all([
     pool.query(`
       SELECT
         COUNT(DISTINCT h.id)::int AS active_houses,
@@ -1480,6 +1822,14 @@ export async function sampleMetrics() {
       FROM house_maintenance hm
       JOIN houses h ON h.id = hm.house_id
       WHERE h.is_active = TRUE
+    `),
+    pool.query(`
+      SELECT
+        COALESCE(AVG(sr.uncertainty_remaining), 0)::float AS avg_survey_uncertainty,
+        COALESCE(AVG(sr.densification_rounds), 0)::float AS survey_densification_rounds
+      FROM survey_runs sr
+      JOIN houses h ON h.id = sr.house_id
+      WHERE h.is_active = TRUE
     `)
   ]);
 
@@ -1504,8 +1854,8 @@ export async function sampleMetrics() {
 
   await pool.query(
     `INSERT INTO metrics_samples
-      (active_houses, active_robots, houses_completed, cells_filled, total_cells, robot_idle_percent, throughput_cells_per_hour, pipeline_efficiency, placement_corrections, placement_failures, avg_retries_per_placement, terrain_ready_percent, avg_grade_error, avg_compaction, obstacle_cells_remaining, community_kits_activated, community_kits_failed, community_kits_pending, active_surveys, soil_recipes_learned, blocks_verified, blocks_failed_qc, houses_in_maintenance, avg_ttl_days)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`,
+      (active_houses, active_robots, houses_completed, cells_filled, total_cells, robot_idle_percent, throughput_cells_per_hour, pipeline_efficiency, placement_corrections, placement_failures, avg_retries_per_placement, terrain_ready_percent, avg_grade_error, avg_compaction, obstacle_cells_remaining, community_kits_activated, community_kits_failed, community_kits_pending, active_surveys, soil_recipes_learned, blocks_verified, blocks_failed_qc, houses_in_maintenance, avg_ttl_days, avg_survey_uncertainty, survey_densification_rounds)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
     [
       c.active_houses,
       c.active_robots,
@@ -1530,13 +1880,15 @@ export async function sampleMetrics() {
       Number(blockStats.rows[0]?.blocks_verified || 0),
       Number(blockStats.rows[0]?.blocks_failed_qc || 0),
       Number(maintenanceStats.rows[0]?.houses_in_maintenance || 0),
-      Number(maintenanceStats.rows[0]?.avg_ttl_days || 0)
+      Number(maintenanceStats.rows[0]?.avg_ttl_days || 0),
+      Number(surveyRunStats.rows[0]?.avg_survey_uncertainty || 0),
+      Number(surveyRunStats.rows[0]?.survey_densification_rounds || 0)
     ]
   );
 }
 
 export async function systemState() {
-  const [houses, robots, queue, metrics, cells, terrainCounts, terrainObstacles, assemblyQueue, assemblyCounts, maintenance, surveySummary, causalGlobal, causalByHouse] = await Promise.all([
+  const [houses, robots, queue, metrics, cells, terrainCounts, terrainObstacles, assemblyQueue, assemblyCounts, maintenance, surveySummary, surveyRuns, causalGlobal, causalByHouse] = await Promise.all([
     pool.query(`SELECT * FROM houses WHERE is_active = TRUE ORDER BY id`),
     pool.query(`SELECT * FROM robots ORDER BY id`),
     pool.query(`
@@ -1607,12 +1959,21 @@ export async function systemState() {
         COUNT(*)::int AS probes,
         COUNT(*) FILTER (WHERE s.status = 'BUILDABLE')::int AS buildable,
         COUNT(*) FILTER (WHERE s.status = 'MARGINAL')::int AS marginal,
-        COUNT(*) FILTER (WHERE s.status = 'REJECT')::int AS reject
+        COUNT(*) FILTER (WHERE s.status = 'REJECT')::int AS reject,
+        ROUND(COALESCE(AVG(s.confidence), 0)::numeric, 3) AS avg_confidence,
+        ROUND(COALESCE(AVG(CASE WHEN s.densified THEN 1 ELSE 0 END), 0)::numeric, 3) AS densified_ratio
       FROM site_surveys s
       JOIN houses h ON h.id = s.house_id
       WHERE h.is_active = TRUE
       GROUP BY s.house_id
       ORDER BY s.house_id
+    `),
+    pool.query(`
+      SELECT sr.*
+      FROM survey_runs sr
+      JOIN houses h ON h.id = sr.house_id
+      WHERE h.is_active = TRUE
+      ORDER BY sr.updated_at DESC
     `),
     pool.query(`
       WITH survey AS (
@@ -1810,6 +2171,12 @@ export async function getMaintenanceAlerts(withinDays = 180) {
     [Number(withinDays)]
   ).then((result) => result.rows);
 }
+
+
+
+
+
+
 
 
 

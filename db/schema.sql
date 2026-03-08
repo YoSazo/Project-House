@@ -299,3 +299,56 @@ ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS blocks_verified INTEGER NOT
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS blocks_failed_qc INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS houses_in_maintenance INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_ttl_days NUMERIC(10,3) NOT NULL DEFAULT 0;
+
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS recommended_build_zone TEXT;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS survey_uncertainty_remaining NUMERIC(8,4) NOT NULL DEFAULT 1;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS survey_stop_reason TEXT;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS survey_probe_count INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS surface_tilt_deg NUMERIC(8,3);
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS foot_balance_score NUMERIC(8,4);
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS sleeve_seat_score NUMERIC(8,4);
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS outer_brace_status TEXT;
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS max_probe_depth_m NUMERIC(8,3);
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS penetration_curve JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS brace_failure BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS partial_penetration BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS confidence NUMERIC(8,4);
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS classification_reason TEXT;
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS densified BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS round_index INTEGER NOT NULL DEFAULT 0;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'site_surveys_outer_brace_status_check'
+  ) THEN
+    ALTER TABLE site_surveys DROP CONSTRAINT site_surveys_outer_brace_status_check;
+  END IF;
+END $$;
+
+ALTER TABLE site_surveys
+  ADD CONSTRAINT site_surveys_outer_brace_status_check
+  CHECK (outer_brace_status IS NULL OR outer_brace_status IN ('stable', 'partial', 'failed'));
+
+CREATE TABLE IF NOT EXISTS survey_runs (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL UNIQUE REFERENCES houses(id) ON DELETE CASCADE,
+  run_status TEXT NOT NULL CHECK (run_status IN ('running', 'complete', 'budget_exhausted', 'unstable')) DEFAULT 'running',
+  uncertainty_remaining NUMERIC(8,4) NOT NULL DEFAULT 1,
+  probe_budget INTEGER NOT NULL DEFAULT 48,
+  probes_used INTEGER NOT NULL DEFAULT 0,
+  densification_rounds INTEGER NOT NULL DEFAULT 0,
+  boundary_shift NUMERIC(8,4) NOT NULL DEFAULT 1,
+  stopped_reason TEXT,
+  recommended_build_zone TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_survey_runs_status ON survey_runs (run_status, updated_at DESC);
+
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_survey_uncertainty NUMERIC(8,4) NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS survey_densification_rounds NUMERIC(8,3) NOT NULL DEFAULT 0;
