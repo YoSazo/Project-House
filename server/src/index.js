@@ -1,9 +1,9 @@
-﻿import "dotenv/config";
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { WebSocketServer } from "ws";
 import { pool, withTx } from "./db.js";
-import { schedulerTick, systemState, sampleMetrics, surveyHouse, verifyBlock, runWeatheringTest, completeSealingForHouse, triggerMaintenanceForHouse, getMaintenanceAlerts } from "./scheduler.js";
+import { schedulerTick, systemState, sampleMetrics, surveyHouse, verifyBlock, runWeatheringTest, completeSealingForHouse, triggerMaintenanceForHouse, getMaintenanceAlerts, logisticsLaneSummary } from "./scheduler.js";
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -22,6 +22,8 @@ function runSerialized(task) {
   schedulerQueue = next.catch(() => {});
   return next;
 }
+
+let autoTickRunning = false;
 
 async function ensureClusters(client, targetCount = 3) {
   const existing = await client.query(`SELECT id FROM robot_clusters ORDER BY id`);
@@ -326,8 +328,10 @@ async function resetExperimentState(client) {
   await client.query(`DELETE FROM fabricator_queue WHERE consumed_at IS NULL`);
   await client.query(`DELETE FROM assembly_kits WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
   await client.query(`DELETE FROM site_surveys WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM survey_runs WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
   await client.query(`DELETE FROM block_verifications WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
   await client.query(`DELETE FROM house_maintenance WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM logistics_lane_segments WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
 
   await client.query(`
     UPDATE grid_cells
@@ -360,6 +364,14 @@ async function resetExperimentState(client) {
            survey_status = 'pending',
            soil_signature = NULL,
            site_zone = 'BUILDABLE',
+           recommended_build_zone = NULL,
+           survey_uncertainty_remaining = 1,
+           survey_stop_reason = NULL,
+           survey_probe_count = 0,
+           reference_patch_x = NULL,
+           reference_patch_y = NULL,
+           reference_patch_protected = FALSE,
+           reference_patch_stamped_at = NULL,
            sealing_complete = FALSE,
            sealing_started_at = NULL,
            sealing_progress = 0
@@ -547,6 +559,14 @@ app.get("/api/maintenance-alerts", async (req, res) => {
   }
 });
 
+app.get("/api/logistics/lanes", async (_req, res) => {
+  try {
+    const rows = await logisticsLaneSummary();
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
 app.get("/api/suburb/grid", async (req, res) => {
   const maxHousesRaw = Number(req.query?.max_houses);
   const maxHouses = Number.isFinite(maxHousesRaw) ? Math.max(1, Math.min(120, maxHousesRaw)) : 60;
@@ -646,6 +666,13 @@ app.get("/api/metrics/matrix", async (_req, res) => {
       ROUND(AVG(blocks_failed_qc)::numeric, 2) AS avg_blocks_failed,
       ROUND(AVG(houses_in_maintenance)::numeric, 2) AS avg_maintenance_houses,
       ROUND(AVG(avg_ttl_days)::numeric, 2) AS avg_ttl_days,
+      ROUND(AVG(avg_lane_condition)::numeric, 3) AS avg_lane_condition,
+      ROUND(AVG(conditioned_lane_percent)::numeric, 2) AS avg_conditioned_lane_percent,
+      ROUND(AVG(degraded_lane_segments)::numeric, 2) AS avg_degraded_lane_segments,
+      ROUND(AVG(stale_relay_segments)::numeric, 2) AS avg_stale_relay_segments,
+      ROUND(AVG(lane_verification_events)::numeric, 2) AS avg_lane_verification_events,
+      ROUND(AVG(reference_patches_protected)::numeric, 2) AS avg_reference_patches_protected,
+      ROUND(AVG(reference_patches_total)::numeric, 2) AS avg_reference_patches_total,
       COUNT(*)::int AS samples
     FROM metrics_samples
     WHERE active_houses > 0 AND active_robots > 0
@@ -796,6 +823,9 @@ wss.on("connection", async (socket) => {
 });
 
 setInterval(() => {
+  if (autoTickRunning) return;
+  autoTickRunning = true;
+
   runSerialized(async () => {
     await schedulerTick();
     const state = await systemState();
@@ -803,6 +833,8 @@ setInterval(() => {
   }).catch((error) => {
     console.error("Tick error", error);
     broadcast({ type: "error", data: { message: error.message } });
+  }).finally(() => {
+    autoTickRunning = false;
   });
 }, tickMs);
 
@@ -814,16 +846,4 @@ process.on("SIGINT", async () => {
   await pool.end();
   process.exit(0);
 });
-
-
-
-
-
-
-
-
-
-
-
-
 

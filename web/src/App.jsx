@@ -38,7 +38,7 @@ const robotRoleCatalog = [
     requiredDof: "3 (XYZ)",
     forceNeeds: "200N penetration",
     dataInterface: "probe(x,y,depth) -> soil_signature",
-    commands: ["probe(x,y,depth)", "classify(zone)", "emitSurvey(house_id)"],
+    commands: ["goto(x,y)", "deploy_feet()", "equalize_load()", "seat_outer_sleeve(depth)", "probe_inner(depth)", "classify_point()", "densify_region(region_id)", "stamp_reference_patch()", "emit_heatmap(site_id)", "abort_probe(reason)"],
     emits: {
       table: "site_surveys",
       payload: {
@@ -52,7 +52,9 @@ const robotRoleCatalog = [
         foot_balance_score: 0.93,
         sleeve_seat_score: 0.88,
         max_probe_depth_m: 2.4,
-        confidence: 0.87
+        confidence: 0.87,
+        failure_tier: null,
+        reference_patch_coords: { x: 1, y: 8 }
       }
     },
     c2a: "Constraint: expensive CPT rigs. Transmutation: lightweight repeated probes + Bayesian confidence over multiple probe points."
@@ -161,23 +163,42 @@ const robotRoleCatalog = [
     },
     c2a: "Constraint: seam-by-seam sealing bottleneck. Transmutation: blanket-seal all exterior surfaces in parallel with all robots."
   },
-  {
+    {
     id: "logistics",
     label: "Logistics",
-    primaryJobs: "Material cart",
+    primaryJobs: "Material cart + lane conditioning",
     requiredDof: "3 (XYZ cart)",
-    forceNeeds: "500kg carry",
-    dataInterface: "move(material, location)",
-    commands: ["pickup(material)", "move(material,location)", "stageForRobot(robot_id)"],
+    forceNeeds: "500kg carry + light drag",
+    dataInterface: "route(payload, lane) -> delivered",
+    commands: [
+      "goto(x,y)",
+      "pickup(payload_id)",
+      "dock(station_id)",
+      "lower_body_gauge()",
+      "grade_until_match(segment_id)",
+      "relay_reference_state()",
+      "emit_status()",
+      "yield(robot_id)",
+      "return_to_base()"
+    ],
     emits: {
-      table: "fabricator_queue",
+      table: "logistics_lane_segments",
       payload: {
-        status: "ready",
-        count: 8,
-        material_type: "wall_block"
+        house_id: "uuid",
+        lane_id: "lane_main",
+        segment_index: 4,
+        condition_score: 0.89,
+        grade_match_score: 0.91,
+        avg_drag_force: 0.42,
+        body_gauge_match: 0.88,
+        relay_consensus: 0.93,
+        reference_relay_age_s: 14,
+        verification_events: 7,
+        status: "stable",
+        restamp_required: false
       }
     },
-    c2a: "Constraint: assembly idle due to transport lag. Transmutation: explicit logistics role with pre-staging near active houses."
+    c2a: "Constraint: bad terrain and lane drift break delivery. Transmutation: body-as-gauge verification + relay truth + gradual lane conditioning per pass."
   }
 ];
 const terrainColorMap = {
@@ -262,30 +283,31 @@ function AnimatedCarrier({ robot, start, end, colorOverride }) {
   useFrame((state) => {
     if (!groupRef.current) return;
 
-    const t = state.clock.getElapsedTime() * 0.22 + robot.id * 0.173;
-    const shuttling = robot.status === "placing" || robot.status === "moving";
+    const t = state.clock.getElapsedTime() * 0.42 + robot.id * 0.173;
+    const shuttling = robot.status === "placing" || robot.status === "moving" || robot.status === "waiting_component";
     const waiting = robot.status === "waiting_component";
 
     let progress = 1;
     if (shuttling) {
-      const loop = t % 1;
-      progress = loop < 0.5 ? loop * 2 : (1 - loop) * 2;
-    } else if (waiting) {
-      progress = 0.06 + 0.03 * Math.sin(t * 6);
+      const loop = (t / (waiting ? 1.45 : 1)) % 1;
+      const shuttle = loop < 0.5 ? loop * 2 : (1 - loop) * 2;
+      progress = waiting ? (0.24 + shuttle * 0.58) : shuttle;
     } else if (robot.status === "idle") {
-      progress = 0.88 + 0.04 * Math.sin(t * 2.2);
+      progress = 0.12 + 0.08 * (0.5 + 0.5 * Math.sin(t * 1.9));
     }
 
-    const x = start[0] + (end[0] - start[0]) * progress;
-    const z = start[2] + (end[2] - start[2]) * progress;
-    const arc = shuttling ? Math.sin(Math.PI * Math.max(0, Math.min(1, progress))) * 1.2 : 0.25;
-    const y = start[1] + (end[1] - start[1]) * progress + arc;
+    const clamped = Math.max(0, Math.min(1, progress));
+    const x = start[0] + (end[0] - start[0]) * clamped;
+    const z = start[2] + (end[2] - start[2]) * clamped;
+    const lateral = Math.sin(t * 3.1) * (shuttling ? 0.0 : 0.18);
+    const arc = shuttling ? Math.sin(Math.PI * clamped) * 1.2 : 0.3 + 0.08 * Math.sin(t * 5.2);
+    const y = start[1] + (end[1] - start[1]) * clamped + arc;
 
-    groupRef.current.position.set(x, y, z);
+    groupRef.current.position.set(x + lateral, y, z + (waiting ? lateral * 0.6 : 0));
 
     if (cargoRef.current) {
       cargoRef.current.visible = shuttling || waiting;
-      cargoRef.current.rotation.y += 0.02;
+      cargoRef.current.rotation.y += waiting ? 0.035 : 0.02;
     }
   });
 
@@ -1066,17 +1088,30 @@ export default function App() {
   const resetExperiment = async () => {
     setIsMutating(true);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
       const response = await fetch(`${API_BASE}/api/experiment/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_houses: targetHouses, target_robots: targetRobots })
+        body: JSON.stringify({ target_houses: targetHouses, target_robots: targetRobots }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || "Failed to reset experiment");
+
       setState(payload.state);
+      setTargetHouses(payload.state?.houses?.length || Number(targetHouses));
+      setTargetRobots(payload.state?.robots?.length || Number(targetRobots));
+      setSelectedHouse(payload.state?.houses?.[0]?.id ?? null);
       await refreshCharts();
+      setError("");
     } catch (e) {
-      setError(e.message);
+      const msg = e?.name === "AbortError"
+        ? "Reset timed out. Backend is likely busy; restart server to clear tick backlog."
+        : e.message;
+      setError(msg);
     } finally {
       setIsMutating(false);
     }
@@ -1085,6 +1120,7 @@ export default function App() {
   const metrics = state?.metrics;
   const houses = state?.houses ?? [];
   const robots = state?.robots ?? [];
+  const laneSummary = state?.laneSummary ?? [];
 
   const houseStageMap = useMemo(() => {
     return houses.reduce((acc, house) => {
@@ -1236,6 +1272,29 @@ export default function App() {
       return acc;
     }, {});
   }, [state]);
+
+  const laneAggregate = useMemo(() => {
+    const totals = laneSummary.reduce((acc, row) => {
+      const segments = Number(row.segments ?? 0);
+      acc.segments += segments;
+      acc.conditioned += Number(row.conditioned_segments ?? 0);
+      acc.degraded += Number(row.degraded_segments ?? 0);
+      acc.stale += Number(row.stale_segments ?? 0);
+      acc.verificationEvents += Number(row.verification_events ?? 0);
+      acc.weightedCondition += Number(row.avg_condition ?? 0) * segments;
+      return acc;
+    }, { segments: 0, conditioned: 0, degraded: 0, stale: 0, verificationEvents: 0, weightedCondition: 0 });
+
+    return {
+      segments: totals.segments,
+      conditioned: totals.conditioned,
+      degraded: totals.degraded,
+      stale: totals.stale,
+      verificationEvents: totals.verificationEvents,
+      conditionedPct: totals.segments > 0 ? (totals.conditioned / totals.segments) * 100 : 0,
+      avgCondition: totals.segments > 0 ? totals.weightedCondition / totals.segments : 0
+    };
+  }, [laneSummary]);
 
   const terrainOverall = useMemo(() => {
     const rows = state?.terrainCounts ?? [];
@@ -1421,7 +1480,7 @@ export default function App() {
         <article><span>Efficiency (Snapshot)</span><strong>{Number(metrics?.pipeline_efficiency ?? 0).toFixed(1)}%</strong><small className="kpi-meta">latest sample</small></article>
         <article><span>Cells Filled</span><strong>{metrics?.cells_filled ?? 0} / {metrics?.total_cells ?? 0}</strong></article>
         <article><span>Efficiency (Matrix Avg)</span><strong>{matrixEfficiency.toFixed(1)}%</strong><small className="kpi-meta">aggregate window</small></article>
-        <article><span>Terrain Ready (cells)</span><strong>{terrainOverall.ready} / {terrainOverall.total}</strong></article>
+        <article><span>Terrain Cells Ready</span><strong>{terrainOverall.ready} / {terrainOverall.total}</strong></article>
         <article><span>Obstacles Left</span><strong>{Number(metrics?.obstacle_cells_remaining ?? 0)}</strong></article>
         <article><span>Avg Grade Error</span><strong>{Number(metrics?.avg_grade_error ?? 0).toFixed(3)}</strong></article>
         <article><span>Avg Compaction</span><strong>{Number(metrics?.avg_compaction ?? 0).toFixed(3)}</strong></article>
@@ -1434,6 +1493,12 @@ export default function App() {
         <article><span>Blocks QC Failed</span><strong>{Number(metrics?.blocks_failed_qc ?? 0)}</strong></article>
         <article><span>Avg TTL (days)</span><strong>{Number(metrics?.avg_ttl_days ?? 0).toFixed(0)}</strong></article>
         <article><span>Maintenance Alerts</span><strong>{Number(metrics?.houses_in_maintenance ?? 0)}</strong></article>
+        <article><span>Lane Condition</span><strong>{Number(metrics?.avg_lane_condition ?? laneAggregate.avgCondition ?? 0).toFixed(2)}</strong></article>
+        <article><span>Conditioned Lanes</span><strong>{Number(metrics?.conditioned_lane_percent ?? laneAggregate.conditionedPct ?? 0).toFixed(1)}%</strong></article>
+        <article><span>Degraded Segments</span><strong>{Number(metrics?.degraded_lane_segments ?? laneAggregate.degraded ?? 0)}</strong></article>
+        <article><span>Stale Relay Segments</span><strong>{Number(metrics?.stale_relay_segments ?? laneAggregate.stale ?? 0)}</strong></article>
+        <article><span>Lane Verifications</span><strong>{Number(metrics?.lane_verification_events ?? laneAggregate.verificationEvents ?? 0)}</strong></article>
+        <article><span>Reference Patches</span><strong>{Number(metrics?.reference_patches_protected ?? 0)} / {Number(metrics?.reference_patches_total ?? 0)}</strong></article>
         <article><span>Corrections</span><strong>{Number(metrics?.placement_corrections ?? 0)}</strong></article>
         <article><span>Insert Fails</span><strong>{Number(metrics?.placement_failures ?? 0)}</strong></article>
         <article><span>Avg Retries</span><strong>{Number(metrics?.avg_retries_per_placement ?? 0).toFixed(2)}</strong></article>
@@ -1501,7 +1566,7 @@ export default function App() {
         <h2>Experiment Matrix (Houses x Robots)</h2>
         <table>
           <thead>
-            <tr><th>Houses</th><th>Robots</th><th>Efficiency</th><th>Idle</th><th>Throughput</th><th>Terrain Ready</th><th>Obstacles</th><th>Grade Err</th><th>Compaction</th><th>Kits Activated</th><th>Surveys</th><th>Soils</th><th>QC Pass</th><th>QC Fail</th><th>Maint</th><th>Avg TTL</th><th>Avg Retries</th><th>Avg Failures</th><th>Samples</th></tr>
+            <tr><th>Houses</th><th>Robots</th><th>Efficiency</th><th>Idle</th><th>Throughput</th><th>Terrain Ready</th><th>Obstacles</th><th>Grade Err</th><th>Compaction</th><th>Kits Activated</th><th>Surveys</th><th>Soils</th><th>QC Pass</th><th>QC Fail</th><th>Maint</th><th>Avg TTL</th><th>Lane Cond</th><th>Lane %</th><th>Degr</th><th>Stale</th><th>Lane Verif</th><th>Ref P/T</th><th>Avg Retries</th><th>Avg Failures</th><th>Samples</th></tr>
           </thead>
           <tbody>
             {matrix.slice(-20).map((row) => (
@@ -1522,6 +1587,12 @@ export default function App() {
                 <td>{Number(row.avg_blocks_failed ?? 0).toFixed(1)}</td>
                 <td>{Number(row.avg_maintenance_houses ?? 0).toFixed(1)}</td>
                 <td>{Number(row.avg_ttl_days ?? 0).toFixed(0)}</td>
+                <td>{Number(row.avg_lane_condition ?? 0).toFixed(2)}</td>
+                <td>{Number(row.avg_conditioned_lane_percent ?? 0).toFixed(1)}%</td>
+                <td>{Number(row.avg_degraded_lane_segments ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_stale_relay_segments ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_lane_verification_events ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_reference_patches_protected ?? 0).toFixed(1)} / {Number(row.avg_reference_patches_total ?? 0).toFixed(1)}</td>
                 <td>{Number(row.avg_retries ?? 0).toFixed(2)}</td>
                 <td>{Number(row.avg_failures ?? 0).toFixed(2)}</td>
                 <td>{row.samples}</td>
@@ -1571,6 +1642,45 @@ export default function App() {
             ))}
           </tbody>
         </table>
+      </section>
+
+      <section className="panel">
+        <h2>Logistics Lane Summary</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>House</th>
+              <th>Lane</th>
+              <th>Segments</th>
+              <th>Avg Condition</th>
+              <th>Conditioned</th>
+              <th>Degraded</th>
+              <th>Stale Relay</th>
+              <th>Verifications</th>
+              <th>Restamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {laneSummary.length ? laneSummary.map((row) => (
+              <tr key={`lane-${row.house_id}-${row.lane_id}`}>
+                <td>House {row.house_id}</td>
+                <td>{row.lane_id}</td>
+                <td>{Number(row.segments ?? 0)}</td>
+                <td>{Number(row.avg_condition ?? 0).toFixed(2)}</td>
+                <td>{Number(row.conditioned_segments ?? 0)}</td>
+                <td>{Number(row.degraded_segments ?? 0)}</td>
+                <td>{Number(row.stale_segments ?? 0)}</td>
+                <td>{Number(row.verification_events ?? 0)}</td>
+                <td>{row.restamp_required ? "yes" : "no"}</td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan={9}>No active lane segments yet.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        <small className="muted-note">Aggregate: {laneAggregate.conditioned}/{laneAggregate.segments} conditioned ({laneAggregate.conditionedPct.toFixed(1)}%), avg condition {laneAggregate.avgCondition.toFixed(2)}.</small>
       </section>
 
       <section className="board">
@@ -1724,60 +1834,4 @@ export default function App() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

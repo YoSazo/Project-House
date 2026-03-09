@@ -13,13 +13,13 @@ WHERE NOT EXISTS (
 );
 
 -- Create 3 houses with staggered stages for initial visualization.
-INSERT INTO houses (name, stage, started_at, survey_status, soil_signature, site_zone, sealing_complete, sealing_started_at, sealing_progress)
-SELECT name, stage, NOW() - (offset_mins || ' minutes')::interval, survey_status, soil_signature, site_zone, sealing_complete, sealing_started_at, sealing_progress
+INSERT INTO houses (name, stage, started_at, survey_status, soil_signature, site_zone, sealing_complete, sealing_started_at, sealing_progress, reference_patch_x, reference_patch_y, reference_patch_protected, reference_patch_stamped_at)
+SELECT name, stage, NOW() - (offset_mins || ' minutes')::interval, survey_status, soil_signature, site_zone, sealing_complete, sealing_started_at, sealing_progress, reference_patch_x, reference_patch_y, reference_patch_protected, reference_patch_stamped_at
 FROM (VALUES
-  ('House A', 'site_prep', 20, 'pending', NULL, 'BUILDABLE', FALSE, NULL, 0.0),
-  ('House B', 'foundation', 80, 'approved', 'clay42_sand33_silt25_org2_sal0.4', 'BUILDABLE', FALSE, NULL, 0.0),
-  ('House C', 'finishing', 140, 'approved', 'clay35_sand46_silt19_org1_sal0.2', 'BUILDABLE', FALSE, NOW() - interval '5 minutes', 0.0)
-) AS h(name, stage, offset_mins, survey_status, soil_signature, site_zone, sealing_complete, sealing_started_at, sealing_progress)
+  ('House A', 'site_prep', 20, 'pending', NULL, 'BUILDABLE', FALSE, NULL, 0.0, NULL, NULL, FALSE, NULL),
+  ('House B', 'foundation', 80, 'approved', 'clay42_sand33_silt25_org2_sal0.4', 'BUILDABLE', FALSE, NULL, 0.0, 1, 8, TRUE, NOW() - interval '90 minutes'),
+  ('House C', 'finishing', 140, 'approved', 'clay35_sand46_silt19_org1_sal0.2', 'BUILDABLE', FALSE, NOW() - interval '5 minutes', 0.0, 8, 1, TRUE, NOW() - interval '150 minutes')
+) AS h(name, stage, offset_mins, survey_status, soil_signature, site_zone, sealing_complete, sealing_started_at, sealing_progress, reference_patch_x, reference_patch_y, reference_patch_protected, reference_patch_stamped_at)
 WHERE NOT EXISTS (SELECT 1 FROM houses);
 
 -- Generate 10x10x5 grid = 500 cells per house.
@@ -156,6 +156,94 @@ WHERE NOT EXISTS (
   WHERE existing.house_id = h.id
 );
 
+-- Seed logistics lane segments and baseline relay state.
+WITH lane_source AS (
+  SELECT
+    h.id,
+    h.stage,
+    COALESCE(h.reference_patch_x, 1)::numeric AS ref_x,
+    COALESCE(h.reference_patch_y, 8)::numeric AS ref_y
+  FROM houses h
+), segments AS (
+  SELECT generate_series(0, 11) AS segment_index
+)
+INSERT INTO logistics_lane_segments (
+  house_id,
+  lane_id,
+  segment_index,
+  start_x,
+  start_y,
+  end_x,
+  end_y,
+  condition_score,
+  grade_match_score,
+  avg_drag_force,
+  body_gauge_match,
+  relay_consensus,
+  reference_relay_age_s,
+  passes,
+  verification_events,
+  status,
+  is_reference_zone,
+  restamp_required,
+  last_verified_at,
+  updated_at
+)
+SELECT
+  ls.id,
+  'lane_main',
+  s.segment_index,
+  ROUND((ls.ref_x + (s.segment_index::numeric / 12.0) * (4.5 - ls.ref_x))::numeric, 3),
+  ROUND((ls.ref_y + (s.segment_index::numeric / 12.0) * (4.5 - ls.ref_y))::numeric, 3),
+  ROUND((ls.ref_x + ((s.segment_index + 1)::numeric / 12.0) * (4.5 - ls.ref_x))::numeric, 3),
+  ROUND((ls.ref_y + ((s.segment_index + 1)::numeric / 12.0) * (4.5 - ls.ref_y))::numeric, 3),
+  ROUND((CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete')
+      THEN 0.55 + random() * 0.28
+    ELSE 0.2 + random() * 0.22
+  END)::numeric, 4),
+  ROUND((CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete')
+      THEN 0.58 + random() * 0.3
+    ELSE 0.25 + random() * 0.25
+  END)::numeric, 4),
+  ROUND((38 + random() * 16)::numeric, 4),
+  ROUND((CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete')
+      THEN 0.62 + random() * 0.25
+    ELSE 0.3 + random() * 0.25
+  END)::numeric, 4),
+  ROUND((CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete')
+      THEN 0.64 + random() * 0.28
+    ELSE 0.34 + random() * 0.3
+  END)::numeric, 4),
+  CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete')
+      THEN FLOOR(18 + random() * 55)::int
+    ELSE FLOOR(85 + random() * 150)::int
+  END,
+  CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete')
+      THEN FLOOR(8 + random() * 24)::int
+    ELSE FLOOR(random() * 8)::int
+  END,
+  CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete')
+      THEN FLOOR(1 + random() * 6)::int
+    ELSE FLOOR(random() * 3)::int
+  END,
+  CASE
+    WHEN ls.stage IN ('foundation', 'framing', 'mep', 'finishing', 'sealing', 'community_assembly', 'complete') THEN 'conditioning'
+    ELSE 'raw'
+  END,
+  s.segment_index = 0,
+  FALSE,
+  NOW() - ((random() * 8)::text || ' hours')::interval,
+  NOW()
+FROM lane_source ls
+CROSS JOIN segments s
+ON CONFLICT (house_id, lane_id, segment_index) DO NOTHING;
 -- Seed soil library baselines from approved house signatures.
 INSERT INTO soil_library (soil_signature, clay_pct, sand_pct, organic_pct, salinity, recipe, short_term_confidence, long_term_confidence, weathering_cycles_tested, erosion_score, total_blocks_verified)
 SELECT
@@ -262,3 +350,5 @@ WHERE h.stage = 'community_assembly'
     WHERE ak.house_id = h.id
       AND ak.kit_index = gs
   );
+
+

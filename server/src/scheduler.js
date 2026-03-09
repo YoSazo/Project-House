@@ -59,6 +59,16 @@ const SEALING_STEP_PER_ROBOT = Number(process.env.SEALING_STEP_PER_ROBOT || 0.06
 const SEALING_STEP_MIN = Number(process.env.SEALING_STEP_MIN || 0.12);
 const WEATHERING_IDLE_SECONDS = Number(process.env.WEATHERING_IDLE_SECONDS || 30);
 const MAINTENANCE_CHECK_SECONDS = Number(process.env.MAINTENANCE_CHECK_SECONDS || 60);
+const SURVEY_CONFIDENCE_BUILDABLE = Number(process.env.SURVEY_CONFIDENCE_BUILDABLE || 0.8);
+const SURVEY_CONFIDENCE_MARGINAL = Number(process.env.SURVEY_CONFIDENCE_MARGINAL || 0.55);
+const SURVEY_CONFIDENCE_CONVERGED = Number(process.env.SURVEY_CONFIDENCE_CONVERGED || 0.4);
+const LOGISTICS_SEGMENT_COUNT = Number(process.env.LOGISTICS_SEGMENT_COUNT || 12);
+const LOGISTICS_STALE_RELAY_SECONDS = Number(process.env.LOGISTICS_STALE_RELAY_SECONDS || 120);
+const LOGISTICS_CONDITION_GAIN = Number(process.env.LOGISTICS_CONDITION_GAIN || 0.055);
+const LOGISTICS_DEGRADE_RATE = Number(process.env.LOGISTICS_DEGRADE_RATE || 0.06);
+const LOGISTICS_VERIFY_INTERVAL = Number(process.env.LOGISTICS_VERIFY_INTERVAL || 5);
+const LOGISTICS_TRAVEL_FACTOR_MIN = Number(process.env.LOGISTICS_TRAVEL_FACTOR_MIN || 0.72);
+const LOGISTICS_TRAVEL_FACTOR_MAX = Number(process.env.LOGISTICS_TRAVEL_FACTOR_MAX || 1.35);
 
 let lastWeatheringRunAt = 0;
 let lastMaintenanceRunAt = 0;
@@ -73,6 +83,14 @@ const COMPONENT_BASE_IMPEDANCE = {
 function nextStage(stage) {
   const idx = STAGE_ORDER.indexOf(stage);
   return idx >= 0 && idx < STAGE_ORDER.length - 1 ? STAGE_ORDER[idx + 1] : stage;
+}
+
+function referencePatchForZone(zone) {
+  if (zone === "zone_nw") return { x: 1, y: 1 };
+  if (zone === "zone_ne") return { x: 8, y: 1 };
+  if (zone === "zone_sw") return { x: 1, y: 8 };
+  if (zone === "zone_se") return { x: 8, y: 8 };
+  return { x: 1, y: 8 };
 }
 
 function randRange(min, max) {
@@ -274,6 +292,10 @@ function classifySurveySignal({ penetration, organic, salinity, footBalance, sle
     return { status: "REJECT", reason: "weak_shallow_support" };
   }
 
+  if (braceFailure || (partialPenetration && penetration < 96)) {
+    return { status: "UNKNOWN", reason: "unknown_needs_adjacent_probes" };
+  }
+
   if (penetration < 105 || partialPenetration || footBalance < 0.68 || sleeveSeat < 0.66) {
     return { status: "MARGINAL", reason: "needs_neighbor_confirmation" };
   }
@@ -282,7 +304,7 @@ function classifySurveySignal({ penetration, organic, salinity, footBalance, sle
 }
 
 function deriveSurveyConfidence({ status, footBalance, sleeveSeat, penetration, organic, salinity, braceFailure, partialPenetration }) {
-  const base = status === "BUILDABLE" ? 0.83 : (status === "MARGINAL" ? 0.58 : 0.36);
+  const base = status === "BUILDABLE" ? 0.83 : (status === "MARGINAL" ? 0.6 : (status === "UNKNOWN" ? 0.48 : 0.34));
   const contact = ((footBalance + sleeveSeat) / 2) * 0.2;
   const forceTerm = clamp((penetration - 60) / 160, 0, 1) * 0.12;
   const chemistryPenalty = clamp((organic - 8) / 10, 0, 1) * 0.08 + clamp((salinity - 2) / 3, 0, 1) * 0.08;
@@ -327,6 +349,7 @@ function buildSurveyProbe(point, roundIndex = 0, densified = false) {
     partialPenetration
   });
 
+  const normalizedStatus = classification.status === "UNKNOWN" ? "MARGINAL" : classification.status;
   const confidence = deriveSurveyConfidence({
     status: classification.status,
     footBalance,
@@ -343,7 +366,7 @@ function buildSurveyProbe(point, roundIndex = 0, densified = false) {
     probe_y: point.y,
     depth_meters: roundIndex === 0 ? randRange(2.0, 3.1) : randRange(1.6, 2.8),
     soil_signature: soilSignature,
-    status: classification.status,
+    status: normalizedStatus,
     penetration_resistance: penetration,
     moisture_pct: moisture,
     organic_pct: parsed.organic,
@@ -374,24 +397,37 @@ function inferSurveyNeighborhood(probes) {
 
     const buildableNear = neighbors.filter((n) => n.status === "BUILDABLE").length;
     const rejectNear = neighbors.filter((n) => n.status === "REJECT").length;
+    const marginalNear = neighbors.filter((n) => n.status === "MARGINAL").length;
 
     const updated = { ...probe };
 
-    if (updated.status === "MARGINAL" && buildableNear >= 3 && rejectNear === 0) {
-      updated.classification_reason = "neighbor_supported";
-      updated.confidence = clamp(Number(updated.confidence) + 0.08, 0.05, 0.99);
+    if (String(updated.classification_reason || "").includes("unknown") && buildableNear >= 2 && rejectNear === 0) {
+      updated.status = "MARGINAL";
+      updated.classification_reason = "unknown_resolved_by_neighbors";
+      updated.confidence = clamp(Number(updated.confidence) + 0.05, 0.05, 0.99);
     }
 
-    if (updated.status === "BUILDABLE" && rejectNear >= 2 && Number(updated.confidence) < 0.8) {
+    if (updated.status === "MARGINAL" && buildableNear >= 4 && rejectNear === 0 && Number(updated.confidence) < SURVEY_CONFIDENCE_BUILDABLE) {
+      updated.classification_reason = "neighbor_supported";
+      updated.confidence = clamp(Number(updated.confidence) + 0.1, 0.05, 0.99);
+    }
+
+    if (updated.status === "BUILDABLE" && rejectNear >= 2 && Number(updated.confidence) < SURVEY_CONFIDENCE_BUILDABLE) {
       updated.status = "MARGINAL";
       updated.classification_reason = "contradictory_neighbors";
       updated.confidence = clamp(Number(updated.confidence) - 0.14, 0.05, 0.99);
     }
 
-    if (updated.status === "REJECT" && buildableNear >= 3 && Number(updated.confidence) < 0.45) {
+    if (updated.status === "REJECT" && buildableNear >= 4) {
       updated.status = "MARGINAL";
       updated.classification_reason = "local_anomaly";
       updated.confidence = clamp(Number(updated.confidence) + 0.1, 0.05, 0.99);
+    }
+
+    if ((updated.status === "MARGINAL" || updated.status === "REJECT") && rejectNear >= 3 && buildableNear <= 1) {
+      updated.status = "REJECT";
+      updated.classification_reason = "weak_zone_cluster";
+      updated.confidence = clamp(Number(updated.confidence) + 0.06 + marginalNear * 0.01, 0.05, 0.99);
     }
 
     return updated;
@@ -407,7 +443,7 @@ function computeSurveyUncertainty(probes) {
   const buildable = probes.filter((p) => p.status === "BUILDABLE").length;
   const reject = probes.filter((p) => p.status === "REJECT").length;
   const marginal = probes.filter((p) => p.status === "MARGINAL").length;
-  const lowConfidence = probes.filter((p) => Number(p.confidence) < 0.72).length;
+  const lowConfidence = probes.filter((p) => Number(p.confidence) < 0.75).length;
 
   const uncertainty = clamp((marginal / total) * 0.65 + (lowConfidence / total) * 0.35, 0, 1);
 
@@ -453,7 +489,7 @@ function recommendBuildZone(probes) {
 
 function nextDensificationPoints(probes, existingSet) {
   const uncertain = probes
-    .filter((p) => p.status === "MARGINAL" || Number(p.confidence) < 0.72 || String(p.classification_reason || "").includes("neighbor"))
+    .filter((p) => p.status === "MARGINAL" || Number(p.confidence) < 0.75 || String(p.classification_reason || "").includes("neighbor") || String(p.classification_reason || "").includes("unknown"))
     .sort((a, b) => Number(a.confidence) - Number(b.confidence))
     .slice(0, 6);
 
@@ -517,30 +553,31 @@ async function surveyHouseTx(client, houseId) {
   let previousRejectRatio = rejectRatio;
   let previousBuildRatio = buildableRatio;
   let boundaryShift = 1;
+  let stableRounds = 0;
   let densificationRounds = 0;
-  let stopReason = "round_limit";
+  let stopReason = 'round_limit';
 
   for (let round = 1; round <= SURVEY_MAX_ROUNDS; round += 1) {
     if (probes.length >= SURVEY_PROBE_BUDGET) {
-      stopReason = "probe_budget_exhausted";
+      stopReason = 'probe_budget_exhausted';
       break;
     }
 
-    if (Math.abs(previousUncertainty - uncertainty) <= SURVEY_CONVERGENCE_DELTA && boundaryShift <= SURVEY_BOUNDARY_STABILITY) {
-      stopReason = "confidence_converged";
+    if (stableRounds >= 3 && uncertainty <= SURVEY_CONFIDENCE_CONVERGED) {
+      stopReason = 'confidence_converged';
       break;
     }
 
     const candidates = nextDensificationPoints(probes, seen);
     if (!candidates.length) {
-      stopReason = "no_uncertain_regions";
+      stopReason = 'no_uncertain_regions';
       break;
     }
 
     const remaining = Math.max(0, SURVEY_PROBE_BUDGET - probes.length);
     const additions = candidates.slice(0, remaining).map((point) => buildSurveyProbe(point, round, true));
     if (!additions.length) {
-      stopReason = "probe_budget_exhausted";
+      stopReason = 'probe_budget_exhausted';
       break;
     }
 
@@ -557,6 +594,12 @@ async function surveyHouseTx(client, houseId) {
     buildableRatio = next.buildableRatio;
 
     boundaryShift = Math.abs(rejectRatio - previousRejectRatio) + Math.abs(buildableRatio - previousBuildRatio);
+
+    if (Math.abs(previousUncertainty - uncertainty) <= SURVEY_CONVERGENCE_DELTA && boundaryShift <= SURVEY_BOUNDARY_STABILITY) {
+      stableRounds += 1;
+    } else {
+      stableRounds = 0;
+    }
   }
 
   probes = inferSurveyNeighborhood(probes);
@@ -564,8 +607,8 @@ async function surveyHouseTx(client, houseId) {
   uncertainty = finalStats.uncertainty;
   rejectRatio = finalStats.rejectRatio;
 
-  const rejectCount = probes.filter((probe) => probe.status === "REJECT").length;
-  const buildable = probes.filter((probe) => probe.status === "BUILDABLE");
+  const rejectCount = probes.filter((probe) => probe.status === 'REJECT').length;
+  const buildable = probes.filter((probe) => probe.status === 'BUILDABLE');
 
   const dominantSignature = (() => {
     const source = buildable.length ? buildable : probes;
@@ -574,64 +617,87 @@ async function surveyHouseTx(client, houseId) {
     return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || generateSoilSignature();
   })();
 
-  const approved = rejectRatio <= SURVEY_REJECT_RATIO && uncertainty <= 0.42;
+  const approved = rejectRatio <= SURVEY_REJECT_RATIO && uncertainty <= SURVEY_CONFIDENCE_CONVERGED;
   const recommendedBuildZone = recommendBuildZone(probes);
+  const referencePatch = approved ? referencePatchForZone(recommendedBuildZone) : null;
 
-  for (const probe of probes) {
-    await client.query(
-      `INSERT INTO site_surveys (
-        house_id,
-        probe_x,
-        probe_y,
-        depth_meters,
-        soil_signature,
-        status,
-        penetration_resistance,
-        moisture_pct,
-        organic_pct,
-        salinity,
-        surface_tilt_deg,
-        foot_balance_score,
-        sleeve_seat_score,
-        outer_brace_status,
-        max_probe_depth_m,
-        penetration_curve,
-        brace_failure,
-        partial_penetration,
-        confidence,
-        classification_reason,
-        densified,
-        round_index,
-        notes,
-        surveyed_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18,$19,$20,$21,$22,$23,NOW())`,
-      [
-        houseId,
-        probe.probe_x,
-        probe.probe_y,
-        probe.depth_meters,
-        probe.soil_signature,
-        probe.status,
-        probe.penetration_resistance,
-        probe.moisture_pct,
-        probe.organic_pct,
-        probe.salinity,
-        probe.surface_tilt_deg,
-        probe.foot_balance_score,
-        probe.sleeve_seat_score,
-        probe.outer_brace_status,
-        probe.max_probe_depth_m,
-        JSON.stringify(probe.penetration_curve),
-        probe.brace_failure,
-        probe.partial_penetration,
-        probe.confidence,
-        probe.classification_reason,
-        probe.densified,
-        probe.round_index,
-        probe.densified ? "scheduler_densified" : "scheduler_coarse"
-      ]
-    );
-  }
+  await client.query(
+    `INSERT INTO site_surveys (
+      house_id,
+      probe_x,
+      probe_y,
+      depth_meters,
+      soil_signature,
+      status,
+      penetration_resistance,
+      moisture_pct,
+      organic_pct,
+      salinity,
+      surface_tilt_deg,
+      foot_balance_score,
+      sleeve_seat_score,
+      outer_brace_status,
+      max_probe_depth_m,
+      penetration_curve,
+      brace_failure,
+      partial_penetration,
+      confidence,
+      classification_reason,
+      densified,
+      round_index,
+      notes,
+      surveyed_at
+    )
+    SELECT
+      $1,
+      p.probe_x,
+      p.probe_y,
+      p.depth_meters,
+      p.soil_signature,
+      p.status,
+      p.penetration_resistance,
+      p.moisture_pct,
+      p.organic_pct,
+      p.salinity,
+      p.surface_tilt_deg,
+      p.foot_balance_score,
+      p.sleeve_seat_score,
+      p.outer_brace_status,
+      p.max_probe_depth_m,
+      p.penetration_curve,
+      p.brace_failure,
+      p.partial_penetration,
+      p.confidence,
+      p.classification_reason,
+      p.densified,
+      p.round_index,
+      CASE WHEN p.densified THEN 'scheduler_densified' ELSE 'scheduler_coarse' END,
+      NOW()
+    FROM jsonb_to_recordset($2::jsonb) AS p(
+      probe_x int,
+      probe_y int,
+      depth_meters numeric,
+      soil_signature text,
+      status text,
+      penetration_resistance numeric,
+      moisture_pct numeric,
+      organic_pct numeric,
+      salinity numeric,
+      surface_tilt_deg numeric,
+      foot_balance_score numeric,
+      sleeve_seat_score numeric,
+      outer_brace_status text,
+      max_probe_depth_m numeric,
+      penetration_curve jsonb,
+      brace_failure boolean,
+      partial_penetration boolean,
+      confidence numeric,
+      classification_reason text,
+      densified boolean,
+      round_index int
+    )`,
+    [houseId, JSON.stringify(probes)]
+  );
 
   await ensureSoilLibraryRow(client, dominantSignature);
 
@@ -643,23 +709,31 @@ async function surveyHouseTx(client, houseId) {
          recommended_build_zone = $5,
          survey_uncertainty_remaining = $6,
          survey_stop_reason = $7,
-         survey_probe_count = $8
+         survey_probe_count = $8,
+         reference_patch_x = $9,
+         reference_patch_y = $10,
+         reference_patch_protected = $11,
+         reference_patch_stamped_at = $12
      WHERE id = $1`,
     [
       houseId,
-      approved ? "approved" : "rejected",
+      approved ? 'approved' : 'rejected',
       dominantSignature,
-      approved ? "BUILDABLE" : "REJECT",
+      approved ? 'BUILDABLE' : 'REJECT',
       recommendedBuildZone,
       uncertainty,
       stopReason,
-      probes.length
+      probes.length,
+      referencePatch?.x ?? null,
+      referencePatch?.y ?? null,
+      Boolean(referencePatch),
+      referencePatch ? new Date().toISOString() : null
     ]
   );
 
-  const runStatus = stopReason === "probe_budget_exhausted"
-    ? "budget_exhausted"
-    : (uncertainty > 0.5 ? "unstable" : "complete");
+  const runStatus = stopReason === 'probe_budget_exhausted'
+    ? 'budget_exhausted'
+    : (uncertainty > 0.5 ? 'unstable' : 'complete');
 
   await client.query(
     `UPDATE survey_runs
@@ -676,15 +750,17 @@ async function surveyHouseTx(client, houseId) {
   );
 
   return {
-    status: approved ? "approved" : "rejected",
+    status: approved ? 'approved' : 'rejected',
     rejectCount,
     probes,
     uncertainty,
     densificationRounds,
     stopReason,
-    recommendedBuildZone
+    recommendedBuildZone,
+    referencePatch
   };
 }
+
 async function completeSealingTx(client, { houseId, soilSignature }) {
   await ensureSoilLibraryRow(client, soilSignature);
 
@@ -1034,6 +1110,163 @@ function movementSeconds(robot, cell) {
   return dist * MOVE_SECONDS_PER_STEP + PLACE_SECONDS;
 }
 
+async function ensureLogisticsLanesForHouse(client, houseId) {
+  await client.query(
+    `INSERT INTO logistics_lane_segments (
+      house_id,
+      lane_id,
+      segment_index,
+      start_x,
+      start_y,
+      end_x,
+      end_y,
+      condition_score,
+      grade_match_score,
+      avg_drag_force,
+      body_gauge_match,
+      relay_consensus,
+      reference_relay_age_s,
+      passes,
+      verification_events,
+      status,
+      is_reference_zone,
+      restamp_required,
+      updated_at
+    )
+    WITH house_ref AS (
+      SELECT
+        id,
+        COALESCE(reference_patch_x, 1)::numeric AS ref_x,
+        COALESCE(reference_patch_y, 8)::numeric AS ref_y
+      FROM houses
+      WHERE id = $1
+    ), segments AS (
+      SELECT generate_series(0, $2::int - 1) AS segment_index
+    )
+    SELECT
+      hr.id,
+      'lane_main',
+      s.segment_index,
+      ROUND((hr.ref_x + (s.segment_index::numeric / $2::numeric) * (4.5 - hr.ref_x))::numeric, 3),
+      ROUND((hr.ref_y + (s.segment_index::numeric / $2::numeric) * (4.5 - hr.ref_y))::numeric, 3),
+      ROUND((hr.ref_x + ((s.segment_index + 1)::numeric / $2::numeric) * (4.5 - hr.ref_x))::numeric, 3),
+      ROUND((hr.ref_y + ((s.segment_index + 1)::numeric / $2::numeric) * (4.5 - hr.ref_y))::numeric, 3),
+      0.22,
+      0.28,
+      50,
+      0.3,
+      0.42,
+      160,
+      0,
+      0,
+      'raw',
+      s.segment_index = 0,
+      FALSE,
+      NOW()
+    FROM house_ref hr
+    CROSS JOIN segments s
+    ON CONFLICT (house_id, lane_id, segment_index) DO NOTHING`,
+    [houseId, LOGISTICS_SEGMENT_COUNT]
+  );
+}
+
+async function applyLogisticsPass(client, { houseId, robotId, robotStatus }) {
+  await ensureLogisticsLanesForHouse(client, houseId);
+
+  const picked = await client.query(
+    `SELECT *
+     FROM logistics_lane_segments
+     WHERE house_id = $1
+     ORDER BY CASE status WHEN 'degraded' THEN 0 WHEN 'raw' THEN 1 WHEN 'conditioning' THEN 2 ELSE 3 END,
+              condition_score ASC,
+              segment_index ASC,
+              updated_at ASC
+     LIMIT 1
+     FOR UPDATE SKIP LOCKED`,
+    [houseId]
+  );
+
+  const seg = picked.rows[0];
+  if (!seg) {
+    return { travelFactor: 1, laneAvgCondition: 0.5, staleSegments: 0 };
+  }
+
+  const passes = Number(seg.passes || 0);
+  const prevCondition = Number(seg.condition_score || 0.22);
+  const prevRelayAge = Number(seg.reference_relay_age_s || 999);
+  const needsVerify = prevRelayAge > LOGISTICS_STALE_RELAY_SECONDS || passes === 0 || (passes % LOGISTICS_VERIFY_INTERVAL === 0);
+
+  let relayAge = Math.max(0, Math.round(prevRelayAge + randRange(-18, 30)));
+  if (needsVerify) {
+    relayAge = Math.max(4, Math.round(randRange(8, 34)));
+  }
+
+  const relayStale = relayAge > LOGISTICS_STALE_RELAY_SECONDS;
+
+  let condition = prevCondition + LOGISTICS_CONDITION_GAIN + randRange(-0.02, 0.04);
+  if (robotStatus === 'waiting_component') {
+    condition -= 0.03;
+  }
+  if (relayStale) {
+    condition -= LOGISTICS_DEGRADE_RATE;
+  }
+
+  condition = clamp(condition, 0.05, 0.99);
+
+  const dragForce = clamp(58 - condition * 24 + randRange(-4.5, 4.5), 18, 90);
+  const bodyGaugeMatch = clamp(condition + randRange(-0.15, 0.08), 0.05, 0.99);
+  const relayConsensus = clamp(1 - relayAge / (LOGISTICS_STALE_RELAY_SECONDS * 1.8) + randRange(-0.08, 0.06), 0.05, 0.99);
+  const gradeMatch = clamp(condition * 0.55 + bodyGaugeMatch * 0.25 + relayConsensus * 0.2 + randRange(-0.06, 0.05), 0.05, 0.99);
+
+  let nextStatus = 'conditioning';
+  if (condition < 0.45) nextStatus = 'raw';
+  if (relayStale || gradeMatch < 0.46) nextStatus = 'degraded';
+  if (condition >= 0.78 && !relayStale && gradeMatch >= 0.7) nextStatus = 'stable';
+
+  const restampRequired = Boolean(seg.is_reference_zone) && relayStale;
+
+  await client.query(
+    `UPDATE logistics_lane_segments
+     SET condition_score = $2,
+         grade_match_score = $3,
+         avg_drag_force = $4,
+         body_gauge_match = $5,
+         relay_consensus = $6,
+         reference_relay_age_s = $7,
+         passes = passes + 1,
+         verification_events = verification_events + $8,
+         status = $9,
+         restamp_required = $10,
+         last_verified_at = CASE WHEN $8 = 1 THEN NOW() ELSE last_verified_at END,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [seg.id, condition, gradeMatch, dragForce, bodyGaugeMatch, relayConsensus, relayAge, needsVerify ? 1 : 0, nextStatus, restampRequired]
+  );
+
+  const summary = await client.query(
+    `SELECT
+       COALESCE(AVG(condition_score), 0)::float AS avg_condition,
+       COUNT(*) FILTER (WHERE reference_relay_age_s > $2)::int AS stale_segments,
+       COUNT(*) FILTER (WHERE status = 'degraded')::int AS degraded_segments
+     FROM logistics_lane_segments
+     WHERE house_id = $1`,
+    [houseId, LOGISTICS_STALE_RELAY_SECONDS]
+  );
+
+  const avgCondition = Number(summary.rows[0]?.avg_condition || 0.22);
+  const travelFactor = clamp(LOGISTICS_TRAVEL_FACTOR_MAX - avgCondition * 0.7, LOGISTICS_TRAVEL_FACTOR_MIN, LOGISTICS_TRAVEL_FACTOR_MAX);
+
+  return {
+    travelFactor,
+    laneAvgCondition: avgCondition,
+    staleSegments: Number(summary.rows[0]?.stale_segments || 0),
+    degradedSegments: Number(summary.rows[0]?.degraded_segments || 0),
+    verifierTriggered: needsVerify,
+    segmentId: seg.id,
+    robotId
+  };
+}
+
 async function runSitePrepStep(client, robot) {
   const terrainJob = await client.query(
     `SELECT id, x, y, target_grade, current_grade, soil_density, compaction_score, status, obstacle_type, obstacle_cleared
@@ -1373,7 +1606,7 @@ async function runRobotStep(client, robot) {
   const houseRes = await client.query(`SELECT id, stage FROM houses WHERE id = $1`, [robot.active_house_id]);
   const stage = houseRes.rows[0]?.stage;
 
-  if (!stage || stage === "complete") {
+  if (!stage || stage === 'complete') {
     await client.query(
       `UPDATE robots
        SET status = 'idle', total_idle_seconds = total_idle_seconds + 1, updated_at = NOW()
@@ -1383,22 +1616,22 @@ async function runRobotStep(client, robot) {
     return;
   }
 
-  if (stage === "site_prep") {
+  if (stage === 'site_prep') {
     await runSitePrepStep(client, robot);
     return;
   }
 
-  if (stage === "surveying") {
+  if (stage === 'surveying') {
     await runSurveyingStep(client, robot);
     return;
   }
 
-  if (stage === "sealing") {
+  if (stage === 'sealing') {
     await runSealingRobotStep(client, robot);
     return;
   }
 
-  if (stage === "community_assembly") {
+  if (stage === 'community_assembly') {
     await client.query(
       `UPDATE robots
        SET status = 'idle', total_idle_seconds = total_idle_seconds + 1, updated_at = NOW()
@@ -1406,6 +1639,15 @@ async function runRobotStep(client, robot) {
       [robot.id]
     );
     return;
+  }
+
+  let laneSnapshot = null;
+  if (['foundation', 'framing', 'mep', 'finishing'].includes(stage)) {
+    laneSnapshot = await applyLogisticsPass(client, {
+      houseId: robot.active_house_id,
+      robotId: robot.id,
+      robotStatus: robot.status
+    });
   }
 
   const availableJob = await client.query(
@@ -1449,7 +1691,7 @@ async function runRobotStep(client, robot) {
     [job.queue_id]
   );
 
-  if (readyRes.rows[0]?.status !== "ready") {
+  if (readyRes.rows[0]?.status !== 'ready') {
     await client.query(
       `UPDATE robots
        SET status = 'waiting_component', total_idle_seconds = total_idle_seconds + 1, updated_at = NOW()
@@ -1496,7 +1738,9 @@ async function runRobotStep(client, robot) {
   const insertion = simulateInsertion(job.component_type);
   const retrySeconds = insertion.retries * RETRY_ADJUST_SECONDS;
   const failurePenalty = insertion.success ? 0 : FAILED_INSERTION_PENALTY_SECONDS;
-  const workSec = movementSeconds(robot, cell) + retrySeconds + failurePenalty;
+  const rawWorkSec = movementSeconds(robot, cell) + retrySeconds + failurePenalty;
+  const laneTravelFactor = laneSnapshot?.travelFactor ?? 1;
+  const workSec = Math.max(4, Math.round(rawWorkSec * laneTravelFactor));
 
   await client.query(
     `UPDATE robots
@@ -1559,7 +1803,11 @@ async function progressHouseStages(client) {
       await client.query(
         `UPDATE houses
          SET stage = 'surveying',
-             survey_status = 'pending'
+             survey_status = 'pending',
+             reference_patch_x = NULL,
+             reference_patch_y = NULL,
+             reference_patch_protected = FALSE,
+             reference_patch_stamped_at = NULL
          WHERE id = $1`,
         [house.id]
       );
@@ -1594,7 +1842,11 @@ async function progressHouseStages(client) {
           `UPDATE houses
            SET stage = 'site_prep',
                survey_status = 'pending',
-               site_zone = 'MARGINAL'
+               site_zone = 'MARGINAL',
+               reference_patch_x = NULL,
+               reference_patch_y = NULL,
+               reference_patch_protected = FALSE,
+               reference_patch_stamped_at = NULL
            WHERE id = $1`,
           [house.id]
         );
@@ -1748,7 +2000,7 @@ export async function schedulerTick() {
 }
 
 export async function sampleMetrics() {
-  const [counts, robotTime, houseTime, placementStats, terrainStats, communityStats, surveyStats, soilStats, blockStats, maintenanceStats, surveyRunStats] = await Promise.all([
+  const [counts, robotTime, houseTime, placementStats, terrainStats, communityStats, surveyStats, soilStats, blockStats, maintenanceStats, surveyRunStats, laneStats, referencePatchStats] = await Promise.all([
     pool.query(`
       SELECT
         COUNT(DISTINCT h.id)::int AS active_houses,
@@ -1830,6 +2082,25 @@ export async function sampleMetrics() {
       FROM survey_runs sr
       JOIN houses h ON h.id = sr.house_id
       WHERE h.is_active = TRUE
+    `),
+    pool.query(`
+      SELECT
+        COALESCE(AVG(ls.condition_score), 0)::float AS avg_lane_condition,
+        COUNT(*)::int AS lane_segments_total,
+        COUNT(*) FILTER (WHERE ls.condition_score >= 0.75)::int AS conditioned_segments,
+        COUNT(*) FILTER (WHERE ls.status = 'degraded')::int AS degraded_segments,
+        COUNT(*) FILTER (WHERE ls.reference_relay_age_s > $1)::int AS stale_segments,
+        COALESCE(SUM(ls.verification_events), 0)::int AS verification_events
+      FROM logistics_lane_segments ls
+      JOIN houses h ON h.id = ls.house_id
+      WHERE h.is_active = TRUE
+    `, [LOGISTICS_STALE_RELAY_SECONDS]),
+    pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE reference_patch_x IS NOT NULL AND reference_patch_y IS NOT NULL)::int AS reference_total,
+        COUNT(*) FILTER (WHERE reference_patch_x IS NOT NULL AND reference_patch_y IS NOT NULL AND reference_patch_protected = TRUE)::int AS reference_protected
+      FROM houses
+      WHERE is_active = TRUE
     `)
   ]);
 
@@ -1838,6 +2109,8 @@ export async function sampleMetrics() {
   const p = placementStats.rows[0];
   const terrain = terrainStats.rows[0];
   const community = communityStats.rows[0];
+  const lane = laneStats.rows[0] || {};
+  const referencePatches = referencePatchStats.rows[0] || {};
 
   const elapsedHours = Number(houseTime.rows[0]?.elapsed_hours || 0);
   const totalTime = Number(t.idle) + Number(t.work);
@@ -1852,10 +2125,14 @@ export async function sampleMetrics() {
   const terrainReady = Number(terrain.terrain_ready || 0);
   const terrainReadyPercent = terrainTotal > 0 ? (terrainReady / terrainTotal) * 100 : 100;
 
+  const laneSegmentsTotal = Number(lane.lane_segments_total || 0);
+  const conditionedSegments = Number(lane.conditioned_segments || 0);
+  const conditionedLanePercent = laneSegmentsTotal > 0 ? (conditionedSegments / laneSegmentsTotal) * 100 : 0;
+
   await pool.query(
     `INSERT INTO metrics_samples
-      (active_houses, active_robots, houses_completed, cells_filled, total_cells, robot_idle_percent, throughput_cells_per_hour, pipeline_efficiency, placement_corrections, placement_failures, avg_retries_per_placement, terrain_ready_percent, avg_grade_error, avg_compaction, obstacle_cells_remaining, community_kits_activated, community_kits_failed, community_kits_pending, active_surveys, soil_recipes_learned, blocks_verified, blocks_failed_qc, houses_in_maintenance, avg_ttl_days, avg_survey_uncertainty, survey_densification_rounds)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
+      (active_houses, active_robots, houses_completed, cells_filled, total_cells, robot_idle_percent, throughput_cells_per_hour, pipeline_efficiency, placement_corrections, placement_failures, avg_retries_per_placement, terrain_ready_percent, avg_grade_error, avg_compaction, obstacle_cells_remaining, community_kits_activated, community_kits_failed, community_kits_pending, active_surveys, soil_recipes_learned, blocks_verified, blocks_failed_qc, houses_in_maintenance, avg_ttl_days, avg_survey_uncertainty, survey_densification_rounds, avg_lane_condition, conditioned_lane_percent, degraded_lane_segments, stale_relay_segments, lane_verification_events, reference_patches_protected, reference_patches_total)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)`,
     [
       c.active_houses,
       c.active_robots,
@@ -1882,13 +2159,20 @@ export async function sampleMetrics() {
       Number(maintenanceStats.rows[0]?.houses_in_maintenance || 0),
       Number(maintenanceStats.rows[0]?.avg_ttl_days || 0),
       Number(surveyRunStats.rows[0]?.avg_survey_uncertainty || 0),
-      Number(surveyRunStats.rows[0]?.survey_densification_rounds || 0)
+      Number(surveyRunStats.rows[0]?.survey_densification_rounds || 0),
+      Number(lane.avg_lane_condition || 0),
+      conditionedLanePercent,
+      Number(lane.degraded_segments || 0),
+      Number(lane.stale_segments || 0),
+      Number(lane.verification_events || 0),
+      Number(referencePatches.reference_protected || 0),
+      Number(referencePatches.reference_total || 0)
     ]
   );
 }
 
 export async function systemState() {
-  const [houses, robots, queue, metrics, cells, terrainCounts, terrainObstacles, assemblyQueue, assemblyCounts, maintenance, surveySummary, surveyRuns, causalGlobal, causalByHouse] = await Promise.all([
+  const [houses, robots, queue, metrics, cells, terrainCounts, terrainObstacles, assemblyQueue, assemblyCounts, maintenance, surveySummary, surveyRuns, laneSummary, causalGlobal, causalByHouse] = await Promise.all([
     pool.query(`SELECT * FROM houses WHERE is_active = TRUE ORDER BY id`),
     pool.query(`SELECT * FROM robots ORDER BY id`),
     pool.query(`
@@ -1974,7 +2258,27 @@ export async function systemState() {
       JOIN houses h ON h.id = sr.house_id
       WHERE h.is_active = TRUE
       ORDER BY sr.updated_at DESC
-    `),
+    `),    pool.query(`
+      SELECT
+        ls.house_id,
+        ls.lane_id,
+        COUNT(*)::int AS segments,
+        ROUND(COALESCE(AVG(ls.condition_score), 0)::numeric, 3) AS avg_condition,
+        ROUND(COALESCE(AVG(ls.grade_match_score), 0)::numeric, 3) AS avg_grade_match,
+        ROUND(COALESCE(AVG(ls.body_gauge_match), 0)::numeric, 3) AS avg_body_gauge,
+        ROUND(COALESCE(AVG(ls.relay_consensus), 0)::numeric, 3) AS avg_relay_consensus,
+        ROUND(COALESCE(AVG(ls.reference_relay_age_s), 0)::numeric, 1) AS avg_relay_age_s,
+        COUNT(*) FILTER (WHERE ls.condition_score >= 0.75)::int AS conditioned_segments,
+        COUNT(*) FILTER (WHERE ls.status = 'degraded')::int AS degraded_segments,
+        COUNT(*) FILTER (WHERE ls.reference_relay_age_s > $1)::int AS stale_segments,
+        COALESCE(SUM(ls.verification_events), 0)::int AS verification_events,
+        BOOL_OR(ls.restamp_required) AS restamp_required
+      FROM logistics_lane_segments ls
+      JOIN houses h ON h.id = ls.house_id
+      WHERE h.is_active = TRUE
+      GROUP BY ls.house_id, ls.lane_id
+      ORDER BY ls.house_id, ls.lane_id
+    `, [LOGISTICS_STALE_RELAY_SECONDS]),
     pool.query(`
       WITH survey AS (
         SELECT
@@ -2134,10 +2438,38 @@ export async function systemState() {
     terrainObstacles: terrainObstacles.rows,
     assemblyCounts: assemblyCounts.rows,
     maintenance: maintenance.rows,
-    surveySummary: surveySummary.rows
+    surveySummary: surveySummary.rows,
+    surveyRuns: surveyRuns.rows,
+    laneSummary: laneSummary.rows,
+    causalGlobal: causalGlobal.rows[0] || {},
+    causalByHouse: causalByHouse.rows
   };
 }
 
+export async function logisticsLaneSummary() {
+  return pool.query(
+    `SELECT
+       ls.house_id,
+       ls.lane_id,
+       COUNT(*)::int AS segments,
+       ROUND(COALESCE(AVG(ls.condition_score), 0)::numeric, 3) AS avg_condition,
+       ROUND(COALESCE(AVG(ls.grade_match_score), 0)::numeric, 3) AS avg_grade_match,
+       ROUND(COALESCE(AVG(ls.body_gauge_match), 0)::numeric, 3) AS avg_body_gauge,
+       ROUND(COALESCE(AVG(ls.relay_consensus), 0)::numeric, 3) AS avg_relay_consensus,
+       ROUND(COALESCE(AVG(ls.reference_relay_age_s), 0)::numeric, 1) AS avg_relay_age_s,
+       COUNT(*) FILTER (WHERE ls.condition_score >= 0.75)::int AS conditioned_segments,
+       COUNT(*) FILTER (WHERE ls.status = 'degraded')::int AS degraded_segments,
+       COUNT(*) FILTER (WHERE ls.reference_relay_age_s > $1)::int AS stale_segments,
+       COALESCE(SUM(ls.verification_events), 0)::int AS verification_events,
+       BOOL_OR(ls.restamp_required) AS restamp_required
+     FROM logistics_lane_segments ls
+     JOIN houses h ON h.id = ls.house_id
+     WHERE h.is_active = TRUE
+     GROUP BY ls.house_id, ls.lane_id
+     ORDER BY ls.house_id, ls.lane_id`,
+    [LOGISTICS_STALE_RELAY_SECONDS]
+  ).then((res) => res.rows);
+}
 export async function surveyHouse(houseId) {
   return withTx(async (client) => surveyHouseTx(client, Number(houseId)));
 }
@@ -2171,6 +2503,15 @@ export async function getMaintenanceAlerts(withinDays = 180) {
     [Number(withinDays)]
   ).then((result) => result.rows);
 }
+
+
+
+
+
+
+
+
+
 
 
 

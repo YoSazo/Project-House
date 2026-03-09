@@ -11,7 +11,11 @@ CREATE TABLE IF NOT EXISTS houses (
   site_zone TEXT NOT NULL DEFAULT 'BUILDABLE',
   sealing_complete BOOLEAN NOT NULL DEFAULT FALSE,
   sealing_started_at TIMESTAMPTZ,
-  sealing_progress NUMERIC(6,3) NOT NULL DEFAULT 0
+  sealing_progress NUMERIC(6,3) NOT NULL DEFAULT 0,
+  reference_patch_x INTEGER,
+  reference_patch_y INTEGER,
+  reference_patch_protected BOOLEAN NOT NULL DEFAULT FALSE,
+  reference_patch_stamped_at TIMESTAMPTZ
 );
 
 DO $$
@@ -38,6 +42,10 @@ ALTER TABLE houses ADD COLUMN IF NOT EXISTS site_zone TEXT NOT NULL DEFAULT 'BUI
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS sealing_complete BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS sealing_started_at TIMESTAMPTZ;
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS sealing_progress NUMERIC(6,3) NOT NULL DEFAULT 0;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS reference_patch_x INTEGER;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS reference_patch_y INTEGER;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS reference_patch_protected BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS reference_patch_stamped_at TIMESTAMPTZ;
 
 DO $$
 BEGIN
@@ -149,6 +157,33 @@ ALTER TABLE terrain_cells
   ADD CONSTRAINT terrain_cells_obstacle_type_check
   CHECK (obstacle_type IN ('none', 'root', 'rock', 'debris'));
 
+CREATE TABLE IF NOT EXISTS logistics_lane_segments (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
+  lane_id TEXT NOT NULL DEFAULT 'lane_main',
+  segment_index INTEGER NOT NULL,
+  start_x NUMERIC(8,3) NOT NULL,
+  start_y NUMERIC(8,3) NOT NULL,
+  end_x NUMERIC(8,3) NOT NULL,
+  end_y NUMERIC(8,3) NOT NULL,
+  condition_score NUMERIC(8,4) NOT NULL DEFAULT 0.22,
+  grade_match_score NUMERIC(8,4) NOT NULL DEFAULT 0,
+  avg_drag_force NUMERIC(8,4) NOT NULL DEFAULT 0,
+  body_gauge_match NUMERIC(8,4) NOT NULL DEFAULT 0,
+  relay_consensus NUMERIC(8,4) NOT NULL DEFAULT 0,
+  reference_relay_age_s INTEGER NOT NULL DEFAULT 999,
+  passes INTEGER NOT NULL DEFAULT 0,
+  verification_events INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL CHECK (status IN ('raw', 'conditioning', 'stable', 'degraded')) DEFAULT 'raw',
+  is_reference_zone BOOLEAN NOT NULL DEFAULT FALSE,
+  restamp_required BOOLEAN NOT NULL DEFAULT FALSE,
+  last_verified_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (house_id, lane_id, segment_index)
+);
+
+CREATE INDEX IF NOT EXISTS idx_logistics_lane_segments_house ON logistics_lane_segments (house_id, lane_id);
+CREATE INDEX IF NOT EXISTS idx_logistics_lane_segments_status ON logistics_lane_segments (status, updated_at DESC);
 CREATE TABLE IF NOT EXISTS fabricator_queue (
   id BIGSERIAL PRIMARY KEY,
   house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
@@ -275,7 +310,14 @@ CREATE TABLE IF NOT EXISTS metrics_samples (
   blocks_verified INTEGER NOT NULL DEFAULT 0,
   blocks_failed_qc INTEGER NOT NULL DEFAULT 0,
   houses_in_maintenance INTEGER NOT NULL DEFAULT 0,
-  avg_ttl_days NUMERIC(10,3) NOT NULL DEFAULT 0
+  avg_ttl_days NUMERIC(10,3) NOT NULL DEFAULT 0,
+  avg_lane_condition NUMERIC(8,4) NOT NULL DEFAULT 0,
+  conditioned_lane_percent NUMERIC(6,2) NOT NULL DEFAULT 0,
+  degraded_lane_segments INTEGER NOT NULL DEFAULT 0,
+  stale_relay_segments INTEGER NOT NULL DEFAULT 0,
+  lane_verification_events INTEGER NOT NULL DEFAULT 0,
+  reference_patches_protected INTEGER NOT NULL DEFAULT 0,
+  reference_patches_total INTEGER NOT NULL DEFAULT 0
 );
 
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS active_houses INTEGER NOT NULL DEFAULT 0;
@@ -299,6 +341,13 @@ ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS blocks_verified INTEGER NOT
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS blocks_failed_qc INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS houses_in_maintenance INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_ttl_days NUMERIC(10,3) NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_lane_condition NUMERIC(8,4) NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS conditioned_lane_percent NUMERIC(6,2) NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS degraded_lane_segments INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS stale_relay_segments INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS lane_verification_events INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS reference_patches_protected INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS reference_patches_total INTEGER NOT NULL DEFAULT 0;
 
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS recommended_build_zone TEXT;
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS survey_uncertainty_remaining NUMERIC(8,4) NOT NULL DEFAULT 1;
@@ -352,3 +401,5 @@ CREATE INDEX IF NOT EXISTS idx_survey_runs_status ON survey_runs (run_status, up
 
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_survey_uncertainty NUMERIC(8,4) NOT NULL DEFAULT 0;
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS survey_densification_rounds NUMERIC(8,3) NOT NULL DEFAULT 0;
+
+
