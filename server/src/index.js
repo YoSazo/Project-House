@@ -18,9 +18,51 @@ app.use(express.json());
 let schedulerQueue = Promise.resolve();
 let resetInFlight = null;
 let resetInFlightTargets = null;
+let serializedTaskSeq = 0;
+let serializedPendingCount = 0;
 
-function runSerialized(task) {
-  const next = schedulerQueue.then(task, task);
+const DEBUG_QUEUE = process.env.DEBUG_QUEUE === "1";
+const DEBUG_RESET = process.env.DEBUG_RESET !== "0";
+
+function runSerialized(task, label = "task") {
+  const taskId = ++serializedTaskSeq;
+  const enqueuedAt = Date.now();
+  serializedPendingCount += 1;
+
+  const shouldLogQueue = DEBUG_QUEUE || (DEBUG_RESET && label.startsWith("reset"));
+
+  if (shouldLogQueue) {
+    console.log(`[queue] enqueued id=${taskId} label=${label} pending=${serializedPendingCount}`);
+  }
+
+  const wrapped = async () => {
+    const startedAt = Date.now();
+    const waitMs = startedAt - enqueuedAt;
+
+    if (shouldLogQueue) {
+      console.log(`[queue] start id=${taskId} label=${label} wait_ms=${waitMs} pending=${serializedPendingCount}`);
+    }
+
+    try {
+      const result = await task();
+      if (shouldLogQueue) {
+        console.log(`[queue] done id=${taskId} label=${label} run_ms=${Date.now() - startedAt}`);
+      }
+      return result;
+    } catch (error) {
+      if (shouldLogQueue) {
+        console.error(`[queue] error id=${taskId} label=${label} run_ms=${Date.now() - startedAt} message=${error?.message}`);
+      }
+      throw error;
+    } finally {
+      serializedPendingCount = Math.max(0, serializedPendingCount - 1);
+      if (shouldLogQueue) {
+        console.log(`[queue] settle id=${taskId} label=${label} pending=${serializedPendingCount}`);
+      }
+    }
+  };
+
+  const next = schedulerQueue.then(wrapped, wrapped);
   schedulerQueue = next.catch(() => {});
   return next;
 }
@@ -438,7 +480,7 @@ app.post("/api/survey-site", async (req, res) => {
       return;
     }
 
-    const result = await runSerialized(async () => surveyHouse(houseId));
+    const result = await runSerialized(async () => surveyHouse(houseId), `survey:${houseId}`);
     const state = await systemState();
     broadcast({ type: "state", data: state });
     res.json({ ok: true, ...result });
@@ -457,7 +499,7 @@ app.post("/api/verify-block", async (req, res) => {
       return;
     }
 
-    const result = await runSerialized(async () => verifyBlock({ houseId, soilSignature }));
+    const result = await runSerialized(async () => verifyBlock({ houseId, soilSignature }), `verify-block:${houseId}`);
     res.json({ ok: true, ...result });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
@@ -472,7 +514,7 @@ app.post("/api/run-weathering-test", async (req, res) => {
       return;
     }
 
-    const result = await runSerialized(async () => runWeatheringTest(soilSignature));
+    const result = await runSerialized(async () => runWeatheringTest(soilSignature), `weathering:${soilSignature}`);
     res.json({ ok: true, ...result });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
@@ -489,7 +531,7 @@ app.post("/api/complete-sealing", async (req, res) => {
       return;
     }
 
-    const result = await runSerialized(async () => completeSealingForHouse(houseId, soilSignature));
+    const result = await runSerialized(async () => completeSealingForHouse(houseId, soilSignature), `complete-sealing:${houseId}`);
     const state = await systemState();
     broadcast({ type: "state", data: state });
     res.json({ ok: true, ...result });
@@ -506,7 +548,7 @@ app.post("/api/trigger-maintenance", async (req, res) => {
       return;
     }
 
-    const result = await runSerialized(async () => triggerMaintenanceForHouse(houseId));
+    const result = await runSerialized(async () => triggerMaintenanceForHouse(houseId), `trigger-maintenance:${houseId}`);
     const state = await systemState();
     broadcast({ type: "state", data: state });
     res.json({ ok: true, result });
@@ -712,7 +754,7 @@ app.post("/api/pipeline/target", async (req, res) => {
       }
 
       return systemState();
-    });
+    }, `pipeline-target:${target}`);
 
     broadcast({ type: "state", data: state });
     res.json({ ok: true, target_houses: target, allowed_targets: PIPELINE_TARGETS, state });
@@ -737,7 +779,7 @@ app.post("/api/robots/target", async (req, res) => {
       }
 
       return systemState();
-    });
+    }, `robot-target:${target}`);
 
     broadcast({ type: "state", data: state });
     res.json({ ok: true, target_robots: target, allowed_targets: ROBOT_TARGETS, state });
@@ -755,27 +797,72 @@ app.post("/api/experiment/reset", async (req, res) => {
     const targetHouses = Number.isFinite(houseTargetRaw) ? Math.max(1, Math.min(60, houseTargetRaw)) : null;
     const targetRobots = Number.isFinite(robotTargetRaw) ? Math.max(3, Math.min(120, robotTargetRaw)) : null;
 
+    if (DEBUG_RESET) {
+      console.log(`[reset] request target_houses=${targetHouses ?? "auto"} target_robots=${targetRobots ?? "auto"} in_flight=${Boolean(resetInFlight)} pending=${serializedPendingCount}`);
+    }
+
     if (!resetInFlight) {
       resetInFlightTargets = { targetHouses, targetRobots };
+      const resetLabel = `reset:h=${targetHouses ?? "auto"}:r=${targetRobots ?? "auto"}`;
+
       resetInFlight = runSerialized(async () => {
+        const resetStartedAt = Date.now();
+        if (DEBUG_RESET) {
+          console.log(`[reset] begin label=${resetLabel}`);
+        }
+
+        const txStartedAt = Date.now();
         await withTx(async (client) => {
           if (targetHouses !== null) {
+            const adjustHousesStartedAt = Date.now();
             await adjustHouseCount(client, targetHouses);
+            if (DEBUG_RESET) {
+              console.log(`[reset] step=adjust_house_count ms=${Date.now() - adjustHousesStartedAt} target=${targetHouses}`);
+            }
           }
 
           if (targetRobots !== null) {
+            const adjustRobotsStartedAt = Date.now();
             await adjustRobotCount(client, targetRobots);
+            if (DEBUG_RESET) {
+              console.log(`[reset] step=adjust_robot_count ms=${Date.now() - adjustRobotsStartedAt} target=${targetRobots}`);
+            }
           }
 
+          const resetStateStartedAt = Date.now();
           await resetExperimentState(client);
+          if (DEBUG_RESET) {
+            console.log(`[reset] step=reset_experiment_state ms=${Date.now() - resetStateStartedAt}`);
+          }
         });
 
+        if (DEBUG_RESET) {
+          console.log(`[reset] step=withTx ms=${Date.now() - txStartedAt}`);
+        }
+
+        const sampleStartedAt = Date.now();
         await sampleMetrics();
-        return systemState();
-      }).finally(() => {
+        if (DEBUG_RESET) {
+          console.log(`[reset] step=sample_metrics ms=${Date.now() - sampleStartedAt}`);
+        }
+
+        const stateStartedAt = Date.now();
+        const state = await systemState();
+        if (DEBUG_RESET) {
+          console.log(`[reset] step=system_state ms=${Date.now() - stateStartedAt}`);
+          console.log(`[reset] complete label=${resetLabel} total_ms=${Date.now() - resetStartedAt}`);
+        }
+
+        return state;
+      }, resetLabel).finally(() => {
+        if (DEBUG_RESET) {
+          console.log("[reset] clear_inflight");
+        }
         resetInFlight = null;
         resetInFlightTargets = null;
       });
+    } else if (DEBUG_RESET) {
+      console.log(`[reset] join_inflight target_houses=${targetHouses ?? "auto"} target_robots=${targetRobots ?? "auto"}`);
     }
 
     const activeTargets = resetInFlightTargets ?? { targetHouses, targetRobots };
@@ -801,7 +888,7 @@ app.post("/api/tick", async (_req, res) => {
   try {
     await runSerialized(async () => {
       await schedulerTick();
-    });
+    }, "manual-tick");
     res.json({ ok: true });
   } catch (error) {
     console.error("Manual tick error", error);
@@ -814,7 +901,7 @@ app.post("/api/reset-metrics", async (_req, res) => {
     await runSerialized(async () => {
       await pool.query("TRUNCATE metrics_samples");
       await sampleMetrics();
-    });
+    }, "reset-metrics");
     res.json({ ok: true });
   } catch (error) {
     console.error("Reset metrics error", error);
@@ -848,7 +935,7 @@ setInterval(() => {
     await schedulerTick();
     const state = await systemState();
     broadcast({ type: "state", data: state });
-  }).catch((error) => {
+  }, "auto-tick").catch((error) => {
     console.error("Tick error", error);
     broadcast({ type: "error", data: { message: error.message } });
   }).finally(() => {
@@ -864,5 +951,8 @@ process.on("SIGINT", async () => {
   await pool.end();
   process.exit(0);
 });
+
+
+
 
 
