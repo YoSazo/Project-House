@@ -62,114 +62,220 @@ const robotRoleCatalog = [
   {
     id: "excavator",
     label: "Excavator",
-    primaryJobs: "Grade, compact, dig",
-    requiredDof: "4 (XYZ+tilt)",
-    forceNeeds: "1kN compaction",
-    dataInterface: "grade(area,slope), compact(target)",
-    commands: ["grade(area,slope)", "compact(target)", "clearObstacle(type)"],
+    primaryJobs: "Penetrate, process, lift, coarse split",
+    requiredDof: "4 (XYZ+process)",
+    forceNeeds: "1kN compaction + lift flow",
+    dataInterface: "emit_excavation_report(zone_id) -> ground_truth_record",
+    commands: [
+      "load_survey_zone_profile(zone_id)",
+      "check_slurry_risk(zone_id)",
+      "confirm_container_ready(container_id)",
+      "goto(zone_id)",
+      "penetrate(depth)",
+      "engage_blades()",
+      "start_lift()",
+      "pause_lift(reason)",
+      "route_good_stream(container_id)",
+      "route_reject_stream(reject_id)",
+      "clear_jam()",
+      "emit_excavation_report(zone_id)",
+      "emit_ground_truth_record(zone_id)",
+      "abort_job(reason)"
+    ],
     emits: {
       table: "terrain_cells",
       payload: {
-        house_id: "uuid",
-        x: 4,
-        y: 3,
-        status: "ready",
-        current_grade: 0.02,
-        compaction_score: 0.91
+        robot_id: "excavator_03",
+        zone_id: "siteprep_a1",
+        depth_m: 1.8,
+        expected_hard_layer_depth_m: 1.6,
+        blade_load_score: 0.71,
+        blade_wear_index: 0.14,
+        good_stream_rate: 14.2,
+        reject_stream_rate: 3.8,
+        container_fill_pct: 42,
+        backpressure_state: "nominal",
+        jam_state: false,
+        prediction_delta: "within_tolerance"
       }
     },
-    c2a: "Constraint: unstructured terrain. Transmutation: turn terrain prep into a measurable grid where each cell reaches grade+compaction thresholds."
+    c2a: "Constraint: raw earth is mixed and messy. Transmutation: break soft material, lift to surface, binary split, then feed downstream classification."
   },
   {
     id: "fabricator",
     label: "Fabricator",
-    primaryJobs: "Mix soil, form blocks",
-    requiredDof: "3 (mixer+extrude)",
-    forceNeeds: "500N pressure",
-    dataInterface: "produce(signature) -> block_id",
-    commands: ["readSoil(signature)", "selectRecipe(signature)", "produce(signature)"],
+    primaryJobs: "Ground-anchored press + calibration loop",
+    requiredDof: "3 (anchor+press+eject)",
+    forceNeeds: "500N press path (earth anvil)",
+    dataInterface: "emit_fabrication_record(part_id) -> verification",
+    commands: [
+      "load_recipe(recipe_id)",
+      "check_feed_moisture()",
+      "apply_conditioning(type,dose)",
+      "deploy_anchor()",
+      "confirm_anchor_seating()",
+      "relocate_anchor(offset)",
+      "fill_mold(volume_target)",
+      "compress()",
+      "eject_block()",
+      "begin_dwell(dwell_seconds)",
+      "release_to_verification(part_id)",
+      "update_fill_volume(delta)",
+      "update_dwell_seconds(value)",
+      "flag_convergence_limit(batch_id)",
+      "emit_fabrication_record(part_id)",
+      "emit_feed_quality_record(batch_id)",
+      "recycle_calibration_block(part_id)",
+      "abort_job(reason)"
+    ],
     emits: {
       table: "soil_library",
       payload: {
-        soil_signature: "clay44_sand33_silt23_org2_sal0.6",
-        recipe: { clay: 45, sand: 40, lime: 10, cement: 5 },
-        short_term_confidence: 0.88,
-        total_blocks_verified: 120
+        part_id: "block_244",
+        recipe_id: "ext_wall_v3",
+        batch_id: "batch_18",
+        fill_volume_target_l: 4.28,
+        incoming_moisture_pct: 11.2,
+        anchor_seat_confidence: 0.91,
+        calibration_cycle_count: 2,
+        convergence_limit_hit: false,
+        batch_reject_rate: 0.08,
+        assessment: "gate_slightly_permissive"
       }
     },
-    c2a: "Constraint: fixed material recipe fails across soils. Transmutation: inline soil signature routing to adaptive recipe library."
+    c2a: "Constraint: variable soil breaks fixed pressing. Transmutation: fixed geometry plus dynamic fill-volume tuning with verification feedback and convergence limits."
   },
   {
     id: "verification",
     label: "Verification",
-    primaryJobs: "QC test, weathering",
+    primaryJobs: "QC test, process trust, weathering",
     requiredDof: "2 (test+move)",
     forceNeeds: "100N penetrometer",
-    dataInterface: "qc(block_id) -> pass/metrics",
-    commands: ["qc(block_id)", "runWeathering(signature)", "updateConfidence(signature)"],
+    dataInterface: "verify(block_id,requested_spec) -> decision/confidence",
+    commands: [
+      "load_requested_spec(role,component)",
+      "qc(block_id)",
+      "validate_process_trace(block_id)",
+      "compare_machine_truth(block_id)",
+      "emit_verification_report(block_id)",
+      "runWeathering(signature)",
+      "updateConfidence(signature)"
+    ],
     emits: {
       table: "block_verifications",
       payload: {
         house_id: "uuid",
+        block_id: "blk_9012",
         soil_signature: "clay44_sand33_silt23_org2_sal0.6",
-        penetration_resistance: 162.4,
-        moisture_pct: 13.7,
-        density: 1810,
-        passed: true,
+        requested_role: "wall",
+        requested_spec: { min_penetration: 120, max_moisture: 25, min_density: 1700 },
+        process_signature: { mix_temp_c: 62, cure_hours: 7, pressure_kpa: 520 },
+        machine_truth: { penetration_resistance: 162.4, moisture_pct: 13.7, density: 1810 },
+        process_match_score: 0.94,
+        characteristic_score: 0.91,
+        drift_score: 0.09,
+        release_confidence: 0.92,
+        longevity_confidence: 0.78,
+        fast_pass: true,
+        decision: "approve",
+        escalation_tier: null,
+        contradiction_detected: false,
+        signature_maturity: 0.71,
+        correction_delta: { water_pct: -0.3, cure_hours: 0.6 },
         verification_mode: "inline"
       }
     },
-    c2a: "Constraint: slow destructive testing. Transmutation: risk-based QC where known high-confidence soils skip full verification."
+    c2a: "Constraint: destructive QC on every block is too slow and wasteful. Transmutation: trust process trace + machine truth, then escalate only when drift exceeds thresholds."
   },
   {
     id: "assembly",
     label: "Assembly",
-    primaryJobs: "Place blocks, impedance",
+    primaryJobs: "Constrained insertion + micro-adjust",
     requiredDof: "4 (XYZ+rotate)",
     forceNeeds: "50N Z-force",
-    dataInterface: "place(block_id,x,y,z) -> success",
-    commands: ["claimCell(house_id)", "moveTo(x,y,z)", "place(block_id,x,y,z)"],
+    dataInterface: "emit_placement_report(part_id) -> decision",
+    commands: [
+      "receive_part(part_id)",
+      "load_target_cell(cell_id)",
+      "load_insertion_profile(profile_id)",
+      "move_to_pre_align(position_id)",
+      "align_part()",
+      "begin_insertion()",
+      "micro_adjust(delta_pose)",
+      "retry_insertion()",
+      "confirm_seat()",
+      "release_part()",
+      "escalate_failure(reason)",
+      "emit_placement_report(part_id)"
+    ],
     emits: {
       table: "grid_cells",
       payload: {
-        house_id: "uuid",
-        x: 6,
-        y: 2,
-        z: 1,
-        status: "filled",
-        component_type: "wall",
-        filled_at: "timestamp"
+        part_id: "panel_44",
+        requested_role: "exterior_wall_panel",
+        target_cell: "x3_y9_z0",
+        expected_depth_mm: 220,
+        actual_depth_mm: 220,
+        pre_scan_alignment: 0.93,
+        calibration_pass: true,
+        impedance_score: 0.91,
+        deviation_score: 0.07,
+        post_seat_micro_load: 0.74,
+        retry_count: 1,
+        decision: "seated"
       }
     },
-    c2a: "Constraint: no tactile sensors (numb fingers). Transmutation: use motor impedance deviation on Z trajectory as force proxy for insertion correction."
+    c2a: "Constraint: no tactile fingertips. Transmutation: expected-vs-actual corridor deviation becomes touch, with first-pass calibration, pre-insertion drift scan, and post-seat micro-load validation."
   },
   {
     id: "sealer",
     label: "Sealer",
-    primaryJobs: "Coat exterior",
+    primaryJobs: "Stress test shell + zone coating",
     requiredDof: "3 (XYZ spray)",
     forceNeeds: "10N pressure",
-    dataInterface: "seal(surface) -> done",
-    commands: ["spray(surface)", "verifyCoverage(house_id)", "completeSealing(house_id)"],
+    dataInterface: "coat_zone(zone_id,coat_class) -> coverage_report",
+    commands: [
+      "record_baseline_moisture(zone_id)",
+      "run_broad_spray_test(house_id)",
+      "confirm_dry_reset(zone_id)",
+      "run_focused_pressure_test(surface_id,point_id)",
+      "load_zone_plan(plan_id)",
+      "coat_zone(zone_id,coat_class)",
+      "coat_edge_band(band_id,coat_class)",
+      "set_flow_rate(rate)",
+      "set_pass_count(count)",
+      "emit_coverage_report(house_id)",
+      "emit_verification_data(house_id)",
+      "run_pre_recoat_check(zone_id)",
+      "apply_recoat(zone_id,coat_class)",
+      "escalate_failed_zone(zone_id,reason)",
+      "abort_job(reason)"
+    ],
     emits: {
       table: "house_maintenance",
       payload: {
-        house_id: "uuid",
-        coating_version: 2,
-        ttl_days: 3650,
-        ttl_expires_at: "timestamp",
+        house_id: "house_11",
+        zone_id: "west_wall_q3",
+        test_type: "broad_spray",
+        baseline_moisture_pct: 8.1,
+        ingress_pct: 18.4,
+        pressure_stress_score: 0.71,
+        coat_class: "heavy",
+        pass_count: 3,
+        coverage_pct: 98.2,
+        recoat_zone_state: "degraded",
         status: "ok"
       }
     },
-    c2a: "Constraint: seam-by-seam sealing bottleneck. Transmutation: blanket-seal all exterior surfaces in parallel with all robots."
+    c2a: "Constraint: seam-by-seam sealing is a bottleneck. Transmutation: broad spray plus focused stress, zone by risk, enforce edge bands, and feed field durability back to verification."
   },
-    {
+  {
     id: "logistics",
     label: "Logistics",
     primaryJobs: "Material cart + lane conditioning",
     requiredDof: "3 (XYZ cart)",
     forceNeeds: "500kg carry + light drag",
-    dataInterface: "route(payload, lane) -> delivered",
+    dataInterface: "route(payload,lane) -> delivered",
     commands: [
       "goto(x,y)",
       "pickup(payload_id)",
@@ -201,6 +307,7 @@ const robotRoleCatalog = [
     c2a: "Constraint: bad terrain and lane drift break delivery. Transmutation: body-as-gauge verification + relay truth + gradual lane conditioning per pass."
   }
 ];
+
 const terrainColorMap = {
   raw: "#5e3e2d",
   grading: "#8b5a36",
@@ -1525,6 +1632,14 @@ export default function App() {
         <article><span>Soil Recipes Learned</span><strong>{Number(metrics?.soil_recipes_learned ?? 0)}</strong></article>
         <article><span>Blocks QC Passed</span><strong>{Number(metrics?.blocks_verified ?? 0)}</strong></article>
         <article><span>Blocks QC Failed</span><strong>{Number(metrics?.blocks_failed_qc ?? 0)}</strong></article>
+        <article><span>Verification Fast-Pass</span><strong>{Number(metrics?.verification_fast_pass_rate ?? 0).toFixed(1)}%</strong></article>
+        <article><span>Drift Escalations</span><strong>{Number(metrics?.verification_drift_escalations ?? 0)}</strong></article>
+        <article><span>Rework Loops</span><strong>{Number(metrics?.verification_rework_loops ?? 0)}</strong></article>
+        <article><span>Release Conf (avg)</span><strong>{Number(metrics?.avg_release_confidence ?? 0).toFixed(2)}</strong></article>
+        <article><span>Longevity Conf (avg)</span><strong>{Number(metrics?.avg_longevity_confidence ?? 0).toFixed(2)}</strong></article>
+        <article><span>Verification Contradictions</span><strong>{Number(metrics?.verification_contradictions ?? 0)}</strong></article>
+        <article><span>Signature Maturity (avg)</span><strong>{Number(metrics?.avg_signature_maturity ?? 0).toFixed(2)}</strong></article>
+        <article><span>TTL Role-Weighted Conf</span><strong>{Number(metrics?.avg_ttl_role_weighted_confidence ?? 0).toFixed(2)}</strong></article>
         <article><span>Avg TTL (days)</span><strong>{Number(metrics?.avg_ttl_days ?? 0).toFixed(0)}</strong></article>
         <article><span>Maintenance Alerts</span><strong>{Number(metrics?.houses_in_maintenance ?? 0)}</strong></article>
         <article><span>Lane Condition</span><strong>{Number(metrics?.avg_lane_condition ?? laneAggregate.avgCondition ?? 0).toFixed(2)}</strong></article>
@@ -1576,8 +1691,32 @@ export default function App() {
             <strong>{Number(causalGlobal.inline_avg_retries ?? 0).toFixed(2)}</strong>
           </article>
           <article>
+            <span>Fast-Pass Rate</span>
+            <strong>{Number(metrics?.verification_fast_pass_rate ?? 0).toFixed(1)}%</strong>
+          </article>
+          <article>
+            <span>Drift Esc / Rework</span>
+            <strong>{Number(metrics?.verification_drift_escalations ?? 0)} / {Number(metrics?.verification_rework_loops ?? 0)}</strong>
+          </article>
+          <article>
             <span>Confidence (S/L)</span>
             <strong>{Number(causalGlobal.avg_short_confidence ?? 0).toFixed(2)} / {Number(causalGlobal.avg_long_confidence ?? 0).toFixed(2)}</strong>
+          </article>
+          <article>
+            <span>Release/Longevity</span>
+            <strong>{Number(metrics?.avg_release_confidence ?? 0).toFixed(2)} / {Number(metrics?.avg_longevity_confidence ?? 0).toFixed(2)}</strong>
+          </article>
+          <article>
+            <span>Contradictions</span>
+            <strong>{Number(metrics?.verification_contradictions ?? 0)}</strong>
+          </article>
+          <article>
+            <span>Signature Maturity</span>
+            <strong>{Number(metrics?.avg_signature_maturity ?? 0).toFixed(2)}</strong>
+          </article>
+          <article>
+            <span>TTL Role-Weighted</span>
+            <strong>{Number(metrics?.avg_ttl_role_weighted_confidence ?? 0).toFixed(2)}</strong>
           </article>
           <article>
             <span>TTL Spread</span>
@@ -1600,7 +1739,7 @@ export default function App() {
         <h2>Experiment Matrix (Houses x Robots)</h2>
         <table>
           <thead>
-            <tr><th>Houses</th><th>Robots</th><th>Efficiency</th><th>Idle</th><th>Throughput</th><th>Terrain Ready</th><th>Obstacles</th><th>Grade Err</th><th>Compaction</th><th>Kits Activated</th><th>Surveys</th><th>Soils</th><th>QC Pass</th><th>QC Fail</th><th>Maint</th><th>Avg TTL</th><th>Lane Cond</th><th>Lane %</th><th>Degr</th><th>Stale</th><th>Lane Verif</th><th>Ref P/T</th><th>Avg Retries</th><th>Avg Failures</th><th>Samples</th></tr>
+            <tr><th>Houses</th><th>Robots</th><th>Efficiency</th><th>Idle</th><th>Throughput</th><th>Terrain Ready</th><th>Obstacles</th><th>Grade Err</th><th>Compaction</th><th>Kits Activated</th><th>Surveys</th><th>Soils</th><th>QC Pass</th><th>QC Fail</th><th>FastPass%</th><th>Drift Esc</th><th>Rework</th><th>Rel Conf</th><th>Lon Conf</th><th>Contradict</th><th>Maturity</th><th>TTL-RW</th><th>Maint</th><th>Avg TTL</th><th>Lane Cond</th><th>Lane %</th><th>Degr</th><th>Stale</th><th>Lane Verif</th><th>Ref P/T</th><th>Avg Retries</th><th>Avg Failures</th><th>Samples</th></tr>
           </thead>
           <tbody>
             {matrix.slice(-20).map((row) => (
@@ -1619,6 +1758,14 @@ export default function App() {
                 <td>{Number(row.avg_soil_recipes ?? 0).toFixed(1)}</td>
                 <td>{Number(row.avg_blocks_verified ?? 0).toFixed(1)}</td>
                 <td>{Number(row.avg_blocks_failed ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_verification_fast_pass_rate ?? 0).toFixed(1)}%</td>
+                <td>{Number(row.avg_verification_drift_escalations ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_verification_rework_loops ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_release_confidence ?? 0).toFixed(2)}</td>
+                <td>{Number(row.avg_longevity_confidence ?? 0).toFixed(2)}</td>
+                <td>{Number(row.avg_verification_contradictions ?? 0).toFixed(1)}</td>
+                <td>{Number(row.avg_signature_maturity ?? 0).toFixed(2)}</td>
+                <td>{Number(row.avg_ttl_role_weighted_confidence ?? 0).toFixed(2)}</td>
                 <td>{Number(row.avg_maintenance_houses ?? 0).toFixed(1)}</td>
                 <td>{Number(row.avg_ttl_days ?? 0).toFixed(0)}</td>
                 <td>{Number(row.avg_lane_condition ?? 0).toFixed(2)}</td>

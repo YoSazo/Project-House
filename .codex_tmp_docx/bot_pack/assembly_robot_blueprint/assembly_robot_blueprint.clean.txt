@@ -1,0 +1,411 @@
+﻿HOUSE BRAIN
+Assembly Robot Blueprint
+Refined from C2A Transmutation Chain  |  v1
+
+Core Doctrine: 
+Don't buy expensive touch â€” define the expected motion so clearly that deviation becomes touch.
+
+One-Sentence Summary: 
+The Assembly Robot is a constrained placement machine that uses House Brain-provided target geometry and expected insertion corridors, then treats deviation from that corridor as the touch signal needed to seat approved parts accurately without expensive human-like tactile systems.
+
+1. Purpose
+The Assembly Robot is the machine that takes a part that has already been:
+requested by the House Brain
+made by Fabricator
+approved by Verification
+delivered by Logistics
+...and actually places it into the house.
+Its job is not to decide what the house needs. Its job is not to judge whether the part is good.
+
+Take the approved part to the right cell and seat it correctly â€” without damaging the part, the neighboring parts, or the house geometry.
+
+2. End-to-End Simple Analogy
+Think of plugging a USB cable into a port in the dark.
+The House Brain is the person telling you: "plug it into this exact port."
+Logistics brings you the USB cable.
+Verification already confirmed the cable is the right one.
+The Assembly Robot is your hand doing the insertion.
+The hard part is not finding the desk. The hard part is the last inch:
+Maybe the angle is a little off
+Maybe the plug catches
+Maybe it stops too early
+Maybe if you force it, you bend something
+
+The transmutation: 
+The robot does not need expensive human fingertips if it already knows the expected insertion corridor, including depth. If the part should move smoothly from Z=10 to Z=0 and it slows, twists, or resists early â€” that deviation itself becomes the touch signal.
+
+3. Final C2A Logic
+The final doctrine of Assembly:
+Do not rely on human-like dexterity
+Do not rely on expensive fingertip touch systems
+Let the House Brain define the target cell and insertion corridor
+Use coordinate-addressed navigation to get to the cell
+Use depth-aware insertion to detect tension
+Treat kinematic deviation as the touch signal
+Micro-adjust until the expected path resumes
+Escalate when insertion falls outside acceptable recovery limits
+
+4. Constraints and Your Transmutations
+
+Constraint 1 â€” The Needle-in-a-Hole Problem
+Problem: 
+The robot can get to the right place, but actually seating the part is much harder than navigation.
+Simple analogy: 
+You brought the Lego to the correct spot, but it still may not slide in.
+Transmutation: Coordinate + Insertion Logic, Not Fingers
+Don't solve this with human-style fingers. Solve it with a smarter coordinate/insertion logic.
+Result:
+Navigation to target cell
+Insertion into target corridor
+Correction from measured deviation
+
+Constraint 2 â€” The Vision Cost Problem
+Problem: 
+If the robot must "see" the whole house like a human, cost and complexity explode.
+Transmutation: Address Logic, Not Vision
+We don't use vision, we use address logic. The house is a grid. The brain simply says square 3x9, 3x10 need this. No vision required.
+Result:
+House Brain knows which cells are empty/filled
+Robot receives discrete target coordinates
+UWB/grid positioning gets robot to the cell
+The house becomes a coordinate-addressed build space
+
+Constraint 3 â€” The Numb Fingers Problem
+Problem: 
+The robot reaches the correct coordinate but still cannot feel whether the part is landing correctly.
+Transmutation: Depth Becomes the Feeling
+The same mechanism is applied to depth. The grid is not only horizontal, but depth-wise too â€” thus it can feel tension by measuring how the block goes in.
+Result:
+Expected insertion path is known
+Expected Z travel is known
+Any slowdown, resistance, or path deviation becomes the force/touch proxy
+No fingertip sensors required â€” this is the core Assembly breakthrough
+
+Constraint 4 â€” The Blind Push Problem
+Problem: 
+If the robot keeps pushing after deviation begins, it may crack the part or damage the surrounding structure.
+Transmutation: Deviation Triggers Stop, Not Force
+If the path through depth is wrong, the robot knows it is wrong because the insertion through Z is no longer matching the expected path.
+Result:
+Stop on deviation
+Micro-adjust
+Retry
+Only continue when descent resumes cleanly
+System becomes: expected corridor â†’ deviation detected â†’ micro-adjust â†’ resume
+
+Constraint 5 â€” The Expensive Touch Problem
+Problem: 
+Giving every robot full fancy tactile sensing would destroy the low-cost goal.
+Transmutation: Motion Deviation Is Touch
+The same mechanism applied to depth replaces that. The house/brain tells it what should happen, and when the block doesn't go through that path correctly, that itself is the tension signal.
+Result:
+Motion deviation acts as touch
+Depth deviation acts as touch
+Motor effort / impedance proxy acts as touch
+Insertion-rate mismatch acts as touch
+No costly fingertip skins required
+
+5. Core Mission
+The Assembly Robot must:
+Receive approved part identity and target cell from House Brain
+Move the part to the target insertion zone
+Align the part with the expected insertion corridor
+Begin insertion
+Detect deviation from the expected depth/kinematic path
+Apply small corrective motions
+Seat the part successfully
+Confirm successful seating to the House Brain
+Escalate repeated failure when needed
+
+6. Functional Role
+Assembly is the robot that turns:
+Requested part
+Approved part
+Target cell
+Expected insertion path
+
+...into real physical placement in the house.
+It is the conversion point where digital certainty meets physical contact.
+
+7. Mechanical Architecture
+7.1 Baseline Physical Form
+The cheapest viable form is not humanoid.
+Recommended baseline:
+Fixed-rail gantry or constrained linear frame for major placement
+Or a simple articulated placement arm mounted on a stable base
+Part gripper/end-effector designed around known part geometry
+Emphasis on constrained work envelope, not general-purpose mobility
+
+Key principle: 
+Remove as many unnecessary degrees of freedom as possible.
+
+7.2 Suggested Embodiment by Task Type
+For Larger Structural Panels / Blocks
+Gantry-style placement system
+XYZ travel
+Simple controlled rotation only if needed
+Stable support structure
+For Smaller Precise Insertions
+Simple manipulator/cobot-like arm
+Known insertion geometry
+End-effector with limited rotational compliance
+Final Design Intent
+The Assembly Robot should be: stable, constrained, repeatable, narrow in role.
+Not: humanoid, all-purpose, hand-like.
+
+7.3 End Effector
+The end effector should be shaped for the part family.
+Possible features:
+Clamp/grip around known block geometry
+Passive alignment features
+Limited compliance
+Rotational adjustment within small bounds
+Release confirmation sensing
+The gripper should not be universal if avoidable. It should be optimized for the approved part family.
+
+8. Sensor Stack
+8.1 Required Sensors
+Positioning / Motion
+Encoder-based joint/axis position
+UWB or site coordinate system alignment
+Depth tracking
+IMU if needed for stability
+End-effector position sensing
+Insertion Truth
+Motor current / impedance estimate
+Descent speed
+Path deviation
+Micro-rotation deviation
+Seating completion sensor or final depth confirmation
+Optional
+Simple local camera for coarse pre-alignment
+Proximity sensing near slot entrance
+Force/torque sensor if economically justified
+The doctrine does not require high-end tactile fingertips.
+
+8.2 Minimum Sensed Outputs at Each Placement Attempt
+Target cell ID
+Requested part ID
+Part orientation
+Actual insertion path
+Expected insertion path
+Depth reached
+Deviation score
+Motor effort / impedance
+Retry count
+Final seat confirmation
+Failure/escalation cause
+
+9. Software Architecture
+9.1 Main Modules
+Target-cell loader from House Brain
+Approved-part receiver
+Pre-insertion alignment module
+Expected corridor generator
+Insertion controller
+Deviation detector
+Micro-adjustment module
+Retry policy engine
+Escalation engine
+Placement success emitter
+
+9.2 Assembly Doctrine
+Stage 1 â€” Receive Truth
+The robot receives: which part, where it goes, and what insertion path is expected.
+Stage 2 â€” Pre-Align
+Bring the part into approximate orientation and entry condition.
+Stage 3 â€” Insert
+Start controlled descent/entry through the expected corridor.
+Stage 4 â€” Detect Deviation
+If the part slows unexpectedly, stops early, rotates unexpectedly, draws too much effort, or deviates from the expected path â€” the robot treats that as touch/force information.
+Stage 5 â€” Micro-Adjust
+Apply limited corrections:
+Slight rotation
+Slight lateral shift
+Slight depth retreat/retry
+Stage 6 â€” Seat or Escalate
+If the path resumes cleanly and final depth is achieved: approve seating.
+If retries exceed limit: escalate to House Brain / Verification / Fabricator.
+
+10. The Core Assembly Insight
+
+Touch without fingertips
+Assembly does not need full human touch. It only needs a known target geometry, a known insertion corridor, and the ability to detect when reality differs from that corridor.
+
+expected motion
+vs
+actual motion
+That difference is the physical truth.
+
+11. Requested Inputs from House Brain
+The House Brain must provide:
+Part ID
+Target cell coordinates
+Allowed orientation(s)
+Expected insertion direction
+Expected depth range
+Allowed seating tolerance
+Max retries
+Escalation route if failure persists
+
+Critical: 
+The House Brain defines the role and placement context first. Assembly never assumes â€” it only executes against what the Brain has defined.
+
+12. Commands
+
+{
+  "commands": [
+    "receive_part(part_id)",
+    "load_target_cell(cell_id)",
+    "load_insertion_profile(profile_id)",
+    "move_to_pre_align(position_id)",
+    "align_part()",
+    "begin_insertion()",
+    "micro_adjust(delta_pose)",
+    "retry_insertion()",
+    "confirm_seat()",
+    "release_part()",
+    "escalate_failure(reason)",
+    "emit_placement_report(part_id)"
+  ]
+}
+
+13. Data Emitted
+13.1 Placement Record
+
+{
+  "part_id": "panel_44",
+  "requested_role": "exterior_wall_panel",
+  "target_cell": "x3_y9_z0",
+  "expected_depth_mm": 220,
+  "actual_depth_mm": 220,
+  "orientation_ok": true,
+  "impedance_score": 0.91,
+  "deviation_score": 0.07,
+  "retry_count": 1,
+  "decision": "seated",
+  "timestamp": "2026-03-09T12:40:00Z"
+}
+
+13.2 Failed Placement Record
+
+{
+  "part_id": "panel_45",
+  "target_cell": "x3_y10_z0",
+  "expected_depth_mm": 220,
+  "actual_depth_mm": 147,
+  "orientation_ok": false,
+  "impedance_score": 0.42,
+  "deviation_score": 0.44,
+  "retry_count": 3,
+  "decision": "escalate",
+  "failure_reason": "persistent insertion misalignment"
+}
+
+14. Retry and Escalation Logic
+Assembly should not retry forever. Suggested policy:
+1st deviation â†’ micro-adjust and continue
+Repeated deviation â†’ retract slightly and retry
+Repeated retry failure â†’ escalate
+Escalation targets may include:
+House Brain â€” for reassignment or alternate instruction
+Verification â€” if the part may not match spec
+Fabricator â€” if geometry/tolerance drift is suspected
+This prevents Assembly from becoming a brute-force pusher.
+
+15. Failure Modes
+Geometry / Insertion Failures
+Part rotated slightly
+Slot partially obstructed
+Target cell tolerance mismatch
+Neighboring part drifted
+Seat path not clean
+Part-Side Failures
+Fabricated dimensions slightly off
+Warped part
+Damaged part edge
+Mass distribution off
+Robot-Side Failures
+Gripper slip
+Axis drift
+Actuator overforce
+Failed release
+Insufficient micro-adjust range
+System-Side Failures
+Wrong insertion profile loaded
+Wrong target cell
+Stale House Brain state
+Verification mismatch not caught upstream
+
+16. Success Criteria
+Assembly is successful if it can:
+Place approved parts into correct target cells
+Detect insertion trouble without expensive fingertip systems
+Recover from minor misalignments through micro-adjustment
+Avoid damaging the part or surrounding structure
+Escalate persistent problems rather than forcing insertion
+Emit reliable placement telemetry back to the House Brain
+
+17. Environment Assumptions
+Assembly assumes:
+House Brain knows the target cell and required insertion profile
+Verification approved the part already
+Logistics delivered the correct part
+Fabrication tolerances are bounded
+The local build cell is reachable within the robot's constrained work envelope
+Insertion geometry is designed to be robot-friendly, not hostile
+
+18. Build Phases
+Phase 1 â€” Static Insertion Bench
+Build:
+Fixed insertion frame
+One part family
+One slot geometry
+Controlled descent
+Deviation logging
+Goal: prove that expected-path-vs-actual-path can act as touch.
+Phase 2 â€” Micro-Adjustment Loop
+Add:
+Slight rotation correction
+Lateral correction
+Retry logic
+Goal: prove blind insertion recovery without tactile fingertips.
+Phase 3 â€” House Brain Integration
+Connect:
+Target cell loading
+Insertion profile loading
+Placement reporting
+Goal: make Assembly part of the digital twin loop.
+Phase 4 â€” Multi-Part Family Support
+Add:
+Multiple approved part types
+Role-specific insertion profiles
+Broader placement conditions
+Goal: generalize without losing constrained simplicity.
+
+19. Cost Direction
+Assembly must stay cheaper by:
+Avoiding humanoid form
+Avoiding unnecessary degrees of freedom
+Avoiding full human-like tactile systems
+Relying on constrained geometry and insertion logic
+Letting the House Brain carry more of the intelligence
+
+C2A Principle: 
+Don't buy expensive touch â€” define the expected motion so clearly that deviation becomes touch.
+
+20. Out of Scope / Not This Robot's Job
+Assembly does not:
+Decide what part is needed
+Certify the part's process quality
+Fabricate the part
+Transport the part long-distance
+Compute the house design
+
+Those belong to: House Brain, Verification, Fabricator, and Logistics.
+Assembly only says: "Given this approved part and this target cell, I can or cannot seat it correctly."
+
+21. Final Blueprint Summary
+
+The Assembly Robot is a constrained placement machine that uses House Brain-provided target geometry and expected insertion corridors, then treats deviation from that corridor as the touch signal needed to seat approved parts accurately without expensive human-like tactile systems.
+

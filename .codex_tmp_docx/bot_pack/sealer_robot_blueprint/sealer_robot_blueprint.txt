@@ -1,0 +1,517 @@
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="200" w:after="80"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">HOUSE BRAIN
+Sealer Robot Blueprint
+Refined from C2A Transmutation Chain  |  v1
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2E6DA4"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Core Doctrine: 
+Don't inspect every crack with a tiny brush — stress the shell, zone the risk, and coat by area.
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F7FA" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">One-Sentence Summary: 
+The Sealer Robot is a mobile coating system that uses House Brain-generated vulnerability zoning — based on broad spray data, focused pressure testing, and Verification durability intelligence — to apply the right amount of protective coating to the right areas of the house shell.
+
+1. Purpose
+The Sealer Robot protects the finished house shell from water ingress and weather exposure.
+Its job is not to:
+Decide what the house needs structurally
+Fabricate parts
+Inspect every seam one by one like a human painter
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Apply the right amount of protective coating to the right zones of the house, based on what the House Brain and Verification already know about vulnerability.
+
+2. End-to-End Simple Analogy
+Think of skin care.
+The House Brain is the doctor reading skin test results.
+Verification is the lab that already knows how this skin type behaves under harsh conditions.
+The Sealer Robot is the person applying lotion.
+
+You don't inspect every pore one by one. You mist the skin lightly to see how the whole surface reacts, press a few spots harder to confirm how weak the area is, combine that with lab knowledge about this skin type, then divide the body into zones and apply more lotion where the skin needs more.
+That is the Sealer robot.
+
+3. Final C2A Logic
+The final doctrine of Sealer:
+Do not inspect every seam one by one
+Let the house reveal weak zones through water stress
+Use broad spray for whole-surface vulnerability
+Use focused pressure spray for stronger confirmation
+Do not let Sealer solve material science alone
+Fuse Sealer test data with Verification durability data
+Do not coat the whole shell equally
+Zone the shell and apply coating by average risk
+Keep the robot simple; let the House Brain decide intensity
+
+4. Constraints and Your Transmutations
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 1 — The Paintbrush Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+If the Sealer robot tries to inspect and treat every seam individually, it becomes too slow, too fragile, and too inspection-heavy.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: House-Level Vulnerability Mapping
+Spray water into/onto the house, let the brain pick up which areas by percentage need sealing, then prioritize those larger areas first.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+No seam-by-seam inspection
+System becomes: house-level vulnerability mapping → area-priority sealing
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 2 — The Fake Rain Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+A weak spray alone may not represent real storm conditions.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Two-Layer Stress Testing
+The spray shows the broader picture, but we can also have the spray act like a hose in one spot. Maybe on the roof and on each side we pressure spray one spot. Combined with the spray data, that gives confidence.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Broad gentle spray for global vulnerability map
+Focused harsh spray for real stress confirmation
+Both layers required before zone plan is finalized
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 3 — The Drenched House Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+Too much testing water can blur the evidence and make the whole shell look equally wet.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Sequenced Testing with Dry Reset
+Spray the house, then let it dry, then do the stronger spot sprays. The brain notifies when dry/reset is done.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Broad scan → dry/reset → focused stress test → combine results
+Prevents test evidence from flooding itself
+Sequencing is mandatory, not optional
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 4 — The Biopsy Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+A few spot tests alone may not represent the whole shell.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Spot Test Backed by Whole-Surface Behavior
+The broad spray data and the singular middle pressure spray on each main face and roof are combined. The spray tells how all the skin reacts gently, the harsher point tells how that face handles stronger weather.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Spot test never stands alone
+Always backed by broad whole-surface behavior data
+One representative pressure point per major face + roof
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 5 — The Missing Lab Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+Even broad + focused real-house spray may not fully capture long-term material behavior.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Fuse with Verification's Durability Data
+Verification already has the soil/material data and, while idle, stress-tests that same 'skin' under extreme conditions. That data should be used here too.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Sealer is no longer alone in assessing durability
+House Brain fuses: real-house broad spray response + real-house focused pressure response + Verification material-family durability data
+Closes most remaining uncertainty that field spray alone cannot resolve
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 6 — The Overcoat Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+If you know which areas are vulnerable, you still need to know how much sealant to apply.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Zone the Shell, Assign Coat Class
+The brain uses the spray and pressure-spray data to decide maybe the roof needs thicker sealant, maybe one side needs less. Then each wall is treated as 4 squares and each square gets what it needs based on the average of the data.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Shell divided into zones: roof quadrants, wall quadrants, later edge bands
+Each zone receives: light, medium, or heavy coat class
+Robot executes zone instructions — it does not choose coat class itself
+
+5. Refinements
+Five gaps identified after blueprint review. Each adds doctrine, a data field, or a cross-system data path that the original blueprint left open.
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 1 — The Dry Boundary Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The blueprint sequences broad spray → dry/reset → focused stress test, but defines 'dry enough' as an external judgment call. If the shell is retested while still holding residual moisture, the focused stress test reads artificially high ingress.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Before the broad spray, the Sealer Robot takes a baseline moisture reading per zone. The dry/reset phase is not a timer or a human call — it is confirmed only when all zone moisture readings return within a defined band of that pre-spray baseline. This makes the sequencing protocol self-certifying.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Pre-spray baseline moisture reading added per zone
+Dry/reset confirmation gated by sensor return-to-baseline, not by timer or external call
+New data field: baseline_moisture_pct added to zone record
+New data field: reset_confirmed: true/false added before focused test can begin
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 2 — The Gravity Bias Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+Water flows down. A broad spray on any vertical surface will produce higher moisture ingress readings at the bottom of each wall face not because the bottom is weaker, but because the top drains into it. The current blueprint treats the moisture response map as a flat signal, but it is carrying a gravity artifact.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+The zone scoring model applies a vertical-position correction factor. Bottom quadrants on walls are normalized against their expected drainage contribution before being scored for vulnerability. Otherwise the sealing plan will systematically over-coat wall bases and under-coat mid and upper wall zones where real material weakness may exist.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Vertical-position correction factor added to zone scoring logic
+Bottom-quadrant scores normalized before zone plan assignment
+Upper and mid wall zones scored on corrected signal, not raw drainage-inflated reading
+House Brain zone plan generation updated to consume corrected scores
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 3 — The Edge Band Gap
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The blueprint defers edge bands — roof-wall transitions, window perimeter bands, door perimeter bands — to a later refinement. But these are precisely where water ingress is most likely. The flat quadrant model will miss a junction failure entirely because the junction spans two zones and neither zone average captures it.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Even in v1, the House Brain zone plan must include a mandatory edge band class covering roof-wall perimeter and any opening perimeters. These bands receive at minimum one coat class above the adjacent flat zone by default, regardless of spray results. The spray data can confirm they need more; it can never argue them down to less.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Edge band added as mandatory zone type in v1, not deferred
+Covers: roof-wall perimeter, window perimeter bands, door perimeter bands
+Default rule: edge band coat class = adjacent flat zone coat class + 1 minimum
+Spray data can only increase edge band class, never decrease it below the minimum
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 4 — The Recoat Baseline Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The maintenance/recoat mode is triggered by TTL alerts, but the robot has no way to know the current condition of the coating it is recoating over. Applying new sealant over a failed and delaminating layer does not fix the problem — it hides it from future moisture testing.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Before any recoat pass, the robot runs a mini broad spray test on the zones targeted for recoat and compares results to the original post-sealing baseline stored in the maintenance system. Each zone is classified as: intact-but-aging (recoat over top), degraded (heavy recoat over top), or failed (flag to House Brain — Sealer cannot fix this alone, may need mechanical intervention first). This prevents Sealer from becoming a cosmetic robot that buries structural problems.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Pre-recoat mini broad spray test added as mandatory step before any recoat pass
+Three recoat zone states: intact-but-aging, degraded, failed
+Failed zones escalated to House Brain — Sealer does not self-authorize coating over a failed layer
+New data field: recoat_zone_state added to zone coating record
+New data field: pre_recoat_ingress_delta (vs original baseline) added to zone coating record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Cross-System Refinement — Sealer Feeds Verification TTL — Cross-System Data Path
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+Verification generates TTL confidence from accelerated lab durability tests on material families. But the Sealer Robot is running real-world water stress tests on the finished shell. That field data is richer than any lab simulation. Currently that data path does not exist in either robot's architecture.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Broad spray ingress scores, focused pressure scores, and post-recoat delta readings are all fed back to Verification as real-world durability evidence. Verification uses this to update TTL confidence for specific material-family signatures — not just for this house, but for all future houses using the same material signature. Over many builds, the Sealer's field test data becomes Verification's most reliable long-term calibration input.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+New output channel: Sealer → Verification (real-world durability evidence)
+Data emitted: broad_spray_ingress_score, pressure_stress_score, post_recoat_delta, material_family_id, house_id
+Verification updates TTL confidence for the relevant material family on receipt
+TTL improvement compounds across builds — early houses inform later houses
+Verification blueprint updated: new input source from Sealer field results
+
+6. Core Mission
+The Sealer Robot must:
+Run or assist with broad moisture-stress testing
+Confirm dry/reset via baseline moisture return before proceeding
+Run or assist with focused pressure-stress testing
+Receive zone-level sealing instructions from the House Brain
+Apply the required coating intensity to each zone
+Apply mandatory edge band treatment at all junctions and openings
+Complete full-shell protection after construction
+Emit Sealer field test data back to Verification for TTL calibration
+Perform recoat/maintenance passes when TTL alerts require it, with pre-recoat condition check
+
+7. Functional Role
+The Sealer Robot turns:
+Moisture vulnerability data
+Pressure stress data
+Verification durability data
+House Brain zone instructions
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F7FA" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">...into actual protective coating applied to the right areas of the house shell.
+It is the machine that converts water-risk intelligence into real surface protection.
+
+8. System Architecture
+8.1 Inputs
+From House Brain
+House ID
+Surface map with vertical-position correction applied
+Zone boundaries (including mandatory edge band zones)
+Coat intensity per zone
+Pass count / material quantity target
+Maintenance/recoat instructions
+From Verification
+Material-family durability data
+Coating-family durability data
+Provisional TTL contribution
+Long-term confidence signals
+From Moisture / Spray Testing
+Pre-spray baseline moisture per zone
+Broad spray response map (gravity-corrected)
+Reset-confirmed signal before focused test
+Focused pressure-stress results
+Moisture ingress percentages by surface/zone
+
+8.2 Outputs
+To House Brain
+Coating complete / incomplete
+Coverage by zone
+Applied coat intensity
+Recoat record with pre-recoat zone state
+Updated shell protection state
+To Verification
+broad_spray_ingress_score per material family
+pressure_stress_score per surface
+post_recoat_delta vs original baseline
+material_family_id and house_id for attribution
+To Maintenance System
+Coating version
+Date applied
+Zone-specific seal state
+Recoat completion record
+
+9. Mechanical / Physical Embodiment
+9.1 Baseline Physical Form
+Recommended baseline:
+Mobile wheeled or track-mounted coating unit
+Mast or spray arm with adjustable nozzle
+Onboard sealant tank
+Pump system
+Secondary pressure-spray/water-test tank
+The robot should be: stable, simple, coating-oriented, not humanoid.
+
+9.2 Core Hardware
+Application Hardware
+Sealant tank
+Spray nozzles
+Pump with variable flow control
+Adjustable spray width
+Arm/mast for reach
+Diagnostic Hardware
+Water spray system for broad test
+Pressure nozzle / hose mode for focused test
+Moisture sensor array — per-zone baseline and post-spray reading
+Optional local camera for coverage confirmation
+Compute
+Local controller
+Zone-following logic
+Flow-rate control
+Coverage tracker
+Baseline moisture comparator
+Interface to House Brain and Verification
+
+10. Software Architecture
+10.1 Main Modules
+Pre-spray baseline moisture recorder
+Broad spray test controller
+Gravity-bias correction module
+Dry/reset confirmation monitor
+Focused stress-test controller
+Zone loader from House Brain
+Edge band enforcement module
+Coat-intensity controller
+Surface coverage tracker
+Pre-recoat condition classifier
+Recoat/maintenance mode
+Verification data emitter
+Telemetry emitter
+
+10.2 Sealer Doctrine
+Stage 1 — Baseline Moisture Record
+Before any spray, record baseline moisture per zone. This is the reset target the dry/reset phase must return to.
+Stage 2 — Broad Scan
+Run gentle whole-surface spray. Apply gravity-bias correction to vertical wall readings before scoring.
+Stage 3 — Dry/Reset Confirmation
+Monitor zone moisture. Proceed only when all zones return within the defined band of pre-spray baseline. No timer. No human call.
+Stage 4 — Focused Stress Scan
+Pressure-spray one representative point per roof and per major wall face. Combine with corrected broad scan data.
+Stage 5 — Brain Fusion
+House Brain combines: corrected broad spray map + focused stress map + Verification durability truth. Assigns zone plan including mandatory edge bands.
+Stage 6 — Zone Coating Pass
+Robot coats by zone. Edge bands receive at minimum one coat class above adjacent flat zone. Robot executes — House Brain assigns.
+Stage 7 — Verification Feedback Emit
+Sealer emits field test results to Verification: ingress scores, stress scores, material family ID, house ID. Verification updates TTL confidence.
+Stage 8 — Maintenance / Recoat
+When TTL or maintenance alert triggers: run mini broad spray on target zones, classify each zone state (intact-but-aging, degraded, failed), recoat intact/degraded zones, escalate failed zones to House Brain.
+
+11. Zone Logic
+11.1 Default Zoning
+Each major wall face: 4 quadrants
+Roof: 4 quadrants
+Edge bands (mandatory in v1): roof-wall perimeter, window perimeter bands, door perimeter bands
+
+11.2 Coat Classes
+Coat classes: Light, Medium, Heavy.
+The robot does not choose these itself. The House Brain assigns them. Robot executes: zone + coat class + pass count / flow rate.
+
+11.3 Edge Band Rule
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2E6DA4"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Edge band default: 
+Edge bands always receive coat class = adjacent flat zone class + 1 minimum. Spray data can increase this. It can never decrease it below the minimum.
+
+12. Commands
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "commands": [
+    "record_baseline_moisture(zone_id)",
+    "run_broad_spray_test(house_id)",
+    "confirm_dry_reset(zone_id)",
+    "run_focused_pressure_test(surface_id, point_id)",
+    "load_zone_plan(plan_id)",
+    "coat_zone(zone_id, coat_class)",
+    "coat_edge_band(band_id, coat_class)",
+    "set_flow_rate(rate)",
+    "set_pass_count(count)",
+    "emit_coverage_report(house_id)",
+    "emit_verification_data(house_id)",
+    "run_pre_recoat_check(zone_id)",
+    "apply_recoat(zone_id, coat_class)",
+    "escalate_failed_zone(zone_id, reason)",
+    "return_to_base()",
+    "abort_job(reason)"
+  ]
+}
+
+13. Data Emitted
+13.1 Spray Test Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "house_id": "house_11",
+  "surface": "west_wall",
+  "zone_id": "west_wall_q3",
+  "test_type": "broad_spray",
+  "baseline_moisture_pct": 8.1,
+  "post_spray_moisture_pct": 19.4,
+  "gravity_corrected": true,
+  "moisture_response_score": 0.42,
+  "ingress_pct": 18.4,
+  "timestamp": "2026-03-09T14:00:00Z"
+}
+
+13.2 Dry/Reset Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "house_id": "house_11",
+  "zone_id": "west_wall_q3",
+  "baseline_moisture_pct": 8.1,
+  "current_moisture_pct": 8.3,
+  "reset_confirmed": true,
+  "timestamp": "2026-03-09T14:15:00Z"
+}
+
+13.3 Focused Stress Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "house_id": "house_11",
+  "surface": "roof",
+  "point_id": "roof_mid",
+  "test_type": "pressure_spray",
+  "stress_response_score": 0.71,
+  "localized_ingress_pct": 27.9,
+  "timestamp": "2026-03-09T14:20:00Z"
+}
+
+13.4 Zone Coating Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "house_id": "house_11",
+  "zone_id": "west_wall_q3",
+  "zone_type": "flat_quadrant",
+  "coat_class": "heavy",
+  "pass_count": 3,
+  "flow_rate": 1.4,
+  "coverage_pct": 98.2,
+  "decision": "complete",
+  "timestamp": "2026-03-09T15:00:00Z"
+}
+
+13.5 Recoat Zone Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "house_id": "house_11",
+  "zone_id": "west_wall_q3",
+  "recoat_zone_state": "degraded",
+  "pre_recoat_ingress_delta": 0.18,
+  "coat_class": "heavy",
+  "pass_count": 4,
+  "coverage_pct": 99.1,
+  "decision": "complete",
+  "timestamp": "2026-04-15T10:00:00Z"
+}
+
+13.6 Verification Data Emit Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "house_id": "house_11",
+  "material_family_id": "clay44_sand38_silt18_org2",
+  "broad_spray_ingress_score": 0.42,
+  "pressure_stress_score": 0.71,
+  "post_recoat_delta": 0.18,
+  "data_type": "real_world_durability_evidence",
+  "timestamp": "2026-03-09T16:00:00Z"
+}
+
+14. Failure Modes
+Test-Side Failures
+Broad spray too weak for meaningful ingress data
+Focused spray too strong or misapplied
+Shell not returned to baseline moisture before focused test
+Gravity correction not applied before zone scoring
+Moisture map incomplete — missing zones
+Coating-Side Failures
+Undercoverage on flat quadrant
+Edge band skipped or undercoated
+Nozzle clog
+Uneven flow
+Tank low
+Wrong coat class loaded
+Overspray / wasted material
+Recoat-Side Failures
+Pre-recoat check skipped
+Failed zone coated without escalation
+Recoat applied over delaminating layer
+Incorrect recoat zone state classification
+System-Side Failures
+Wrong zone map
+Stale vulnerability map
+Missing Verification durability data
+Wrong maintenance trigger
+Incorrect pass count/flow command
+Verification data emit failed — field results not recorded
+
+15. Success Criteria
+The Sealer Robot is successful if it can:
+Generate a reliable, gravity-corrected surface vulnerability picture
+Confirm dry/reset via sensor baseline before focused testing
+Apply coating by zone with mandatory edge band enforcement
+Protect the house shell with targeted material use
+Run pre-recoat condition checks and escalate failed zones
+Emit field durability evidence to Verification after each build and recoat
+Emit clear zone-level protection telemetry to the House Brain
+
+16. Environment Assumptions
+The Sealer Robot assumes:
+The house shell is already assembled
+House Brain can generate zone plans with edge band classes
+Verification provides material-family durability truth
+Surfaces are reachable by the robot's spray geometry
+Moisture sensors can achieve per-zone resolution
+Broad spray, dry/reset confirmation, and focused spray sequence can be run before final sealing
+Verification has an input channel for real-world field durability data
+
+17. Build Phases
+Phase 1 — Basic Coating Unit
+Build:
+Mobile base
+Sealant tank
+Spray nozzle
+Flow-rate control
+Goal: coat wall areas consistently.
+Phase 2 — Broad Spray Diagnostic Mode
+Add:
+Water spray mode
+Per-zone moisture sensors
+Pre-spray baseline recording
+Moisture map data feed to House Brain
+Goal: show broad vulnerability picture with gravity correction.
+Phase 3 — Dry/Reset Confirmation + Focused Stress Mode
+Add:
+Sensor-based dry/reset confirmation
+Pressure nozzle / localized hose mode
+Representative point testing per face
+Goal: self-certifying test sequence with two-layer stress data.
+Phase 4 — Zone Execution with Edge Band Enforcement
+Add:
+Zone plan loading
+Edge band mandatory zone class
+Coat class execution
+Pass-count logic
+Goal: coat the right parts with the right intensity including all junctions.
+Phase 5 — Maintenance / Recoat Mode with Condition Check
+Add:
+Pre-recoat mini broad spray
+Recoat zone state classifier
+Failed zone escalation path
+Goal: prevent cosmetic recoating over structural failures.
+Phase 6 — Verification Data Feed
+Add:
+Sealer → Verification emit channel
+Field result packaging per material family
+TTL calibration input to Verification library
+Goal: turn Sealer field tests into system-wide durability intelligence that compounds across builds.
+
+18. Cost Direction
+Sealer should stay cheap by:
+Using simple spray mechanics
+Avoiding fine seam-by-seam manipulation
+Relying on House Brain zoning instead of onboard high intelligence
+Fusing with Verification's material truth instead of reinventing durability locally
+Using per-zone moisture sensors rather than complex imaging
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2E6DA4"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">C2A Principle: 
+Don't inspect every crack with a tiny brush — stress the shell, zone the risk, coat by area, and feed the field truth back to the system.
+
+19. Out of Scope / Not This Robot's Job
+Sealer does not:
+Decide structural part roles
+Fabricate blocks
+Verify fabrication quality
+Transport bulk materials long-distance
+Place structural parts
+
+Those belong to: House Brain, Fabricator, Verification, Logistics, and Assembly.
+Sealer only says: "Given the vulnerability map and zone plan, I can protect this shell with the required coating intensity."
+
+20. Final Blueprint Summary
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="60" w:after="60"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">The Sealer Robot is a mobile coating system that uses House Brain-generated vulnerability zoning — based on gravity-corrected broad spray data, sensor-confirmed dry/reset sequencing, focused pressure testing, and Verification durability intelligence — to apply the right amount of protective coating to the right areas of the house shell, while feeding real-world field durability data back to Verification to improve TTL confidence across all future builds.
+

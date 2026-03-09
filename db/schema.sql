@@ -353,6 +353,7 @@ ALTER TABLE houses ADD COLUMN IF NOT EXISTS recommended_build_zone TEXT;
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS survey_uncertainty_remaining NUMERIC(8,4) NOT NULL DEFAULT 1;
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS survey_stop_reason TEXT;
 ALTER TABLE houses ADD COLUMN IF NOT EXISTS survey_probe_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE houses ADD COLUMN IF NOT EXISTS material_family_mix JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS surface_tilt_deg NUMERIC(8,3);
 ALTER TABLE site_surveys ADD COLUMN IF NOT EXISTS foot_balance_score NUMERIC(8,4);
@@ -403,3 +404,60 @@ ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_survey_uncertainty NUME
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS survey_densification_rounds NUMERIC(8,3) NOT NULL DEFAULT 0;
 
 
+
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS verification_fast_pass_rate NUMERIC(8,3) NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS verification_drift_escalations INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS verification_rework_loops INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_release_confidence NUMERIC(8,3) NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_longevity_confidence NUMERIC(8,3) NOT NULL DEFAULT 0;
+
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS process_signature JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS reference_sample_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS fast_pass_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS drift_escalations INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS correction_events INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS release_confidence NUMERIC(8,4) NOT NULL DEFAULT 0;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS longevity_confidence NUMERIC(8,4) NOT NULL DEFAULT 0;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS last_requested_role TEXT;
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS last_drift_score NUMERIC(8,4);
+
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS block_id TEXT;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS requested_role TEXT;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS requested_spec JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS process_signature JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS machine_truth JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS process_match_score NUMERIC(8,4);
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS characteristic_score NUMERIC(8,4);
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS drift_score NUMERIC(8,4);
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS release_confidence NUMERIC(8,4);
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS longevity_confidence NUMERIC(8,4);
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS fast_pass BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS decision TEXT;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS escalation_reason TEXT;
+ALTER TABLE block_verifications ADD COLUMN IF NOT EXISTS correction_delta JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'block_verifications_decision_check'
+  ) THEN
+    ALTER TABLE block_verifications DROP CONSTRAINT block_verifications_decision_check;
+  END IF;
+END $$;
+
+ALTER TABLE block_verifications
+  ADD CONSTRAINT block_verifications_decision_check
+  CHECK (decision IS NULL OR decision IN ('approve', 'reject', 'rework', 'escalate'));
+
+
+ALTER TABLE soil_library ADD COLUMN IF NOT EXISTS signature_maturity NUMERIC(8,4) NOT NULL DEFAULT 0;
+
+ALTER TABLE house_maintenance ADD COLUMN IF NOT EXISTS role_weighted_confidence NUMERIC(8,4) NOT NULL DEFAULT 0;
+ALTER TABLE house_maintenance ADD COLUMN IF NOT EXISTS weakest_critical_confidence NUMERIC(8,4) NOT NULL DEFAULT 0;
+ALTER TABLE house_maintenance ADD COLUMN IF NOT EXISTS critical_constraint_role TEXT;
+
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS verification_contradictions INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_signature_maturity NUMERIC(8,3) NOT NULL DEFAULT 0;
+ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_ttl_role_weighted_confidence NUMERIC(8,3) NOT NULL DEFAULT 0;

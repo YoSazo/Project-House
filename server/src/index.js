@@ -493,13 +493,15 @@ app.post("/api/verify-block", async (req, res) => {
   try {
     const houseId = Number(req.body?.house_id);
     const soilSignature = String(req.body?.soil_signature || "").trim();
+    const componentType = String(req.body?.component_type || "wall").trim();
+    const queueId = Number(req.body?.queue_id);
 
     if (!Number.isFinite(houseId) || !soilSignature) {
       res.status(400).json({ ok: false, error: "house_id and soil_signature are required" });
       return;
     }
 
-    const result = await runSerialized(async () => verifyBlock({ houseId, soilSignature }), `verify-block:${houseId}`);
+    const result = await runSerialized(async () => verifyBlock({ houseId, soilSignature, componentType, queueId: Number.isFinite(queueId) ? queueId : null }), `verify-block:${houseId}`);
     res.json({ ok: true, ...result });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
@@ -708,6 +710,14 @@ app.get("/api/metrics/matrix", async (_req, res) => {
       ROUND(AVG(soil_recipes_learned)::numeric, 2) AS avg_soil_recipes,
       ROUND(AVG(blocks_verified)::numeric, 2) AS avg_blocks_verified,
       ROUND(AVG(blocks_failed_qc)::numeric, 2) AS avg_blocks_failed,
+      ROUND(AVG(verification_fast_pass_rate)::numeric, 2) AS avg_verification_fast_pass_rate,
+      ROUND(AVG(verification_drift_escalations)::numeric, 2) AS avg_verification_drift_escalations,
+      ROUND(AVG(verification_rework_loops)::numeric, 2) AS avg_verification_rework_loops,
+      ROUND(AVG(avg_release_confidence)::numeric, 3) AS avg_release_confidence,
+      ROUND(AVG(avg_longevity_confidence)::numeric, 3) AS avg_longevity_confidence,
+      ROUND(AVG(verification_contradictions)::numeric, 2) AS avg_verification_contradictions,
+      ROUND(AVG(avg_signature_maturity)::numeric, 3) AS avg_signature_maturity,
+      ROUND(AVG(avg_ttl_role_weighted_confidence)::numeric, 3) AS avg_ttl_role_weighted_confidence,
       ROUND(AVG(houses_in_maintenance)::numeric, 2) AS avg_maintenance_houses,
       ROUND(AVG(avg_ttl_days)::numeric, 2) AS avg_ttl_days,
       ROUND(AVG(avg_lane_condition)::numeric, 3) AS avg_lane_condition,

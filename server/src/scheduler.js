@@ -19,6 +19,14 @@ const IMPEDANCE_THRESHOLD = Number(process.env.IMPEDANCE_THRESHOLD || 0.72);
 const IMPEDANCE_VARIANCE = Number(process.env.IMPEDANCE_VARIANCE || 0.35);
 const RETRY_ADJUST_SECONDS = Number(process.env.RETRY_ADJUST_SECONDS || 2);
 const FAILED_INSERTION_PENALTY_SECONDS = Number(process.env.FAILED_INSERTION_PENALTY_SECONDS || 4);
+const ASSEMBLY_CALIBRATION_TIGHTEN = Number(process.env.ASSEMBLY_CALIBRATION_TIGHTEN || 0.08);
+const ASSEMBLY_PRE_SCAN_TOLERANCE = Number(process.env.ASSEMBLY_PRE_SCAN_TOLERANCE || 0.74);
+const ASSEMBLY_PRE_SCAN_TOLERANCE_CAL = Number(process.env.ASSEMBLY_PRE_SCAN_TOLERANCE_CAL || 0.66);
+const ASSEMBLY_POST_SEAT_MIN = Number(process.env.ASSEMBLY_POST_SEAT_MIN || 0.58);
+const ASSEMBLY_POST_SEAT_MIN_CAL = Number(process.env.ASSEMBLY_POST_SEAT_MIN_CAL || 0.68);
+const ASSEMBLY_PRE_SCAN_SECONDS = Number(process.env.ASSEMBLY_PRE_SCAN_SECONDS || 2);
+const ASSEMBLY_POST_SEAT_SECONDS = Number(process.env.ASSEMBLY_POST_SEAT_SECONDS || 2);
+const ASSEMBLY_CALIBRATION_SLOWDOWN_SECONDS = Number(process.env.ASSEMBLY_CALIBRATION_SLOWDOWN_SECONDS || 4);
 
 const GRADE_TOLERANCE = Number(process.env.GRADE_TOLERANCE || 0.05);
 const GRADING_STEP = Number(process.env.GRADING_STEP || 0.18);
@@ -72,12 +80,52 @@ const LOGISTICS_TRAVEL_FACTOR_MAX = Number(process.env.LOGISTICS_TRAVEL_FACTOR_M
 
 let lastWeatheringRunAt = 0;
 let lastMaintenanceRunAt = 0;
+const insertionProfileMemory = new Map();
 
 const COMPONENT_BASE_IMPEDANCE = {
   foundation: 0.58,
   wall: 0.5,
   mep: 0.63,
   roof: 0.47
+};
+
+const COMPONENT_ROLE_MAP = {
+  foundation: "foundation",
+  wall: "structural_wall",
+  mep: "mep_channel",
+  roof: "roof_panel"
+};
+
+const COMPONENT_REQUESTED_SPECS = {
+  foundation: { penetration_min: 140, moisture_max: 20, density_min: 1850, density_max: 2300, dimensional_tolerance_mm: 6 },
+  wall: { penetration_min: 122, moisture_max: 24, density_min: 1720, density_max: 2200, dimensional_tolerance_mm: 8 },
+  mep: { penetration_min: 110, moisture_max: 26, density_min: 1660, density_max: 2120, dimensional_tolerance_mm: 10 },
+  roof: { penetration_min: 102, moisture_max: 28, density_min: 1600, density_max: 2050, dimensional_tolerance_mm: 11 }
+};
+
+const FAST_PASS_RELEASE_CONFIDENCE = Number(process.env.FAST_PASS_RELEASE_CONFIDENCE || 0.93);
+const FAST_PASS_PROCESS_MATCH = Number(process.env.FAST_PASS_PROCESS_MATCH || 0.9);
+const FAST_PASS_CHARACTERISTIC = Number(process.env.FAST_PASS_CHARACTERISTIC || 0.88);
+const DRIFT_ESCALATION_THRESHOLD = Number(process.env.DRIFT_ESCALATION_THRESHOLD || 0.24);
+const REWORK_DRIFT_THRESHOLD = Number(process.env.REWORK_DRIFT_THRESHOLD || 0.16);
+const PROCESS_SIGNATURE_BLEND = Number(process.env.PROCESS_SIGNATURE_BLEND || 0.25);
+const SIGNATURE_MATURITY_MIN_SAMPLES = Number(process.env.SIGNATURE_MATURITY_MIN_SAMPLES || 8);
+const SIGNATURE_MATURITY_TARGET_SAMPLES = Number(process.env.SIGNATURE_MATURITY_TARGET_SAMPLES || 40);
+const CONTRADICTION_GAP_THRESHOLD = Number(process.env.CONTRADICTION_GAP_THRESHOLD || 0.32);
+const CONTRADICTION_LOW_SCORE = Number(process.env.CONTRADICTION_LOW_SCORE || 0.62);
+
+const ROLE_CRITICALITY = {
+  foundation: 1.0,
+  structural_wall: 0.9,
+  roof_panel: 0.82,
+  mep_channel: 0.45
+};
+
+const ROLE_EXPOSURE = {
+  foundation: 0.96,
+  structural_wall: 0.86,
+  roof_panel: 1.0,
+  mep_channel: 0.4
 };
 
 function nextStage(stage) {
@@ -164,7 +212,160 @@ async function ensureHouseSoilSignature(client, houseId) {
   return soilSignature;
 }
 
-async function verifyBlockTx(client, { houseId, soilSignature }) {
+function requestedSpecForComponent(componentType) {
+  return COMPONENT_REQUESTED_SPECS[componentType] || COMPONENT_REQUESTED_SPECS.wall;
+}
+
+function roleForComponent(componentType) {
+  return COMPONENT_ROLE_MAP[componentType] || "structural_wall";
+}
+
+function roleCriticality(role) {
+  return ROLE_CRITICALITY[role] ?? 0.7;
+}
+
+function roleExposure(role) {
+  return ROLE_EXPOSURE[role] ?? 0.65;
+}
+
+function signatureMaturityScore(referenceSampleCount, totalVerified) {
+  const ref = Math.max(0, Number(referenceSampleCount || 0));
+  const total = Math.max(ref, Number(totalVerified || 0));
+  const normalized = clamp(ref / Math.max(1, SIGNATURE_MATURITY_TARGET_SAMPLES), 0, 1);
+  const reliability = clamp(total / Math.max(1, SIGNATURE_MATURITY_TARGET_SAMPLES * 1.5), 0, 1);
+  return clamp((normalized * 0.75) + (reliability * 0.25), 0, 1);
+}
+
+function isProcessSensorContradiction(processScore, characteristicScore) {
+  const p = Number(processScore || 0);
+  const c = Number(characteristicScore || 0);
+  const gap = Math.abs(p - c);
+  const low = Math.min(p, c);
+  const high = Math.max(p, c);
+
+  return gap >= CONTRADICTION_GAP_THRESHOLD && low <= CONTRADICTION_LOW_SCORE && high >= FAST_PASS_PROCESS_MATCH;
+}
+
+function numericSimilarity(current, reference, spread = 0.2) {
+  if (!Number.isFinite(current) || !Number.isFinite(reference)) return 0;
+  const baseline = Math.max(1e-6, Math.abs(reference));
+  const deltaRatio = Math.abs(current - reference) / baseline;
+  return clamp(1 - (deltaRatio / Math.max(0.01, spread)), 0, 1);
+}
+
+function scoreWithinBand(value, min, max) {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max)) return 0;
+  if (value >= min && value <= max) return 1;
+
+  const band = Math.max(1, max - min);
+  if (value < min) {
+    return clamp(1 - ((min - value) / (band * 0.7)), 0, 1);
+  }
+
+  return clamp(1 - ((value - max) / (band * 0.7)), 0, 1);
+}
+
+function buildProcessSignature({ componentType, recipe, requestedSpec }) {
+  const clay = Number(recipe?.clay ?? 40);
+  const sand = Number(recipe?.sand ?? 35);
+  const lime = Number(recipe?.lime ?? 10);
+  const cement = Number(recipe?.cement ?? 5);
+
+  return {
+    component_type: componentType,
+    mix_temp_c: Number((34 + clay * 0.12 + lime * 0.1 + randRange(-3.5, 3.5)).toFixed(2)),
+    cure_minutes: Number((18 + cement * 0.85 + randRange(-4.2, 5.4)).toFixed(2)),
+    compaction_index: Number((0.72 + cement * 0.012 + randRange(-0.11, 0.1)).toFixed(3)),
+    blend_uniformity: Number((0.81 + randRange(-0.09, 0.12)).toFixed(3)),
+    extrude_pressure: Number((360 + clay * 4 + requestedSpec.penetration_min * 0.7 + randRange(-42, 48)).toFixed(2)),
+    moisture_window: Number((requestedSpec.moisture_max + randRange(-2.5, 2.5)).toFixed(2)),
+    dimensional_tolerance_mm: requestedSpec.dimensional_tolerance_mm
+  };
+}
+
+function processSignatureScore(referenceSignature, observedSignature) {
+  const ref = referenceSignature && typeof referenceSignature === "object" ? referenceSignature : {};
+  const obs = observedSignature && typeof observedSignature === "object" ? observedSignature : {};
+
+  const numericKeys = ["mix_temp_c", "cure_minutes", "compaction_index", "blend_uniformity", "extrude_pressure", "moisture_window"];
+  const available = numericKeys.filter((key) => Number.isFinite(Number(ref[key])));
+
+  if (!available.length) {
+    // No trusted baseline yet: pass by process plausibility.
+    return 0.82;
+  }
+
+  const score = available.reduce((sum, key) => {
+    const spread = key === "compaction_index" || key === "blend_uniformity" ? 0.25 : 0.2;
+    return sum + numericSimilarity(Number(obs[key]), Number(ref[key]), spread);
+  }, 0) / available.length;
+
+  return clamp(score, 0, 1);
+}
+
+function blendProcessSignature(referenceSignature, observedSignature, blendFactor) {
+  const ref = referenceSignature && typeof referenceSignature === "object" ? referenceSignature : {};
+  const obs = observedSignature && typeof observedSignature === "object" ? observedSignature : {};
+  const alpha = clamp(Number(blendFactor), 0.01, 0.95);
+
+  const keys = new Set([...Object.keys(ref), ...Object.keys(obs)]);
+  const blended = {};
+
+  for (const key of keys) {
+    const r = Number(ref[key]);
+    const o = Number(obs[key]);
+    if (Number.isFinite(r) && Number.isFinite(o)) {
+      blended[key] = Number((r * (1 - alpha) + o * alpha).toFixed(4));
+    } else if (obs[key] !== undefined) {
+      blended[key] = obs[key];
+    } else {
+      blended[key] = ref[key];
+    }
+  }
+
+  return blended;
+}
+
+function correctionDeltaFromSpec(machineTruth, requestedSpec) {
+  const moistureDelta = Number((requestedSpec.moisture_max - Number(machineTruth.moisture_pct || 0)).toFixed(3));
+  const densityDelta = Number((requestedSpec.density_min - Number(machineTruth.density || 0)).toFixed(3));
+  const penetrationDelta = Number((requestedSpec.penetration_min - Number(machineTruth.penetration_resistance || 0)).toFixed(3));
+
+  return {
+    moisture_delta_pct: moistureDelta,
+    density_delta: densityDelta,
+    penetration_delta: penetrationDelta,
+    tune_recipe: {
+      increase_cement: densityDelta > 0 ? Number((Math.min(6, Math.abs(densityDelta) / 110)).toFixed(3)) : 0,
+      reduce_water: moistureDelta < 0 ? Number((Math.min(6, Math.abs(moistureDelta) / 3)).toFixed(3)) : 0,
+      increase_compaction: penetrationDelta > 0 ? Number((Math.min(0.3, penetrationDelta / 180)).toFixed(3)) : 0
+    }
+  };
+}
+
+async function updateHouseMaterialMix(client, houseId, materialKey) {
+  const current = await client.query(
+    `SELECT material_family_mix
+     FROM houses
+     WHERE id = $1`,
+    [houseId]
+  );
+
+  const mix = current.rows[0]?.material_family_mix && typeof current.rows[0].material_family_mix === "object"
+    ? { ...current.rows[0].material_family_mix }
+    : {};
+
+  mix[materialKey] = Number(mix[materialKey] || 0) + 1;
+
+  await client.query(
+    `UPDATE houses
+     SET material_family_mix = $2::jsonb
+     WHERE id = $1`,
+    [houseId, JSON.stringify(mix)]
+  );
+}
+
+async function verifyBlockTx(client, { houseId, soilSignature, componentType = "wall", queueId = null }) {
   await ensureSoilLibraryRow(client, soilSignature);
 
   const known = await client.query(
@@ -174,116 +375,327 @@ async function verifyBlockTx(client, { houseId, soilSignature }) {
     [soilSignature]
   );
 
-  const soil = known.rows[0];
-  const shortConfidence = Number(soil?.short_term_confidence ?? 0);
-  const totalVerified = Number(soil?.total_blocks_verified ?? 0);
+  const soil = known.rows[0] || {};
+  const requestedRole = roleForComponent(componentType);
+  const requestedSpec = requestedSpecForComponent(componentType);
+  const roleCrit = roleCriticality(requestedRole);
 
-  if (soil && shortConfidence > 0.95) {
-    await client.query(
-      `INSERT INTO block_verifications (
-        house_id,
-        soil_signature,
-        penetration_resistance,
-        moisture_pct,
-        density,
-        passed,
-        retries,
-        verification_mode,
-        weathering_cycles,
-        created_at
-      ) VALUES ($1, $2, NULL, NULL, NULL, TRUE, 0, 'inline', 0, NOW())`,
-      [houseId, soilSignature]
-    );
+  const totalVerified = Number(soil.total_blocks_verified || 0);
+  const shortConfidence = Number(soil.short_term_confidence || 0);
+  const releasePrior = Number(soil.release_confidence || shortConfidence || 0);
+  const longPrior = Number(soil.long_term_confidence || 0);
+  const longevityPrior = Number(soil.longevity_confidence || longPrior || 0);
+  const referenceSampleCount = Number(soil.reference_sample_count || 0);
+  const priorMaturity = Number(soil.signature_maturity || signatureMaturityScore(referenceSampleCount, totalVerified));
 
-    await client.query(
-      `UPDATE soil_library
-       SET total_blocks_verified = total_blocks_verified + 1,
-           updated_at = NOW()
-       WHERE soil_signature = $1`,
-      [soilSignature]
-    );
+  const recipe = soil.recipe || defaultRecipeForSoil(soilSignature);
+  const processSignature = buildProcessSignature({ componentType, recipe, requestedSpec });
+  const processMatchScore = processSignatureScore(soil.process_signature || {}, processSignature);
 
-    return { passed: true, skipped: true, confidence: shortConfidence, retries: 0 };
+  const machineTruth = {
+    penetration_resistance: Number((requestedSpec.penetration_min + randRange(-36, 90)).toFixed(3)),
+    moisture_pct: Number((requestedSpec.moisture_max + randRange(-10, 8)).toFixed(3)),
+    density: Number((requestedSpec.density_min + randRange(-190, 260)).toFixed(3)),
+    dimensional_error_mm: Number((randRange(0, requestedSpec.dimensional_tolerance_mm * 1.7)).toFixed(3)),
+    mass_proxy: Number((randRange(8, 22)).toFixed(3))
+  };
+
+  const characteristicScore = clamp((
+    scoreWithinBand(machineTruth.penetration_resistance, requestedSpec.penetration_min, requestedSpec.penetration_min + 85) +
+    scoreWithinBand(machineTruth.moisture_pct, Math.max(0, requestedSpec.moisture_max - 12), requestedSpec.moisture_max) +
+    scoreWithinBand(machineTruth.density, requestedSpec.density_min, requestedSpec.density_max) +
+    scoreWithinBand(machineTruth.dimensional_error_mm, 0, requestedSpec.dimensional_tolerance_mm)
+  ) / 4, 0, 1);
+
+  const driftScore = clamp(1 - ((processMatchScore * 0.62) + (characteristicScore * 0.38)), 0, 1);
+  const contradictionDetected = isProcessSensorContradiction(processMatchScore, characteristicScore);
+
+  let decision = "approve";
+  let escalationReason = null;
+  let escalationTier = null;
+  let retries = 0;
+  let passed = true;
+
+  const maturityGatePassed = referenceSampleCount >= SIGNATURE_MATURITY_MIN_SAMPLES && priorMaturity >= 0.45;
+  const fastPass = maturityGatePassed
+    && releasePrior >= FAST_PASS_RELEASE_CONFIDENCE
+    && processMatchScore >= FAST_PASS_PROCESS_MATCH
+    && characteristicScore >= FAST_PASS_CHARACTERISTIC
+    && driftScore < REWORK_DRIFT_THRESHOLD;
+
+  if (contradictionDetected) {
+    decision = "escalate";
+    escalationReason = "tier3_process_sensor_contradiction";
+    escalationTier = "tier3";
+    retries = 3 + Math.floor(Math.random() * 2);
+    passed = false;
+  } else if (!fastPass) {
+    if (driftScore >= DRIFT_ESCALATION_THRESHOLD || processMatchScore < 0.55 || characteristicScore < 0.5) {
+      decision = "escalate";
+      escalationReason = processMatchScore < 0.55
+        ? "process_signature_drift"
+        : (characteristicScore < 0.5 ? "requested_spec_mismatch" : "high_drift");
+      escalationTier = "tier2";
+      retries = 2 + Math.floor(Math.random() * 2);
+      passed = false;
+    } else if (driftScore >= REWORK_DRIFT_THRESHOLD || processMatchScore < 0.72 || characteristicScore < 0.72) {
+      decision = "rework";
+      escalationReason = "tune_and_retry";
+      escalationTier = "tier1";
+      retries = 1 + Math.floor(Math.random() * 2);
+      passed = false;
+    }
   }
 
-  const penetration = 100 + Math.random() * 150;
-  const moisture = 8 + Math.random() * 20;
-  const density = 1600 + Math.random() * 400;
-  const passed = penetration > 120 && moisture < 25 && density > 1700;
-  const retries = passed ? 0 : Math.floor(Math.random() * 3);
+  let correctionDelta = passed ? {} : correctionDeltaFromSpec(machineTruth, requestedSpec);
+  if (contradictionDetected) {
+    correctionDelta = {
+      ...correctionDelta,
+      contradiction_gap: Number(Math.abs(processMatchScore - characteristicScore).toFixed(4)),
+      process_match_score: processMatchScore,
+      characteristic_score: characteristicScore
+    };
+  }
+
+  const blockId = `block-${houseId}-${queueId ?? "na"}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+  const shortTermConfidence = totalVerified > 0
+    ? ((shortConfidence * totalVerified) + (passed ? 1 : 0)) / (totalVerified + 1)
+    : (passed ? 0.5 : 0.12);
+
+  const releaseConfidence = clamp(
+    (releasePrior * 0.42)
+    + (processMatchScore * 0.3)
+    + (characteristicScore * 0.2)
+    + (priorMaturity * 0.08)
+    + (passed ? 0.04 : -0.12),
+    0.01,
+    0.999
+  );
+
+  const longTermConfidence = clamp(
+    longPrior * 0.9 + (passed ? 0.02 : -0.03),
+    0.01,
+    0.999
+  );
+
+  const longevityConfidence = clamp(
+    (longevityPrior * 0.5) + (longTermConfidence * 0.3) + (releaseConfidence * 0.2),
+    0.01,
+    0.999
+  );
+
+  const signatureContribution = passed && processMatchScore >= 0.72 && characteristicScore >= 0.72;
+  const nextReferenceCount = referenceSampleCount + (signatureContribution ? 1 : 0);
+  const nextMaturity = signatureMaturityScore(nextReferenceCount, totalVerified + 1);
+
+  const nextSignature = signatureContribution
+    ? (referenceSampleCount === 0
+      ? processSignature
+      : blendProcessSignature(soil.process_signature || {}, processSignature, PROCESS_SIGNATURE_BLEND))
+    : (soil.process_signature || {});
 
   await client.query(
     `INSERT INTO block_verifications (
       house_id,
+      block_id,
       soil_signature,
+      requested_role,
+      requested_spec,
+      process_signature,
+      machine_truth,
       penetration_resistance,
       moisture_pct,
       density,
+      process_match_score,
+      characteristic_score,
+      drift_score,
+      release_confidence,
+      longevity_confidence,
       passed,
       retries,
       verification_mode,
       weathering_cycles,
+      fast_pass,
+      decision,
+      escalation_reason,
+      correction_delta,
       created_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'inline', 0, NOW())`,
-    [houseId, soilSignature, penetration, moisture, density, passed, retries]
+    ) VALUES (
+      $1, $2, $3, $4, $5::jsonb, $6::jsonb, $7::jsonb, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
+      'inline', 0, $18, $19, $20, $21::jsonb, NOW()
+    )`,
+    [
+      houseId,
+      blockId,
+      soilSignature,
+      requestedRole,
+      JSON.stringify(requestedSpec),
+      JSON.stringify(processSignature),
+      JSON.stringify(machineTruth),
+      machineTruth.penetration_resistance,
+      machineTruth.moisture_pct,
+      machineTruth.density,
+      processMatchScore,
+      characteristicScore,
+      driftScore,
+      releaseConfidence,
+      longevityConfidence,
+      passed,
+      retries,
+      fastPass,
+      decision,
+      escalationReason,
+      JSON.stringify({ ...correctionDelta, escalation_tier: escalationTier, signature_maturity: nextMaturity, role_criticality: roleCrit })
+    ]
   );
-
-  const newConfidence = totalVerified > 0
-    ? ((shortConfidence * totalVerified) + (passed ? 1 : 0)) / (totalVerified + 1)
-    : (passed ? 0.5 : 0.1);
 
   await client.query(
     `UPDATE soil_library
      SET short_term_confidence = $2,
-         total_blocks_verified = $3,
-         recipe = COALESCE(recipe, $4::jsonb),
+         long_term_confidence = $3,
+         release_confidence = $4,
+         longevity_confidence = $5,
+         total_blocks_verified = $6,
+         process_signature = $7::jsonb,
+         reference_sample_count = $8,
+         fast_pass_count = fast_pass_count + CASE WHEN $9 THEN 1 ELSE 0 END,
+         drift_escalations = drift_escalations + CASE WHEN $10 THEN 1 ELSE 0 END,
+         correction_events = correction_events + $11,
+         last_requested_role = $12,
+         last_drift_score = $13,
+         recipe = COALESCE(recipe, $14::jsonb),
+         signature_maturity = $15,
          updated_at = NOW()
      WHERE soil_signature = $1`,
-    [soilSignature, newConfidence, totalVerified + 1, JSON.stringify(defaultRecipeForSoil(soilSignature))]
+    [
+      soilSignature,
+      shortTermConfidence,
+      longTermConfidence,
+      releaseConfidence,
+      longevityConfidence,
+      totalVerified + 1,
+      JSON.stringify(nextSignature),
+      nextReferenceCount,
+      fastPass,
+      decision === "escalate",
+      retries,
+      requestedRole,
+      driftScore,
+      JSON.stringify(defaultRecipeForSoil(soilSignature)),
+      nextMaturity
+    ]
   );
 
-  return { passed, skipped: false, retries, penetration, moisture, density, confidence: newConfidence };
+  await updateHouseMaterialMix(client, houseId, `${soilSignature}|${requestedRole}`);
+
+  return {
+    passed,
+    skipped: fastPass,
+    fastPass,
+    decision,
+    escalationReason,
+    escalationTier,
+    retries,
+    penetration: machineTruth.penetration_resistance,
+    moisture: machineTruth.moisture_pct,
+    density: machineTruth.density,
+    processMatchScore,
+    characteristicScore,
+    driftScore,
+    releaseConfidence,
+    longevityConfidence,
+    requestedRole,
+    requestedSpec,
+    contradictionDetected,
+    maturityScore: nextMaturity,
+    roleCriticality: roleCrit,
+    correctionDelta,
+    blockId
+  };
 }
+
 
 async function weatheringTestTx(client, soilSignature) {
   await ensureSoilLibraryRow(client, soilSignature);
+
+  const current = await client.query(
+    `SELECT long_term_confidence, longevity_confidence
+     FROM soil_library
+     WHERE soil_signature = $1`,
+    [soilSignature]
+  );
+
+  const row = current.rows[0] || {};
+  const priorLong = Number(row.long_term_confidence || 0);
+  const priorLongevity = Number(row.longevity_confidence || priorLong || 0);
 
   const cycles = 12;
   const erosionScore = 0.7 + Math.random() * 0.3;
   const capillaryRise = Math.random() * 30;
   const longTermPassed = erosionScore > 0.8 && capillaryRise < 20;
-  const longTermConfidence = longTermPassed ? 0.75 + Math.random() * 0.2 : 0.3 + Math.random() * 0.3;
+  const observedLongTerm = longTermPassed ? 0.75 + Math.random() * 0.2 : 0.3 + Math.random() * 0.3;
+
+  const longTermConfidence = clamp(priorLong * 0.35 + observedLongTerm * 0.65, 0.01, 0.999);
+  const longevityConfidence = clamp(priorLongevity * 0.5 + longTermConfidence * 0.5, 0.01, 0.999);
 
   await client.query(
     `INSERT INTO block_verifications (
       house_id,
+      block_id,
       soil_signature,
+      requested_role,
+      requested_spec,
+      process_signature,
+      machine_truth,
       penetration_resistance,
       moisture_pct,
       density,
+      process_match_score,
+      characteristic_score,
+      drift_score,
+      release_confidence,
+      longevity_confidence,
       passed,
       retries,
       verification_mode,
       weathering_cycles,
+      fast_pass,
+      decision,
+      escalation_reason,
+      correction_delta,
       created_at
-    ) VALUES (NULL, $1, NULL, NULL, NULL, $2, 0, 'accelerated_weathering', $3, NOW())`,
-    [soilSignature, longTermPassed, cycles]
+    ) VALUES (
+      NULL, $1, $2, NULL, '{}'::jsonb, '{}'::jsonb, $3::jsonb, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $4,
+      $5, 0, 'accelerated_weathering', $6, FALSE, $7, NULL, '{}'::jsonb, NOW()
+    )`,
+    [
+      `weather-${soilSignature}-${Date.now()}`,
+      soilSignature,
+      JSON.stringify({ erosion_score: erosionScore, capillary_rise_mm: capillaryRise }),
+      longevityConfidence,
+      longTermPassed,
+      cycles,
+      longTermPassed ? "approve" : "reject"
+    ]
   );
 
   await client.query(
     `UPDATE soil_library
      SET long_term_confidence = $2,
-         weathering_cycles_tested = GREATEST(weathering_cycles_tested, $3),
-         erosion_score = $4,
+         longevity_confidence = $3,
+         weathering_cycles_tested = GREATEST(weathering_cycles_tested, $4),
+         erosion_score = $5,
          updated_at = NOW()
      WHERE soil_signature = $1`,
-    [soilSignature, longTermConfidence, cycles, erosionScore]
+    [soilSignature, longTermConfidence, longevityConfidence, cycles, erosionScore]
   );
 
-  return { longTermConfidence, erosionScore, capillaryRise, cycles, passed: longTermPassed };
+  return { longTermConfidence, longevityConfidence, erosionScore, capillaryRise, cycles, passed: longTermPassed };
 }
 
-function clamp(value, min, max) {
+function clamp(
+value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
@@ -765,17 +1177,105 @@ async function completeSealingTx(client, { houseId, soilSignature }) {
   await ensureSoilLibraryRow(client, soilSignature);
 
   const soil = await client.query(
-    `SELECT short_term_confidence, long_term_confidence, recipe
+    `SELECT short_term_confidence, long_term_confidence, release_confidence, longevity_confidence, recipe
      FROM soil_library
      WHERE soil_signature = $1`,
     [soilSignature]
   );
 
+  const houseMixRes = await client.query(
+    `SELECT material_family_mix
+     FROM houses
+     WHERE id = $1`,
+    [houseId]
+  );
+
   const row = soil.rows[0] || {};
-  const longTermConfidence = Number(row.long_term_confidence || 0);
-  const shortTermConfidence = Number(row.short_term_confidence || 0);
+  const houseMix = houseMixRes.rows[0]?.material_family_mix && typeof houseMixRes.rows[0].material_family_mix === "object"
+    ? houseMixRes.rows[0].material_family_mix
+    : {};
+
+  const mixEntries = [];
+  for (const [key, rawWeight] of Object.entries(houseMix)) {
+    const weight = Number(rawWeight || 0);
+    if (weight <= 0) continue;
+
+    const [signature, rawRole] = String(key).split("|");
+    const role = rawRole || "structural_wall";
+    if (!signature) continue;
+
+    mixEntries.push({
+      signature,
+      role,
+      weight,
+      criticality: roleCriticality(role),
+      exposure: roleExposure(role)
+    });
+  }
+
+  const uniqueSignatures = [...new Set(mixEntries.map((entry) => entry.signature))];
+  const confBySig = new Map();
+
+  if (uniqueSignatures.length > 0) {
+    const confRows = await client.query(
+      `SELECT soil_signature, long_term_confidence, longevity_confidence, release_confidence
+       FROM soil_library
+       WHERE soil_signature = ANY($1::text[])`,
+      [uniqueSignatures]
+    );
+
+    for (const conf of confRows.rows) {
+      confBySig.set(conf.soil_signature, {
+        long: Number(conf.long_term_confidence || 0),
+        longevity: Number(conf.longevity_confidence || 0),
+        release: Number(conf.release_confidence || 0)
+      });
+    }
+  }
+
+  const defaultLong = Math.max(Number(row.long_term_confidence || 0), Number(row.longevity_confidence || 0));
+  let weightedRoleSum = 0;
+  let weightedRoleDenom = 0;
+  let weakestCriticalConfidence = 1;
+  let weakestCriticalRole = null;
+
+  for (const entry of mixEntries) {
+    const conf = confBySig.get(entry.signature);
+    const baseConfidence = clamp(Math.max(Number(conf?.long || 0), Number(conf?.longevity || 0), defaultLong), 0, 1);
+    const adjustedConfidence = clamp(baseConfidence - (entry.exposure * 0.04), 0, 1);
+
+    const weightedRole = entry.weight * entry.criticality;
+    weightedRoleSum += adjustedConfidence * weightedRole;
+    weightedRoleDenom += weightedRole;
+
+    if (entry.criticality >= 0.8 && adjustedConfidence < weakestCriticalConfidence) {
+      weakestCriticalConfidence = adjustedConfidence;
+      weakestCriticalRole = entry.role;
+    }
+  }
+
+  const weightedRoleConfidence = weightedRoleDenom > 0
+    ? (weightedRoleSum / weightedRoleDenom)
+    : defaultLong;
+
+  if (!Number.isFinite(weakestCriticalConfidence) || weakestCriticalConfidence >= 1) {
+    weakestCriticalConfidence = weightedRoleConfidence;
+  }
+
+  const roleWeightedConfidence = clamp((weightedRoleConfidence * 0.58) + (weakestCriticalConfidence * 0.42), 0, 1);
+  const longTermConfidence = clamp(Math.max(defaultLong * 0.4 + roleWeightedConfidence * 0.6, roleWeightedConfidence), 0.01, 0.999);
+  const releaseConfidence = clamp(Number(row.release_confidence || row.short_term_confidence || 0), 0.01, 0.999);
+
+  const limitingConfidence = Math.min(roleWeightedConfidence, weakestCriticalConfidence + 0.06);
+
   const baseTTL = 365 * 5;
-  const soilMultiplier = longTermConfidence > 0.85 ? 1.5 : (shortTermConfidence > 0.9 ? 1.2 : 1);
+  const soilMultiplier = limitingConfidence > 0.9
+    ? 1.75
+    : (limitingConfidence > 0.82
+      ? 1.45
+      : (limitingConfidence > 0.72
+        ? 1.2
+        : 1.0));
   const ttlDays = Math.max(365, Math.round(baseTTL * soilMultiplier));
 
   const coatingApplied = new Date();
@@ -802,8 +1302,11 @@ async function completeSealingTx(client, { houseId, soilSignature }) {
       improved_recipe,
       status,
       next_ttl_multiplier,
+      role_weighted_confidence,
+      weakest_critical_confidence,
+      critical_constraint_role,
       updated_at
-    ) VALUES ($1, 1, $2, $3, $4, $5, $6::jsonb, 'ok', 2.0, NOW())
+    ) VALUES ($1, 1, $2, $3, $4, $5, $6::jsonb, 'ok', 2.0, $7, $8, $9, NOW())
     ON CONFLICT (house_id) DO UPDATE
     SET coating_applied_at = EXCLUDED.coating_applied_at,
         ttl_expires_at = EXCLUDED.ttl_expires_at,
@@ -811,12 +1314,41 @@ async function completeSealingTx(client, { houseId, soilSignature }) {
         ttl_days = EXCLUDED.ttl_days,
         improved_recipe = EXCLUDED.improved_recipe,
         status = 'ok',
+        role_weighted_confidence = EXCLUDED.role_weighted_confidence,
+        weakest_critical_confidence = EXCLUDED.weakest_critical_confidence,
+        critical_constraint_role = EXCLUDED.critical_constraint_role,
         updated_at = NOW()`,
-    [houseId, coatingApplied.toISOString(), ttlExpires.toISOString(), alertAt.toISOString(), ttlDays, JSON.stringify(row.recipe || defaultRecipeForSoil(soilSignature))]
+    [
+      houseId,
+      coatingApplied.toISOString(),
+      ttlExpires.toISOString(),
+      alertAt.toISOString(),
+      ttlDays,
+      JSON.stringify({
+        ...(row.recipe || defaultRecipeForSoil(soilSignature)),
+        ttl_role_weighted_confidence: Number(roleWeightedConfidence.toFixed(4)),
+        weakest_critical_confidence: Number(weakestCriticalConfidence.toFixed(4)),
+        critical_constraint_role: weakestCriticalRole || "none",
+        limiting_confidence: Number(limitingConfidence.toFixed(4))
+      }),
+      roleWeightedConfidence,
+      weakestCriticalConfidence,
+      weakestCriticalRole
+    ]
   );
 
-  return { ttlDays, ttlExpires: ttlExpires.toISOString(), alertAt: alertAt.toISOString() };
+  return {
+    ttlDays,
+    ttlExpires: ttlExpires.toISOString(),
+    alertAt: alertAt.toISOString(),
+    weightedLongConfidence: longTermConfidence,
+    releaseConfidence,
+    roleWeightedConfidence,
+    weakestCriticalConfidence,
+    criticalConstraintRole: weakestCriticalRole || "none"
+  };
 }
+
 
 async function triggerMaintenanceTx(client, houseId) {
   const maintenance = await client.query(
@@ -933,20 +1465,99 @@ async function maybeRunMaintenance(client) {
 
   lastMaintenanceRunAt = now;
 }
-function simulateInsertion(componentType) {
+function insertionProfileKey(componentType, cell) {
+  return `${componentType}:${cell?.z ?? 0}`;
+}
+
+function simulateInsertion(componentType, cell) {
   const base = COMPONENT_BASE_IMPEDANCE[componentType] ?? 0.5;
+  const profileKey = insertionProfileKey(componentType, cell);
+
+  if (!insertionProfileMemory.has(profileKey)) {
+    insertionProfileMemory.set(profileKey, {
+      attempts: 0,
+      successfulSeats: 0
+    });
+  }
+
+  const profile = insertionProfileMemory.get(profileKey);
+  const calibrationPass = profile.successfulSeats === 0;
+  const preScanTolerance = calibrationPass ? ASSEMBLY_PRE_SCAN_TOLERANCE_CAL : ASSEMBLY_PRE_SCAN_TOLERANCE;
+  const preScanAlignment = Math.random();
+  const preScanEscalated = preScanAlignment > preScanTolerance;
+
+  profile.attempts += 1;
+
+  if (preScanEscalated) {
+    return {
+      success: false,
+      retries: 0,
+      resistance: base,
+      decision: "pre_insertion_drift_escalation",
+      calibrationPass,
+      preScanEscalated,
+      preScanAlignment: Number(preScanAlignment.toFixed(4)),
+      postSeatPassed: false,
+      postSeatResistance: 0,
+      preScanSeconds: ASSEMBLY_PRE_SCAN_SECONDS,
+      postSeatSeconds: 0,
+      calibrationSeconds: calibrationPass ? ASSEMBLY_CALIBRATION_SLOWDOWN_SECONDS : 0
+    };
+  }
+
   let retries = 0;
   let resistance = base;
+  const threshold = calibrationPass
+    ? Math.max(0.2, IMPEDANCE_THRESHOLD - ASSEMBLY_CALIBRATION_TIGHTEN)
+    : IMPEDANCE_THRESHOLD;
 
   while (retries < MAX_INSERTION_RETRIES) {
     resistance = base + Math.random() * IMPEDANCE_VARIANCE;
-    if (resistance <= IMPEDANCE_THRESHOLD) {
-      return { success: true, retries, resistance };
+    if (resistance <= threshold) {
+      break;
     }
     retries += 1;
   }
 
-  return { success: false, retries, resistance };
+  if (retries >= MAX_INSERTION_RETRIES && resistance > threshold) {
+    return {
+      success: false,
+      retries,
+      resistance,
+      decision: "impedance_retry_exhausted",
+      calibrationPass,
+      preScanEscalated: false,
+      preScanAlignment: Number(preScanAlignment.toFixed(4)),
+      postSeatPassed: false,
+      postSeatResistance: 0,
+      preScanSeconds: ASSEMBLY_PRE_SCAN_SECONDS,
+      postSeatSeconds: 0,
+      calibrationSeconds: calibrationPass ? ASSEMBLY_CALIBRATION_SLOWDOWN_SECONDS : 0
+    };
+  }
+
+  const postSeatResistance = Number((0.4 + Math.random() * 0.6).toFixed(4));
+  const postSeatThreshold = calibrationPass ? ASSEMBLY_POST_SEAT_MIN_CAL : ASSEMBLY_POST_SEAT_MIN;
+  const postSeatPassed = postSeatResistance >= postSeatThreshold;
+
+  if (postSeatPassed) {
+    profile.successfulSeats += 1;
+  }
+
+  return {
+    success: postSeatPassed,
+    retries,
+    resistance,
+    decision: postSeatPassed ? "seated" : "post_seat_micro_load_failed",
+    calibrationPass,
+    preScanEscalated: false,
+    preScanAlignment: Number(preScanAlignment.toFixed(4)),
+    postSeatPassed,
+    postSeatResistance,
+    preScanSeconds: ASSEMBLY_PRE_SCAN_SECONDS,
+    postSeatSeconds: ASSEMBLY_POST_SEAT_SECONDS,
+    calibrationSeconds: calibrationPass ? ASSEMBLY_CALIBRATION_SLOWDOWN_SECONDS : 0
+  };
 }
 
 async function releaseHouseCluster(client, houseId) {
@@ -1702,7 +2313,7 @@ async function runRobotStep(client, robot) {
   }
 
   const soilSignature = await ensureHouseSoilSignature(client, robot.active_house_id);
-  const qc = await verifyBlockTx(client, { houseId: robot.active_house_id, soilSignature });
+  const qc = await verifyBlockTx(client, { houseId: robot.active_house_id, soilSignature, componentType: job.component_type, queueId: job.queue_id });
 
   if (!qc.passed) {
     const failSec = Math.max(4, 4 + Number(qc.retries || 0) * RETRY_ADJUST_SECONDS);
@@ -1735,10 +2346,11 @@ async function runRobotStep(client, robot) {
   }
 
   const cell = { x: job.x, y: job.y, z: job.z };
-  const insertion = simulateInsertion(job.component_type);
+  const insertion = simulateInsertion(job.component_type, cell);
   const retrySeconds = insertion.retries * RETRY_ADJUST_SECONDS;
   const failurePenalty = insertion.success ? 0 : FAILED_INSERTION_PENALTY_SECONDS;
-  const rawWorkSec = movementSeconds(robot, cell) + retrySeconds + failurePenalty;
+  const insertionOverhead = Number(insertion.preScanSeconds || 0) + Number(insertion.postSeatSeconds || 0) + Number(insertion.calibrationSeconds || 0);
+  const rawWorkSec = movementSeconds(robot, cell) + retrySeconds + failurePenalty + insertionOverhead;
   const laneTravelFactor = laneSnapshot?.travelFactor ?? 1;
   const workSec = Math.max(4, Math.round(rawWorkSec * laneTravelFactor));
 
@@ -2000,7 +2612,7 @@ export async function schedulerTick() {
 }
 
 export async function sampleMetrics() {
-  const [counts, robotTime, houseTime, placementStats, terrainStats, communityStats, surveyStats, soilStats, blockStats, maintenanceStats, surveyRunStats, laneStats, referencePatchStats] = await Promise.all([
+  const [counts, robotTime, houseTime, placementStats, terrainStats, communityStats, surveyStats, soilStats, maturityStats, blockStats, verificationStats, maintenanceStats, surveyRunStats, laneStats, referencePatchStats] = await Promise.all([
     pool.query(`
       SELECT
         COUNT(DISTINCT h.id)::int AS active_houses,
@@ -2061,6 +2673,10 @@ export async function sampleMetrics() {
       SELECT COUNT(*)::int AS soil_recipes_learned
       FROM soil_library
     `),
+    pool.query(
+      `SELECT COALESCE(AVG(signature_maturity), 0)::float AS avg_signature_maturity
+       FROM soil_library
+      `),
     pool.query(`
       SELECT
         COUNT(*) FILTER (WHERE verification_mode = 'inline' AND passed = TRUE)::int AS blocks_verified,
@@ -2069,8 +2685,19 @@ export async function sampleMetrics() {
     `),
     pool.query(`
       SELECT
+        COALESCE(AVG(CASE WHEN verification_mode = 'inline' THEN CASE WHEN fast_pass THEN 1 ELSE 0 END END), 0)::float AS fast_pass_rate,
+        COUNT(*) FILTER (WHERE verification_mode = 'inline' AND decision = 'escalate')::int AS drift_escalations,
+        COUNT(*) FILTER (WHERE verification_mode = 'inline' AND escalation_reason = 'tier3_process_sensor_contradiction')::int AS contradiction_escalations,
+        COALESCE(SUM(retries) FILTER (WHERE verification_mode = 'inline' AND decision IN ('rework', 'escalate')), 0)::int AS rework_loops,
+        COALESCE(AVG(release_confidence) FILTER (WHERE verification_mode = 'inline'), 0)::float AS avg_release_confidence,
+        COALESCE(AVG(longevity_confidence) FILTER (WHERE verification_mode = 'inline'), 0)::float AS avg_longevity_confidence
+      FROM block_verifications
+    `),
+    pool.query(`
+      SELECT
         COUNT(*) FILTER (WHERE hm.status IN ('alert', 'recoating'))::int AS houses_in_maintenance,
-        COALESCE(AVG(hm.ttl_days), 0)::float AS avg_ttl_days
+        COALESCE(AVG(hm.ttl_days), 0)::float AS avg_ttl_days,
+        COALESCE(AVG(hm.role_weighted_confidence), 0)::float AS avg_ttl_role_weighted_confidence
       FROM house_maintenance hm
       JOIN houses h ON h.id = hm.house_id
       WHERE h.is_active = TRUE
@@ -2111,6 +2738,8 @@ export async function sampleMetrics() {
   const community = communityStats.rows[0];
   const lane = laneStats.rows[0] || {};
   const referencePatches = referencePatchStats.rows[0] || {};
+  const verification = verificationStats.rows[0] || {};
+  const maturity = maturityStats.rows[0] || {};
 
   const elapsedHours = Number(houseTime.rows[0]?.elapsed_hours || 0);
   const totalTime = Number(t.idle) + Number(t.work);
@@ -2131,8 +2760,8 @@ export async function sampleMetrics() {
 
   await pool.query(
     `INSERT INTO metrics_samples
-      (active_houses, active_robots, houses_completed, cells_filled, total_cells, robot_idle_percent, throughput_cells_per_hour, pipeline_efficiency, placement_corrections, placement_failures, avg_retries_per_placement, terrain_ready_percent, avg_grade_error, avg_compaction, obstacle_cells_remaining, community_kits_activated, community_kits_failed, community_kits_pending, active_surveys, soil_recipes_learned, blocks_verified, blocks_failed_qc, houses_in_maintenance, avg_ttl_days, avg_survey_uncertainty, survey_densification_rounds, avg_lane_condition, conditioned_lane_percent, degraded_lane_segments, stale_relay_segments, lane_verification_events, reference_patches_protected, reference_patches_total)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)`,
+      (active_houses, active_robots, houses_completed, cells_filled, total_cells, robot_idle_percent, throughput_cells_per_hour, pipeline_efficiency, placement_corrections, placement_failures, avg_retries_per_placement, terrain_ready_percent, avg_grade_error, avg_compaction, obstacle_cells_remaining, community_kits_activated, community_kits_failed, community_kits_pending, active_surveys, soil_recipes_learned, blocks_verified, blocks_failed_qc, houses_in_maintenance, avg_ttl_days, avg_survey_uncertainty, survey_densification_rounds, avg_lane_condition, conditioned_lane_percent, degraded_lane_segments, stale_relay_segments, lane_verification_events, reference_patches_protected, reference_patches_total, verification_fast_pass_rate, verification_drift_escalations, verification_rework_loops, avg_release_confidence, avg_longevity_confidence, verification_contradictions, avg_signature_maturity, avg_ttl_role_weighted_confidence)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)`,
     [
       c.active_houses,
       c.active_robots,
@@ -2166,7 +2795,15 @@ export async function sampleMetrics() {
       Number(lane.stale_segments || 0),
       Number(lane.verification_events || 0),
       Number(referencePatches.reference_protected || 0),
-      Number(referencePatches.reference_total || 0)
+      Number(referencePatches.reference_total || 0),
+      Number(verification.fast_pass_rate || 0) * 100,
+      Number(verification.drift_escalations || 0),
+      Number(verification.rework_loops || 0),
+      Number(verification.avg_release_confidence || 0),
+      Number(verification.avg_longevity_confidence || 0),
+      Number(verification.contradiction_escalations || 0),
+      Number(maturity.avg_signature_maturity || 0),
+      Number(maintenanceStats.rows[0]?.avg_ttl_role_weighted_confidence || 0)
     ]
   );
 }
@@ -2474,8 +3111,13 @@ export async function surveyHouse(houseId) {
   return withTx(async (client) => surveyHouseTx(client, Number(houseId)));
 }
 
-export async function verifyBlock({ houseId, soilSignature }) {
-  return withTx(async (client) => verifyBlockTx(client, { houseId: Number(houseId), soilSignature }));
+export async function verifyBlock({ houseId, soilSignature, componentType = "wall", queueId = null }) {
+  return withTx(async (client) => verifyBlockTx(client, {
+    houseId: Number(houseId),
+    soilSignature,
+    componentType,
+    queueId
+  }));
 }
 
 export async function runWeatheringTest(soilSignature) {
@@ -2503,6 +3145,8 @@ export async function getMaintenanceAlerts(withinDays = 180) {
     [Number(withinDays)]
   ).then((result) => result.rows);
 }
+
+
 
 
 

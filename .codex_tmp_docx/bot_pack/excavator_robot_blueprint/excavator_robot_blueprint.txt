@@ -1,0 +1,564 @@
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="200" w:after="80"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">HOUSE BRAIN
+Excavator Robot Blueprint
+Refined from C2A Transmutation Chain  |  v1
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2E6DA4"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Core Doctrine: 
+Don't make the underground machine solve everything — liberate and route material into easier downstream processes.
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F7FA" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">One-Sentence Summary: 
+The Excavator Robot is a penetrate–process–lift machine that breaks and lifts ground material, uses a binary intake gate to split likely-usable soil from obvious reject, and sends the coarse-qualified stream to a surface gravity-sorting container for downstream fabrication.
+
+1. Purpose
+The Excavator Robot is the machine that makes the site buildable and turns the ground into a usable feed stream.
+It does two jobs:
+Site prep — loosen / level / open the ground, support foundation area preparation, help create workable terrain
+Earth harvesting — extract ground material, coarse-separate usable soil from obvious reject, send processable earth upward into a surface sorting container
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">A ground liberator + coarse classifier + feedstream supplier.
+
+2. End-to-End Simple Analogy
+Think of drinking something mixed with chunks.
+Bad version:
+You try to suck rocks, roots, clumps, and powder through one straw
+Better version:
+First you shred the soft chunks
+Then you lift the mixture upward
+Then a gate decides what is small/processable enough to pass
+The rest gets rejected
+Above ground, a larger container finishes the separation in open space
+That is your Excavator.
+
+3. Final C2A Logic
+The final doctrine of Excavator:
+Do not make one underground super-machine
+Do not demand clean ground categories from raw earth
+Break the soil locally
+Shred soft mess, not rocks
+Lift material upward instead of sorting deeply underground
+Use a simple binary gate for coarse separation
+Send likely usable soil to a surface container
+Let the surface container finish secondary separation
+Let downstream systems decide fine material quality
+
+4. Constraints and Your Transmutations
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 1 — The Spoon-in-Rocks Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+Raw ground comes out mixed: dirt, rocks, roots, clumps, debris, wet and dry mess. The ground does not come out in clean categories.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Break, Lift, Filter
+Make the excavator work like the survey bot in a sense: it has a pole that goes down, blades break up what is inside, air lifts the material upward, and a filter can help decide what is needed from the ground.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Excavator becomes: break → lift → filter
+Instead of 'smart dig everything'
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 2 — The Vacuum-on-Gravel Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+Suction alone fails on wet clumps, roots, sticky material, and mixed debris.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Shred Before Lift
+The blades within the pole should completely decimate whatever is within the pole so everything can be lifted more easily.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Intake zone normalized before suction tries to move material
+Shred before lift — always
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 3 — The Blender-in-a-Rock Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+If the shredder tries to destroy rocks too, it becomes fragile or expensive.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Soft-Material Processor, Not Rock Crusher
+The blades should shred roots and clumps but not do anything to stones. Their shape can be curved so rocks are not broken by them, but instead get caught/deflected and left or rejected.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Shredder processes soft material only
+Curved blade geometry deflects hard objects rather than engaging them
+Narrows purpose and reduces cost and wear
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 4 — The Clogged Throat Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+Rejected hard objects can still clog the intake area.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Dual-Stream System
+After the needed material is lifted, the leftover debris and hard objects can also be brought up and pushed out through a different exit.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Usable stream → surface container
+Reject stream → separate reject path/container
+Solves self-clogging at the throat
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 5 — The Mixed Pile Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+Even with dual streams, reject and usable material can become a messy surface pile.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Lift First, Sort Above Ground
+Remove the complicated internal filter and bring everything to the surface, then filter there where it is simpler.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Core move: lift first, sort above ground
+Complexity moved from the hardest place (underground) to the easiest place (surface)
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 6 — The Mud Fountain Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+If lifted material just explodes onto the surface randomly, the sorting stage becomes messy and unreliable.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Flex Tube to Controlled Surface Delivery
+Use a vacuum-like stretchy tube that carries the material to containers on the surface. The container handles the filtering and can connect directly to Fabricator.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+System becomes: excavation head → flex tube → surface sorting container
+Controlled delivery, not spray chaos
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 7 — The Constipated Funnel Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+A surface container can still jam if everything enters as one mixed mess.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Coarse Split First, Gravity Finish Second
+Make the container vertical so gravity helps move things downward through chambers. Then you noticed the deeper truth: good soil should be separated from the rest before it reaches the container.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Vertical multi-chamber container uses gravity assist
+Coarse gate splits stream before surface container receives it
+Good soil and reject arrive at separate destinations
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 8 — The Good-Enough Sieve Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+The first-pass separator must be simple and binary, not smart and fragile.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Binary Gate: Pass or Fail
+The blades cut everything within the pole, then the air lifts it, and the filter is the decider: if it passes the filter, it goes into the good-soil container; if it cannot pass, it goes to the other container.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Gate is strictly binary: pass = likely usable, fail = reject
+No intelligence required at the gate itself — size is the only criterion
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Constraint 9 — The Flour-with-Sand Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="FDF6E3" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Problem: 
+Even if material is the right size, it may still be the wrong quality.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Transmutation: Hand Off to Downstream, Don't Solve It Here
+The container or downstream process handles that through its own process if there is something in that regard.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Excavator does not solve final material-quality truth
+Hands off size-qualified stream to: surface container, Fabricator, Verification, soil intelligence downstream
+Role correctly limited
+
+5. Refinements
+Five gaps identified after blueprint review. Each adds predictive capability, safety logic, wear awareness, or a cross-system data path the original blueprint left open.
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 1 — The Survey Handoff Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The blueprint lists Survey as an input but treats it as a zone map only. The Survey Robot's penetration resistance curve already contains depth-specific data — where the soft layer ends, where resistance spikes, and how thick the workable material is. The Excavator currently discovers this blind, at the moment the blade load changes.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Before engaging any zone, the Excavator loads the Survey's penetration curve for that zone. This pre-arms the robot with expected blade load thresholds by depth, expected hard-layer onset depth, and a predicted reject ratio. The robot plans engagement depth and lift strategy before the pole enters the ground rather than reacting after it already has. New field: expected_hard_layer_depth_m loaded from Survey before penetration begins.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Survey penetration curve consumed as pre-mission depth profile per zone
+Blade load targets and hard-layer onset depth pre-loaded before engagement
+Predicted reject ratio available before extraction begins
+New input field: expected_hard_layer_depth_m from Survey data
+Excavator stops discovering the subsurface blind
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 2 — The Wet Ground Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The blueprint handles wet clumps as a shredding challenge but does not address what happens when ground moisture is high enough that the lifted stream becomes slurry. Slurry coats the gate, bridges the hose, and floods the surface container rather than separating cleanly. The Survey Robot already measures moisture per point — that data is unused by the Excavator.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Before extraction, the Excavator reads the zone moisture score from Survey data. Above a defined moisture threshold, lift speed is reduced and the binary gate aperture is adjusted to account for clump cohesion. If moisture is high enough to risk slurry, the system flags to House Brain before committing to extraction — rather than discovering the problem mid-flow with a clogged hose.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Pre-extraction moisture check from Survey zone record
+Lift speed reduced above moisture threshold to prevent slurry formation
+Gate aperture adjustment for high-cohesion conditions
+Pre-extraction slurry-risk flag to House Brain if moisture exceeds safe extraction limit
+New input field: zone_moisture_pct consumed from Survey before lift begins
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 3 — The Blade Wear Blindness Problem
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The blueprint uses blade load estimate only for jam/clog detection at runtime. Blade geometry — specifically the curved deflection profile — is what makes rock avoidance work. As blades wear, that geometry degrades and a blade designed to deflect rocks begins catching them. The system has no mechanism to detect this drift before a field failure occurs.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Blade load patterns over time are tracked as a wear proxy. The ratio of high-load events to cumulative throughput volume is computed continuously. As that ratio drifts upward over time, it indicates blade wear rather than just a hard-ground episode. The system emits a blade wear index with each excavation record and flags inspection before the deflection geometry is gone. New field: blade_wear_index emitted per excavation record.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Cumulative blade load-per-throughput ratio tracked as wear proxy
+Blade wear index computed and emitted with every excavation record
+Wear threshold triggers pre-emptive blade inspection flag to House Brain
+Failure mode shifted from reactive (blade fails in field) to predictive (flag before geometry degradation)
+New emitted field: blade_wear_index per excavation record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="5B2D8E" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Refinement 4 — The Surface Container Blind Spot
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The Excavator routes to container_id and assumes reception. No confirmation handshake exists. If the container is full, jammed, or disconnected, the Excavator keeps pumping material, causing hose backpressure, bridging, and potential system jam. The blueprint has no mechanism to detect or respond to this before it becomes a failure.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+Before starting lift operations, the Excavator sends a container-ready confirmation request. The surface container responds with its current fill level and pressure state. During operation, fill level and backpressure are monitored continuously. If fill exceeds threshold or backpressure rises, the Excavator pauses lift and waits rather than forcing material through. New command: confirm_container_ready(container_id) added before start_lift(). New live inputs: container_fill_pct and backpressure_state.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+Pre-lift container-ready handshake required before extraction begins
+Live fill level and backpressure monitored during operation
+Lift automatically paused when container fill or backpressure exceeds threshold
+New command: confirm_container_ready(container_id)
+New operational inputs: container_fill_pct and backpressure_state
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="1B3A5C" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="80"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="FFFFFF"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Cross-System Refinement — Excavator Feeds Survey Calibration — Cross-System Data Path
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F0FB" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Gap identified: 
+The Survey Robot classifies zones from surface probing. Once the Excavator actually digs, it gets ground-truth subsurface data the Survey never had: actual blade load at depth, actual reject ratio, actual hard-layer encounter depth, actual material split. This is the most direct real-world confirmation or contradiction of Survey predictions. Currently that data path does not exist in either robot's architecture.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F3EEF9" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="5B2D8E"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Refinement:
+After completing each zone, the Excavator emits a post-excavation ground-truth record to the Survey library and House Brain. This record compares actual hard layer depth vs Survey prediction, actual reject ratio vs expected, and actual blade load profile. Over many zones and builds, this calibrates Survey's penetration-to-classification model — making future surveys more accurate at no additional probing cost. Survey predicted BUILDABLE but Excavator found 40% reject at 0.8m? That is a model correction that improves every future survey on similar terrain.
+<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="BBAACC" w:sz="1"/><w:left w:val="single" w:color="BBAACC" w:sz="1"/><w:bottom w:val="single" w:color="BBAACC" w:sz="1"/><w:right w:val="single" w:color="BBAACC" w:sz="1"/></w:tcBorders><w:shd w:fill="F0F7ED" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="100"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="100"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="60"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2D6A27"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Result:
+New output channel: excavator_ground_truth_record emitted to Survey library after each zone
+Record includes: actual vs predicted hard layer depth, actual vs predicted reject ratio, blade load profile by depth
+Survey classification model updated from Excavator field results over time
+Prediction accuracy improves across builds without additional Survey passes
+Survey blueprint updated: new input source from Excavator post-zone ground truth
+
+6. Core Mission
+The Excavator Robot must:
+Load Survey penetration curve and moisture data before engaging each zone
+Confirm surface container readiness before starting lift
+Penetrate and engage the ground
+Locally break and shred soft earth, clumps, and roots
+Lift a mixed material stream upward
+Use a coarse intake gate to split likely-usable soil from obvious reject
+Send likely-usable stream through tube to the surface container
+Send reject material to the reject path
+Support site prep by clearing and opening workable ground
+Track blade wear index and flag inspection threshold
+Emit excavation and material-feed telemetry to House Brain
+Emit post-zone ground-truth record to Survey library
+
+7. Functional Role
+Excavator turns raw ground into:
+Workable site geometry
+A coarse-qualified material stream for downstream fabrication
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="F5F7FA" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">It is the front-end physical interface between land and fabrication feedstock.
+
+8. System Architecture
+8.1 Inputs
+From House Brain
+Excavation zone
+Target depth
+Site prep objectives
+Material extraction objectives
+Reject routing destination
+Good-soil routing destination
+From Survey
+Buildable zone map
+Penetration resistance curve per zone
+Expected hard layer depth per zone
+Zone moisture score
+Slope / terrain state
+Weak/reject ground warnings
+From Surface Container
+container_fill_pct — live fill level during operation
+backpressure_state — live pressure signal during lift
+ready_confirmed — pre-lift handshake response
+From Downstream System
+Requested feed class / desired particle band
+Whether extraction is for fabrication feed, fill, road base, or general clearing
+
+8.2 Outputs
+To House Brain
+Excavation progress
+Site-prep progress
+Material stream rate
+Reject stream rate
+Depth reached
+Obstruction / jam events
+Blade wear index and inspection flags
+Slurry-risk flag when moisture threshold exceeded
+To Surface Container / Fabricator
+Likely-usable soil stream
+Reject stream
+Throughput rate
+Coarse size-qualified feed
+To Survey Library
+excavator_ground_truth_record per completed zone
+Actual hard layer depth vs predicted
+Actual reject ratio vs predicted
+Blade load profile by depth
+
+9. Mechanical Architecture
+9.1 Baseline Physical Form
+Recommended baseline:
+Wheeled or tracked base
+Central vertical excavation pole / intake head
+Internal shredding blades with curved deflection geometry
+Suction/air lift path
+Coarse intake filter gate
+Flexible hose/tube to surface container
+Reject path outlet
+This is not a classic big bucket excavator. It is a penetrate–process–lift machine.
+
+9.2 Excavation Head
+Core Components
+Outer pole / intake boundary
+Internal shredder blades
+Suction/air lift inlet
+Coarse filter gate
+Reject routing path
+Design Intent
+Break and normalize soft material
+Deflect hard objects without engaging them
+Keep flow moving continuously
+Make below-ground behavior simple and predictable
+
+9.3 Blade System
+Purpose: shred roots, clumps, compacted soft earth, fibrous debris.
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2E6DA4"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Critical rule: 
+Blades are not rock crushers. Curved geometry processes soft material and deflects hard objects. This is what keeps wear and cost under control — and what degrades first as blades wear.
+
+9.4 Lift / Transport Path
+Purpose: carry mixed material from below ground to the surface in a controlled path.
+Vacuum-like flexible tube / hose
+Sealed enough for reliable transport
+Sized for expected throughput
+Backpressure monitoring integrated
+
+9.5 Coarse Binary Gate
+Passes gate → goes to good-soil/surface container. Fails gate → goes to reject stream.
+The gate is not trying to know chemistry or final quality. Only: processable enough or not.
+
+9.6 Surface Sorting Container
+Receives the likely-usable stream and performs secondary separation in open space.
+Vertical multi-chamber container
+Gravity-assisted flow
+Good-soil collection at lower stage
+Rejects routed elsewhere
+Emits fill level and backpressure state to Excavator during operation
+
+10. Sensor Stack
+10.1 Required Sensors
+Ground Engagement
+Depth encoder
+Motor current / torque estimate
+Intake load estimation
+Blade load estimate (also used for wear index computation)
+Flow / Stream
+Air flow or suction performance
+Likely-soil stream rate
+Reject stream rate
+Clog/jam detection
+Filter pass/fail state
+Hose backpressure sensor
+Mobility / Positioning
+IMU
+Wheel/track encoders
+UWB / site localization
+Optional camera for gross context only
+
+10.2 Minimum Sensed Outputs at Runtime
+x, y position
+Target zone
+Depth reached
+Extraction rate
+Likely-soil throughput
+Reject throughput
+Clog state
+Obstruction events
+Jam/recovery events
+Blade wear index
+Container fill pct and backpressure state
+Site-prep completion state
+
+11. Software Architecture
+11.1 Main Modules
+Survey data loader — penetration curve and moisture per zone
+Pre-extraction moisture and slurry-risk checker
+Container-ready confirmation module
+Zone navigation
+Excavation depth controller
+Blade process controller
+Blade wear index tracker
+Suction/lift controller
+Binary gate controller
+Stream routing controller
+Clog detection / recovery
+Container backpressure monitor
+Surface container handoff logic
+Ground-truth record emitter
+Telemetry emitter
+
+11.2 Excavator Doctrine
+Stage 0 — Pre-Mission Load
+Load Survey penetration curve and zone moisture score. Pre-compute expected hard layer depth, expected reject ratio, and slurry risk. Flag to House Brain if moisture exceeds extraction threshold before any movement begins.
+Stage 1 — Container Confirmation
+Send confirm_container_ready(container_id). Proceed only when container_fill_pct and backpressure_state are within acceptable bounds. Do not begin lift until confirmed.
+Stage 2 — Engage
+Move to excavation/prep zone and penetrate to target depth. Blade load targets loaded from Survey prediction.
+Stage 3 — Break
+Internal blades shred soft clumps, roots, and messy organic material. Hard objects deflected by curved blade geometry. Blade wear index updated continuously.
+Stage 4 — Lift
+Move loosened mixed stream upward through controlled lift path. Monitor backpressure. Pause lift if container fill threshold exceeded.
+Stage 5 — Coarse Split
+At the intake gate: likely usable material passes, obvious reject does not. Gate aperture adjusted for high-moisture conditions if flagged.
+Stage 6 — Deliver and Reject
+Good-size stream goes through hose/tube to vertical surface container. Reject stream goes to reject path/container.
+Stage 7 — Emit Ground Truth
+After zone completion, emit excavator_ground_truth_record to Survey library: actual hard layer depth vs predicted, actual reject ratio vs predicted, blade load profile by depth. Report excavation telemetry to House Brain.
+
+12. Commands
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "commands": [
+    "load_survey_zone_profile(zone_id)",
+    "check_slurry_risk(zone_id)",
+    "confirm_container_ready(container_id)",
+    "goto(zone_id)",
+    "penetrate(depth)",
+    "engage_blades()",
+    "start_lift()",
+    "pause_lift(reason)",
+    "route_good_stream(container_id)",
+    "route_reject_stream(reject_id)",
+    "clear_jam()",
+    "emit_excavation_report(zone_id)",
+    "emit_ground_truth_record(zone_id)",
+    "pause_operation(reason)",
+    "return_to_base()",
+    "abort_job(reason)"
+  ]
+}
+
+13. Data Emitted
+13.1 Excavation Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "robot_id": "excavator_03",
+  "zone_id": "siteprep_a1",
+  "depth_m": 1.8,
+  "expected_hard_layer_depth_m": 1.6,
+  "blade_load_score": 0.71,
+  "blade_wear_index": 0.14,
+  "lift_flow_score": 0.86,
+  "good_stream_rate": 14.2,
+  "reject_stream_rate": 3.8,
+  "container_fill_pct": 42.0,
+  "backpressure_state": "nominal",
+  "jam_state": false,
+  "timestamp": "2026-03-09T16:20:00Z"
+}
+
+13.2 Obstruction / Recovery Record
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "robot_id": "excavator_03",
+  "zone_id": "siteprep_a1",
+  "event": "hard_object_deflected",
+  "depth_m": 1.1,
+  "recovery_action": "reject_route",
+  "operation_status": "continued"
+}
+
+13.3 Ground Truth Record — Emitted to Survey Library
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="AAAAAA" w:sz="1"/><w:left w:val="single" w:color="AAAAAA" w:sz="1"/><w:bottom w:val="single" w:color="AAAAAA" w:sz="1"/><w:right w:val="single" w:color="AAAAAA" w:sz="1"/></w:tcBorders><w:shd w:fill="F4F4F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="120"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="120"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:color w:val="222222"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">{
+  "robot_id": "excavator_03",
+  "zone_id": "siteprep_a1",
+  "survey_predicted_hard_layer_m": 1.6,
+  "actual_hard_layer_m": 1.8,
+  "survey_predicted_reject_ratio": 0.22,
+  "actual_reject_ratio": 0.27,
+  "blade_load_profile": [0.41, 0.55, 0.71, 0.88],
+  "prediction_delta": "within_tolerance",
+  "timestamp": "2026-03-09T17:10:00Z"
+}
+
+14. Failure Modes
+Below-Ground Failures
+Blades stall on soft overload
+Intake clogs
+Suction/lift weak
+Penetration insufficient
+Repeated obstruction
+Blade wear threshold exceeded — deflection geometry degraded
+Material-Stream Failures
+Too much reject entering good stream
+Too much good material lost to reject
+Hose clog
+Inconsistent feed rate
+Wet clump bridging
+Slurry formation when moisture threshold not caught pre-extraction
+Container-Side Failures
+Container not ready — no pre-lift confirmation obtained
+Container fills faster than extraction pauses
+Backpressure spike not detected — hose bridge occurs
+Container disconnected mid-operation
+System-Side Failures
+Wrong zone assignment
+Wrong routing destination
+Surface container unavailable
+Stale or missing Survey penetration curve for zone
+Excavation in marginal/reject area without override
+Ground truth record not emitted — Survey calibration gap
+
+15. Success Criteria
+Excavator is successful if it can:
+Prepare the site physically enough for downstream work
+Extract ground material without becoming a giant mining machine
+Shred soft messy material without trying to crush stones
+Pre-detect slurry risk from Survey moisture data before extraction begins
+Confirm container readiness before lift and pause lift when container is full
+Produce a steady likely-usable soil stream
+Reject obvious oversize/hard debris cleanly
+Track blade wear and flag inspection before deflection geometry is gone
+Hand off the stream to the surface container reliably
+Emit ground-truth records that calibrate Survey classification accuracy over time
+
+16. Environment Assumptions
+Excavator assumes:
+Survey already qualified the work zone and provides penetration curve and moisture data
+Target depth and extraction goal are provided by House Brain
+A surface sorting container exists and can emit fill/pressure state
+Reject material has a routing destination
+Ground is not solid bedrock beyond its intended operating envelope
+Survey library has an input channel to receive Excavator ground-truth records
+
+17. Build Phases
+Phase 1 — Static Excavation Head Bench
+Build:
+Pole/intake head
+Blade system
+Coarse gate
+Lift path
+Goal: prove break–lift–gate works on mixed test media.
+Phase 2 — Controlled Lift to Surface
+Add:
+Hose/tube
+Surface receiving bin
+Steady stream control
+Goal: prove material can be delivered cleanly upward.
+Phase 3 — Reject Routing + Blade Wear Tracking
+Add:
+Reject path
+Hard-object deflection/rejection
+Blade wear index computation
+Simple anti-clog logic
+Goal: prove stones/roots do not kill throughput and wear is detectable early.
+Phase 4 — Container Handshake + Backpressure Loop
+Add:
+confirm_container_ready() handshake
+Live fill-level monitoring
+Backpressure-triggered lift pause
+Goal: prove Excavator never over-fills or back-pressures the surface container.
+Phase 5 — Survey Data Consumption
+Integrate:
+Penetration curve loader per zone
+Moisture/slurry risk checker
+Expected hard-layer depth pre-arm
+Goal: Excavator enters every zone with a pre-known depth profile, not a blank slate.
+Phase 6 — Ground Truth Emit + House Brain Integration
+Connect:
+excavator_ground_truth_record to Survey library
+Zone navigation
+Excavation-progress reporting
+Full House Brain command loop
+Goal: make Excavator a real part of the system feedback loop, not just a digger.
+
+18. Cost Direction
+Excavator stays cheap by:
+Avoiding giant heavy bucket complexity
+Not trying to understand every material chemically
+Not crushing rocks
+Doing only coarse qualification
+Offloading fine sorting upward and outward
+Using Survey data rather than onboard soil intelligence
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="D5E8F4" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="2E6DA4"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">C2A Principle: 
+Don't make the underground machine solve everything — liberate and route material into easier downstream processes, then feed what you learned back into the system.
+
+19. Out of Scope / Not This Robot's Job
+Excavator does not:
+Determine final recipe suitability
+Certify material durability
+Fabricate the blocks
+Place the blocks
+Decide architectural needs
+
+Those belong to: Survey, Fabricator, Verification, House Brain, and Assembly.
+Excavator only says: "I can turn the ground into a coarse-qualified feed stream and a workable site."
+
+20. Final Blueprint Summary
+
+<w:tblPr><w:tblW w:type="dxa" w:w="9360"/><w:tblBorders><w:top w:val="single" w:color="auto" w:sz="4"/><w:left w:val="single" w:color="auto" w:sz="4"/><w:bottom w:val="single" w:color="auto" w:sz="4"/><w:right w:val="single" w:color="auto" w:sz="4"/><w:insideH w:val="single" w:color="auto" w:sz="4"/><w:insideV w:val="single" w:color="auto" w:sz="4"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="9360"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="9360"/><w:tcBorders><w:top w:val="single" w:color="CCCCCC" w:sz="1"/><w:left w:val="single" w:color="CCCCCC" w:sz="1"/><w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/><w:right w:val="single" w:color="CCCCCC" w:sz="1"/></w:tcBorders><w:shd w:fill="EAF2F8" w:val="clear"/><w:tcMar><w:top w:type="dxa" w:w="160"/><w:left w:type="dxa" w:w="240"/><w:bottom w:type="dxa" w:w="160"/><w:right w:type="dxa" w:w="240"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="60" w:after="60"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="1B3A5C"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">The Excavator Robot is a penetrate–process–lift machine that pre-loads Survey depth and moisture profiles before engaging each zone, breaks and lifts ground material through a binary intake gate, pauses lift against a container-ready handshake, tracks blade wear as a predictive indicator, and emits post-zone ground-truth records that calibrate Survey classification accuracy across all future builds.
+
