@@ -16,6 +16,8 @@ app.use(cors());
 app.use(express.json());
 
 let schedulerQueue = Promise.resolve();
+let resetInFlight = null;
+let resetInFlightTargets = null;
 
 function runSerialized(task) {
   const next = schedulerQueue.then(task, task);
@@ -753,26 +755,42 @@ app.post("/api/experiment/reset", async (req, res) => {
     const targetHouses = Number.isFinite(houseTargetRaw) ? Math.max(1, Math.min(60, houseTargetRaw)) : null;
     const targetRobots = Number.isFinite(robotTargetRaw) ? Math.max(3, Math.min(120, robotTargetRaw)) : null;
 
-    const state = await runSerialized(async () => {
-      await withTx(async (client) => {
-        if (targetHouses !== null) {
-          await adjustHouseCount(client, targetHouses);
-        }
+    if (!resetInFlight) {
+      resetInFlightTargets = { targetHouses, targetRobots };
+      resetInFlight = runSerialized(async () => {
+        await withTx(async (client) => {
+          if (targetHouses !== null) {
+            await adjustHouseCount(client, targetHouses);
+          }
 
-        if (targetRobots !== null) {
-          await adjustRobotCount(client, targetRobots);
-        }
+          if (targetRobots !== null) {
+            await adjustRobotCount(client, targetRobots);
+          }
 
-        await resetExperimentState(client);
+          await resetExperimentState(client);
+        });
+
+        await sampleMetrics();
+        return systemState();
+      }).finally(() => {
+        resetInFlight = null;
+        resetInFlightTargets = null;
       });
+    }
 
-      await sampleMetrics();
-      return systemState();
-    });
+    const activeTargets = resetInFlightTargets ?? { targetHouses, targetRobots };
+    const joinedInflightReset = activeTargets.targetHouses !== targetHouses || activeTargets.targetRobots !== targetRobots;
+    const state = await resetInFlight;
 
     broadcast({ type: "state", data: state });
 
-    res.json({ ok: true, state, target_houses: targetHouses, target_robots: targetRobots });
+    res.json({
+      ok: true,
+      state,
+      target_houses: activeTargets.targetHouses,
+      target_robots: activeTargets.targetRobots,
+      joined_inflight_reset: joinedInflightReset
+    });
   } catch (error) {
     console.error("Experiment reset error", error);
     res.status(500).json({ ok: false, error: error.message });
@@ -823,7 +841,7 @@ wss.on("connection", async (socket) => {
 });
 
 setInterval(() => {
-  if (autoTickRunning) return;
+  if (autoTickRunning || resetInFlight) return;
   autoTickRunning = true;
 
   runSerialized(async () => {
@@ -846,4 +864,5 @@ process.on("SIGINT", async () => {
   await pool.end();
   process.exit(0);
 });
+
 

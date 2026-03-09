@@ -928,6 +928,7 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
     let wsConnected = false;
+    let wsDisposed = false;
 
     const fetchState = async () => {
       try {
@@ -973,27 +974,37 @@ export default function App() {
 
     const ws = new WebSocket(API_BASE.replace(/^http/, "ws") + "/ws");
     ws.onopen = () => {
+      if (wsDisposed) {
+        ws.close();
+        return;
+      }
       wsConnected = true;
       if (isMounted) setError("");
     };
     ws.onmessage = (event) => {
+      if (!isMounted || wsDisposed) return;
       const payload = JSON.parse(event.data);
       if (payload.type === "state") setState(payload.data);
       if (payload.type === "error") setError(payload.data.message);
     };
     ws.onerror = () => {
+      if (!isMounted || wsDisposed) return;
       wsConnected = false;
       setError("WebSocket disconnected (polling fallback active)");
     };
     ws.onclose = () => {
+      if (!isMounted || wsDisposed) return;
       wsConnected = false;
       setError("WebSocket disconnected (polling fallback active)");
     };
 
     return () => {
+      wsDisposed = true;
       isMounted = false;
       clearInterval(pollId);
-      ws.close();
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
     };
   }, []);
 
@@ -1088,15 +1099,11 @@ export default function App() {
   const resetExperiment = async () => {
     setIsMutating(true);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
       const response = await fetch(`${API_BASE}/api/experiment/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_houses: targetHouses, target_robots: targetRobots }),
-        signal: controller.signal
+        body: JSON.stringify({ target_houses: targetHouses, target_robots: targetRobots })
       });
-      clearTimeout(timeoutId);
 
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || "Failed to reset experiment");
@@ -1108,10 +1115,7 @@ export default function App() {
       await refreshCharts();
       setError("");
     } catch (e) {
-      const msg = e?.name === "AbortError"
-        ? "Reset timed out. Backend is likely busy; restart server to clear tick backlog."
-        : e.message;
-      setError(msg);
+      setError(e?.message || "Reset failed.");
     } finally {
       setIsMutating(false);
     }
