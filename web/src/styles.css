@@ -469,3 +469,43 @@ th, td {
   color: #9bb2cc;
   font-size: 0.8rem;
 }
+
+.kpi-meta {
+  color: #8ea8c7;
+  font-size: 0.72rem;
+}
+
+.bottleneck-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.bottleneck-grid article {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.bottleneck-grid span {
+  color: #9bb2cc;
+  font-size: 0.82rem;
+}
+
+.bottleneck-grid strong {
+  font-size: 0.92rem;
+}
+
+.bottleneck-grid small {
+  color: #8ea8c7;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 1024px) {
+  .bottleneck-grid {
+    grid-template-columns: 1fr;
+  }
+}

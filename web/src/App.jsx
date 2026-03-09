@@ -1235,7 +1235,9 @@ export default function App() {
       acc[row.house_id] = row;
       return acc;
     }, {});
-  }, [state]);  const terrainOverall = useMemo(() => {
+  }, [state]);
+
+  const terrainOverall = useMemo(() => {
     const rows = state?.terrainCounts ?? [];
     return rows.reduce((acc, row) => {
       const count = Number(row.count ?? 0);
@@ -1254,6 +1256,88 @@ export default function App() {
       return acc;
     }, {});
   }, [state]);
+
+  const latestMatrixPoint = matrix.length ? matrix[matrix.length - 1] : null;
+  const matrixEfficiency = Number(latestMatrixPoint?.avg_efficiency ?? 0);
+  const lifetimeQcTotal = Number(metrics?.blocks_verified ?? 0) + Number(metrics?.blocks_failed_qc ?? 0);
+  const lifetimeQcPassRate = lifetimeQcTotal > 0 ? (Number(metrics?.blocks_verified ?? 0) / lifetimeQcTotal) * 100 : 0;
+
+  const robotStatusBreakdown = useMemo(() => {
+    const counts = { idle: 0, moving: 0, placing: 0, waiting_component: 0, other: 0 };
+    robots.forEach((robot) => {
+      if (Object.hasOwn(counts, robot.status)) counts[robot.status] += 1;
+      else counts.other += 1;
+    });
+
+    const total = Math.max(1, robots.length);
+    return {
+      total,
+      idlePct: (counts.idle / total) * 100,
+      movingPct: (counts.moving / total) * 100,
+      placingPct: (counts.placing / total) * 100,
+      waitingPct: (counts.waiting_component / total) * 100,
+      counts
+    };
+  }, [robots]);
+
+  const bottleneck = useMemo(() => {
+    if (!robots.length) {
+      return {
+        label: "No Active Robots",
+        reason: "No robots currently available to classify.",
+        recommendation: "Increase robot target or activate community kits."
+      };
+    }
+
+    const terrainReadyPct = terrainOverall.total > 0 ? (terrainOverall.ready / terrainOverall.total) * 100 : 100;
+    const hasSitePrep = houses.some((house) => house.stage === "site_prep");
+
+    if (robotStatusBreakdown.waitingPct >= 30) {
+      return {
+        label: "Fabrication Limited",
+        reason: `${robotStatusBreakdown.waitingPct.toFixed(1)}% of robots are waiting for components.`,
+        recommendation: "Increase fabricator/logistics rate or reduce concurrent assembly demand."
+      };
+    }
+
+    if (hasSitePrep && terrainReadyPct < 85) {
+      return {
+        label: "Site Prep Limited",
+        reason: `Terrain ready is ${terrainReadyPct.toFixed(1)}% while houses are still in site prep.`,
+        recommendation: "Allocate more excavator time and clear obstacles earlier."
+      };
+    }
+
+    if (Number(metrics?.active_surveys ?? 0) > 0) {
+      return {
+        label: "Survey Gate Limited",
+        reason: `${Number(metrics?.active_surveys ?? 0)} houses are held in surveying.`,
+        recommendation: "Increase survey capacity or tune convergence thresholds."
+      };
+    }
+
+    if (robotStatusBreakdown.movingPct >= 30) {
+      return {
+        label: "Logistics Limited",
+        reason: `${robotStatusBreakdown.movingPct.toFixed(1)}% of robots are in transit.`,
+        recommendation: "Reduce travel distance or add logistics staging near active houses."
+      };
+    }
+
+    if (robotStatusBreakdown.placingPct >= 55 && robotStatusBreakdown.idlePct < 15) {
+      return {
+        label: "Assembly Saturated",
+        reason: "Most robots are placing with low idle slack.",
+        recommendation: "Scale robot count per cluster to lift throughput ceiling."
+      };
+    }
+
+    return {
+      label: "Balanced Flow",
+      reason: "No single stage dominates wait/move/idle right now.",
+      recommendation: "Run benchmark presets to identify the next limiting factor."
+    };
+  }, [robots.length, robotStatusBreakdown, terrainOverall, houses, metrics]);
 
   return (
     <div className="layout">
@@ -1332,10 +1416,11 @@ export default function App() {
       <section className="kpis">
         <article><span>Active Houses</span><strong>{houses.length}</strong></article>
         <article><span>Active Robots</span><strong>{robots.length}</strong></article>
-        <article><span>Idle</span><strong>{Number(metrics?.robot_idle_percent ?? 0).toFixed(1)}%</strong></article>
-        <article><span>Throughput</span><strong>{Number(metrics?.throughput_cells_per_hour ?? 0).toFixed(1)} cells/h</strong></article>
-        <article><span>Efficiency</span><strong>{Number(metrics?.pipeline_efficiency ?? 0).toFixed(1)}%</strong></article>
+        <article><span>Idle (Snapshot)</span><strong>{Number(metrics?.robot_idle_percent ?? 0).toFixed(1)}%</strong><small className="kpi-meta">latest sample</small></article>
+        <article><span>Throughput (Snapshot)</span><strong>{Number(metrics?.throughput_cells_per_hour ?? 0).toFixed(1)} cells/h</strong><small className="kpi-meta">latest sample</small></article>
+        <article><span>Efficiency (Snapshot)</span><strong>{Number(metrics?.pipeline_efficiency ?? 0).toFixed(1)}%</strong><small className="kpi-meta">latest sample</small></article>
         <article><span>Cells Filled</span><strong>{metrics?.cells_filled ?? 0} / {metrics?.total_cells ?? 0}</strong></article>
+        <article><span>Efficiency (Matrix Avg)</span><strong>{matrixEfficiency.toFixed(1)}%</strong><small className="kpi-meta">aggregate window</small></article>
         <article><span>Terrain Ready (cells)</span><strong>{terrainOverall.ready} / {terrainOverall.total}</strong></article>
         <article><span>Obstacles Left</span><strong>{Number(metrics?.obstacle_cells_remaining ?? 0)}</strong></article>
         <article><span>Avg Grade Error</span><strong>{Number(metrics?.avg_grade_error ?? 0).toFixed(3)}</strong></article>
@@ -1355,6 +1440,27 @@ export default function App() {
       </section>
 
       <section className="panel">
+        <h2>Flow Diagnostics</h2>
+        <div className="bottleneck-grid">
+          <article>
+            <span>Detected Constraint</span>
+            <strong>{bottleneck.label}</strong>
+            <small>{bottleneck.reason}</small>
+          </article>
+          <article>
+            <span>Robot State Mix</span>
+            <strong>wait {robotStatusBreakdown.waitingPct.toFixed(1)}% | move {robotStatusBreakdown.movingPct.toFixed(1)}%</strong>
+            <small>place {robotStatusBreakdown.placingPct.toFixed(1)}% | idle {robotStatusBreakdown.idlePct.toFixed(1)}%</small>
+          </article>
+          <article>
+            <span>Recommended Action</span>
+            <strong>{bottleneck.recommendation}</strong>
+            <small>Use this to choose next tuning experiment.</small>
+          </article>
+        </div>
+      </section>
+
+      <section className="panel">
         <h2>Causal Chain</h2>
         <div className="causal-grid">
           <article>
@@ -1363,7 +1469,8 @@ export default function App() {
           </article>
           <article>
             <span>QC Pass Rate</span>
-            <strong>{Number(causalGlobal.inline_total ?? 0) > 0 ? ((Number(causalGlobal.inline_passed ?? 0) / Number(causalGlobal.inline_total ?? 1)) * 100).toFixed(1) : "0.0"}%</strong>
+            <strong>{Number(causalGlobal.inline_total ?? 0) > 0 ? `${((Number(causalGlobal.inline_passed ?? 0) / Number(causalGlobal.inline_total ?? 1)) * 100).toFixed(1)}%` : `${lifetimeQcPassRate.toFixed(1)}%`}</strong>
+            <small className="kpi-meta">{Number(causalGlobal.inline_total ?? 0) > 0 ? "inline window" : "lifetime fallback"}</small>
           </article>
           <article>
             <span>QC Retry Rate</span>
@@ -1617,6 +1724,9 @@ export default function App() {
     </div>
   );
 }
+
+
+
 
 
 
