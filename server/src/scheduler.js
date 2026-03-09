@@ -82,6 +82,74 @@ let lastWeatheringRunAt = 0;
 let lastMaintenanceRunAt = 0;
 const insertionProfileMemory = new Map();
 
+// Fabricator calibration state - per house, per batch
+const fabricatorState = new Map();
+
+function getFabricatorState(houseId) {
+  if (!fabricatorState.has(houseId)) {
+    fabricatorState.set(houseId, {
+      fillVolumeTarget: 4.0,
+      calibrationCycles: 0,
+      batchId: `batch_${houseId}_0`,
+      anchorSeatHistory: [],
+      ejectionDwellSeconds: 45,
+      convergenceLimitHit: false
+    });
+  }
+  return fabricatorState.get(houseId);
+}
+
+const FABRICATOR_CONVERGENCE_LIMIT = Number(process.env.FABRICATOR_CONVERGENCE_LIMIT || 8);
+const FABRICATOR_FILL_DELTA = Number(process.env.FABRICATOR_FILL_DELTA || 0.12);
+const FABRICATOR_ANCHOR_THRESHOLD = Number(process.env.FABRICATOR_ANCHOR_THRESHOLD || 0.65);
+const FABRICATOR_MOISTURE_LOW = Number(process.env.FABRICATOR_MOISTURE_LOW || 8);
+const FABRICATOR_MOISTURE_HIGH = Number(process.env.FABRICATOR_MOISTURE_HIGH || 28);
+
+// Excavator runtime state
+const excavatorState = new Map();
+
+function getExcavatorState(houseId) {
+  if (!excavatorState.has(houseId)) {
+    excavatorState.set(houseId, {
+      containerFillPct: 0,
+      backpressureState: "nominal",
+      bladeWearIndex: 0,
+      cumulativeLoad: 0,
+      cumulativeThroughput: 0,
+      lastGroundTruthEmit: null,
+      currentZoneId: null
+    });
+  }
+  return excavatorState.get(houseId);
+}
+
+const EXCAVATOR_CONTAINER_FILL_THRESHOLD = Number(process.env.EXCAVATOR_CONTAINER_FILL_THRESHOLD || 80);
+const EXCAVATOR_BLADE_WEAR_THRESHOLD = Number(process.env.EXCAVATOR_BLADE_WEAR_THRESHOLD || 0.35);
+const EXCAVATOR_SLURRY_MOISTURE_THRESHOLD = Number(process.env.EXCAVATOR_SLURRY_MOISTURE_THRESHOLD || 32);
+
+// Sealer zone risk state
+const sealerState = new Map();
+
+function getSealerState(houseId) {
+  if (!sealerState.has(houseId)) {
+    sealerState.set(houseId, {
+      phase: "broad_spray",
+      broadSprayIngressScore: null,
+      pressureStressScore: null,
+      baselineMoisturePct: null,
+      resetConfirmed: false,
+      zoneScores: {},
+      edgeBandScores: {},
+      gravityBiasCorrected: false,
+      recoatState: "intact_aging"
+    });
+  }
+  return sealerState.get(houseId);
+}
+
+const SEALER_MOISTURE_RESET_TOLERANCE = Number(process.env.SEALER_MOISTURE_RESET_TOLERANCE || 2.0);
+const SEALER_GRAVITY_BIAS_THRESHOLD = Number(process.env.SEALER_GRAVITY_BIAS_THRESHOLD || 0.15);
+
 const COMPONENT_BASE_IMPEDANCE = {
   foundation: 0.58,
   wall: 0.5,
@@ -1878,6 +1946,318 @@ async function applyLogisticsPass(client, { houseId, robotId, robotStatus }) {
   };
 }
 
+async function runFabricatorStep(client, robot, soilSignature) {
+  const houseId = robot.active_house_id;
+  const fabState = getFabricatorState(houseId);
+
+  const moistureRes = await client.query(
+    `WITH recent AS (
+       SELECT moisture_pct
+       FROM site_surveys
+       WHERE house_id = $1
+       ORDER BY surveyed_at DESC
+       LIMIT 5
+     )
+     SELECT AVG(moisture_pct)::float AS avg_moisture
+     FROM recent`,
+    [houseId]
+  );
+  const incomingMoisture = Number(moistureRes.rows[0]?.avg_moisture ?? 15);
+
+  let conditioningApplied = "none";
+  if (incomingMoisture < FABRICATOR_MOISTURE_LOW) conditioningApplied = "water_dose";
+  else if (incomingMoisture > FABRICATOR_MOISTURE_HIGH) conditioningApplied = "dry_pass";
+
+  const anchorSeatConfidence = clamp(0.55 + Math.random() * 0.44, 0.1, 0.99);
+  fabState.anchorSeatHistory.push(anchorSeatConfidence);
+  if (fabState.anchorSeatHistory.length > 10) fabState.anchorSeatHistory.shift();
+
+  const anchorFailed = anchorSeatConfidence < FABRICATOR_ANCHOR_THRESHOLD;
+  if (anchorFailed) {
+    await client.query(
+      `UPDATE robots
+       SET status = 'waiting_component',
+           busy_until = NOW() + make_interval(secs => 8),
+           total_work_seconds = total_work_seconds + 8,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [robot.id]
+    );
+    return {
+      event: "anchor_seating_failed",
+      anchorSeatConfidence,
+      houseId
+    };
+  }
+
+  const lastQc = await client.query(
+    `SELECT passed, density
+     FROM block_verifications
+     WHERE house_id = $1
+       AND verification_mode = 'inline'
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [houseId]
+  );
+
+  const lastPassed = lastQc.rows[0]?.passed ?? true;
+  const lastDensity = Number(lastQc.rows[0]?.density ?? 1750);
+
+  let blockType = "production";
+  if (!lastPassed) {
+    blockType = "calibration";
+    fabState.calibrationCycles += 1;
+    if (lastDensity < 1700) fabState.fillVolumeTarget += FABRICATOR_FILL_DELTA;
+    else if (lastDensity > 1900) fabState.fillVolumeTarget -= FABRICATOR_FILL_DELTA;
+    fabState.fillVolumeTarget = clamp(fabState.fillVolumeTarget, 2.5, 7.0);
+  } else {
+    fabState.calibrationCycles = 0;
+    blockType = "production";
+  }
+
+  if (fabState.calibrationCycles >= FABRICATOR_CONVERGENCE_LIMIT) {
+    fabState.convergenceLimitHit = true;
+    await client.query(
+      `UPDATE robots
+       SET status = 'idle',
+           total_idle_seconds = total_idle_seconds + 30,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [robot.id]
+    );
+    return {
+      event: "convergence_limit_hit",
+      houseId,
+      cycles: fabState.calibrationCycles
+    };
+  }
+
+  const compressionSeconds = Math.max(8, Math.round(
+    12
+      + (conditioningApplied !== "none" ? 6 : 0)
+      + fabState.ejectionDwellSeconds * 0.3
+      + Math.random() * 4
+  ));
+
+  await client.query(
+    `INSERT INTO block_verifications
+       (house_id, soil_signature, penetration_resistance, moisture_pct,
+        density, passed, retries, verification_mode, weathering_cycles, created_at)
+     VALUES ($1, $2, NULL, $3, NULL, $4, $5, 'inline', 0, NOW())`,
+    [houseId, soilSignature, incomingMoisture, lastPassed, fabState.calibrationCycles]
+  );
+
+  await client.query(
+    `UPDATE robots
+     SET status = 'placing',
+         busy_until = NOW() + make_interval(secs => $2),
+         total_work_seconds = total_work_seconds + $2,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [robot.id, compressionSeconds]
+  );
+
+  return {
+    fillVolumeTarget: fabState.fillVolumeTarget,
+    anchorSeatConfidence,
+    conditioningApplied,
+    blockType,
+    calibrationCycles: fabState.calibrationCycles,
+    ejectionDwellSeconds: fabState.ejectionDwellSeconds
+  };
+}
+
+async function runExcavatorStep(client, robot) {
+  const houseId = robot.active_house_id;
+  const exState = getExcavatorState(houseId);
+
+  const moistureRes = await client.query(
+    `WITH recent AS (
+       SELECT moisture_pct, penetration_resistance
+       FROM site_surveys
+       WHERE house_id = $1
+       ORDER BY surveyed_at DESC
+       LIMIT 8
+     )
+     SELECT
+       AVG(moisture_pct)::float AS avg_moisture,
+       AVG(penetration_resistance)::float AS avg_resistance
+     FROM recent`,
+    [houseId]
+  );
+  const zoneMoisture = Number(moistureRes.rows[0]?.avg_moisture ?? 15);
+  const avgResistance = Number(moistureRes.rows[0]?.avg_resistance ?? 120);
+
+  if (zoneMoisture > EXCAVATOR_SLURRY_MOISTURE_THRESHOLD) {
+    await client.query(
+      `UPDATE robots
+       SET status = 'waiting_component',
+           busy_until = NOW() + make_interval(secs => 12),
+           total_work_seconds = total_work_seconds + 12,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [robot.id]
+    );
+    return { event: "slurry_risk_pause", zoneMoisture, houseId };
+  }
+
+  const fillDelta = randRange(2, 8);
+  exState.containerFillPct = Math.min(100, exState.containerFillPct + fillDelta - randRange(1, 5));
+
+  if (exState.containerFillPct > EXCAVATOR_CONTAINER_FILL_THRESHOLD) {
+    exState.backpressureState = exState.containerFillPct > 90 ? "critical" : "elevated";
+
+    await client.query(
+      `UPDATE robots
+       SET status = 'waiting_component',
+           busy_until = NOW() + make_interval(secs => 10),
+           total_work_seconds = total_work_seconds + 10,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [robot.id]
+    );
+
+    exState.containerFillPct = Math.max(0, exState.containerFillPct - 15);
+    return { event: "container_backpressure_pause", fillPct: exState.containerFillPct, houseId };
+  }
+
+  exState.backpressureState = "nominal";
+
+  const bladeLoad = clamp(0.4 + (100 - avgResistance) / 300 + Math.random() * 0.3, 0.1, 0.99);
+  const throughput = randRange(8, 18);
+  exState.cumulativeLoad += bladeLoad;
+  exState.cumulativeThroughput += throughput;
+  exState.bladeWearIndex = exState.cumulativeThroughput > 0
+    ? clamp(exState.cumulativeLoad / exState.cumulativeThroughput, 0, 1)
+    : 0;
+
+  const bladeWearFlag = exState.bladeWearIndex > EXCAVATOR_BLADE_WEAR_THRESHOLD;
+  const workSeconds = Math.max(5, Math.round(8 + bladeLoad * 6 + Math.random() * 4));
+
+  await client.query(
+    `UPDATE robots
+     SET status = 'moving',
+         busy_until = NOW() + make_interval(secs => $2),
+         total_work_seconds = total_work_seconds + $2,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [robot.id, workSeconds]
+  );
+
+  const shouldEmitGroundTruth = Math.random() < 0.05;
+  if (shouldEmitGroundTruth) {
+    const surveyPrediction = await client.query(
+      `SELECT
+         AVG(penetration_resistance)::float AS pred_resistance,
+         COUNT(*) FILTER (WHERE status = 'REJECT')::float / NULLIF(COUNT(*), 0) AS pred_reject_ratio
+       FROM site_surveys
+       WHERE house_id = $1`,
+      [houseId]
+    );
+
+    const predRejectRatio = Number(surveyPrediction.rows[0]?.pred_reject_ratio ?? 0.2);
+    const actualRejectRatio = clamp(predRejectRatio + randRange(-0.1, 0.1), 0, 1);
+    exState.lastGroundTruthEmit = new Date().toISOString();
+
+    exState.currentZoneId = `siteprep_${houseId}`;
+    void actualRejectRatio;
+  }
+
+  return {
+    containerFillPct: exState.containerFillPct,
+    backpressureState: exState.backpressureState,
+    bladeWearIndex: exState.bladeWearIndex,
+    bladeWearFlag,
+    zoneMoisture,
+    workSeconds
+  };
+}
+
+async function runSealerStep(client, robot) {
+  const houseId = robot.active_house_id;
+  const seState = getSealerState(houseId);
+
+  const x = Math.floor(Math.random() * 10);
+  const y = Math.floor(Math.random() * 10);
+
+  let workSeconds = 5;
+  let phaseAdvanced = false;
+
+  if (seState.phase === "broad_spray") {
+    seState.broadSprayIngressScore = clamp(randRange(0.1, 0.6), 0, 1);
+    seState.baselineMoisturePct = randRange(8, 22);
+    seState.phase = "dry_reset";
+    workSeconds = Math.round(8 + Math.random() * 6);
+    phaseAdvanced = true;
+  } else if (seState.phase === "dry_reset") {
+    const currentMoisture = Number(seState.baselineMoisturePct || 0) + randRange(-3, 5);
+    seState.resetConfirmed = Math.abs(currentMoisture - Number(seState.baselineMoisturePct || 0)) < SEALER_MOISTURE_RESET_TOLERANCE;
+    if (seState.resetConfirmed) {
+      seState.phase = "pressure_spray";
+      phaseAdvanced = true;
+    }
+    workSeconds = 6;
+  } else if (seState.phase === "pressure_spray") {
+    seState.pressureStressScore = clamp(randRange(0.2, 0.8), 0, 1);
+
+    const rawBottomScore = Number(seState.pressureStressScore || 0) + randRange(0.05, SEALER_GRAVITY_BIAS_THRESHOLD + 0.05);
+    seState.gravityBiasCorrected = rawBottomScore > Number(seState.pressureStressScore || 0) + SEALER_GRAVITY_BIAS_THRESHOLD;
+
+    for (const zone of ["nw", "ne", "sw", "se"]) {
+      const isBottom = zone === "sw" || zone === "se";
+      const rawScore = Number(seState.pressureStressScore || 0) + randRange(-0.1, 0.15);
+      const corrected = isBottom && seState.gravityBiasCorrected ? rawScore - 0.08 : rawScore;
+      seState.zoneScores[zone] = { ingress: clamp(corrected, 0, 1), coatClass: corrected > 0.5 ? 2 : 1 };
+    }
+
+    for (const band of ["roof_wall", "window_perimeter", "door_perimeter"]) {
+      const adjacentMax = Math.max(...Object.values(seState.zoneScores).map((z) => Number(z.coatClass || 1)));
+      seState.edgeBandScores[band] = { coatClass: adjacentMax + 1 };
+    }
+
+    seState.phase = "zone_coat";
+    phaseAdvanced = true;
+    workSeconds = Math.round(10 + Math.random() * 8);
+  } else if (seState.phase === "zone_coat") {
+    workSeconds = Math.round(12 + Math.random() * 10);
+    seState.phase = "complete";
+    phaseAdvanced = true;
+
+    await client.query(
+      `UPDATE house_maintenance
+       SET status = 'ok',
+           updated_at = NOW()
+       WHERE house_id = $1`,
+      [houseId]
+    );
+  }
+
+  await client.query(
+    `UPDATE robots
+     SET status = 'placing',
+         pos_x = $2,
+         pos_y = $3,
+         pos_z = 4,
+         busy_until = NOW() + make_interval(secs => $4),
+         total_work_seconds = total_work_seconds + $4,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [robot.id, x, y, workSeconds]
+  );
+
+  return {
+    phase: seState.phase,
+    phaseAdvanced,
+    broadSprayIngressScore: seState.broadSprayIngressScore,
+    pressureStressScore: seState.pressureStressScore,
+    resetConfirmed: seState.resetConfirmed,
+    gravityBiasCorrected: seState.gravityBiasCorrected,
+    zoneScores: seState.zoneScores,
+    edgeBandScores: seState.edgeBandScores,
+    workSeconds
+  };
+}
+
 async function runSitePrepStep(client, robot) {
   const terrainJob = await client.query(
     `SELECT id, x, y, target_grade, current_grade, soil_density, compaction_score, status, obstacle_type, obstacle_cleared
@@ -2228,7 +2608,11 @@ async function runRobotStep(client, robot) {
   }
 
   if (stage === 'site_prep') {
-    await runSitePrepStep(client, robot);
+    if (robot.id % 3 === 0) {
+      await runExcavatorStep(client, robot);
+    } else {
+      await runSitePrepStep(client, robot);
+    }
     return;
   }
 
@@ -2238,7 +2622,7 @@ async function runRobotStep(client, robot) {
   }
 
   if (stage === 'sealing') {
-    await runSealingRobotStep(client, robot);
+    await runSealerStep(client, robot);
     return;
   }
 
@@ -2252,6 +2636,13 @@ async function runRobotStep(client, robot) {
     return;
   }
 
+  if (['foundation', 'framing', 'mep', 'finishing'].includes(stage)) {
+    const soilSignature = await ensureHouseSoilSignature(client, robot.active_house_id);
+    if (robot.id % 4 === 0) {
+      await runFabricatorStep(client, robot, soilSignature);
+      return;
+    }
+  }
   let laneSnapshot = null;
   if (['foundation', 'framing', 'mep', 'finishing'].includes(stage)) {
     laneSnapshot = await applyLogisticsPass(client, {

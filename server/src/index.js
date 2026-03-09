@@ -4,6 +4,7 @@ import cors from "cors";
 import { WebSocketServer } from "ws";
 import { pool, withTx } from "./db.js";
 import { schedulerTick, systemState, sampleMetrics, surveyHouse, verifyBlock, runWeatheringTest, completeSealingForHouse, triggerMaintenanceForHouse, getMaintenanceAlerts, logisticsLaneSummary } from "./scheduler.js";
+import { buildContractHealthSummary } from "./contracts.js";
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -605,6 +606,46 @@ app.get("/api/maintenance-alerts", async (req, res) => {
   }
 });
 
+app.get("/api/contract-health", async (_req, res) => {
+  try {
+    const lastEmittedByPathId = {};
+
+    const excavatorGT = await pool.query(
+      `SELECT MAX(surveyed_at) AS last FROM site_surveys WHERE notes LIKE 'scheduler%'`
+    );
+    lastEmittedByPathId.excavator_to_survey = excavatorGT.rows[0]?.last;
+
+    const fabQuality = await pool.query(
+      `SELECT MAX(created_at) AS last FROM block_verifications WHERE verification_mode = 'inline'`
+    );
+    lastEmittedByPathId.fabricator_to_excavator = fabQuality.rows[0]?.last;
+    lastEmittedByPathId.verification_to_fabricator_fill = fabQuality.rows[0]?.last;
+    lastEmittedByPathId.verification_to_fabricator_dwell = fabQuality.rows[0]?.last;
+
+    const lastSurvey = await pool.query(
+      `SELECT MAX(surveyed_at) AS last FROM site_surveys`
+    );
+    lastEmittedByPathId.survey_to_excavator = lastSurvey.rows[0]?.last;
+    lastEmittedByPathId.survey_to_fabricator = lastSurvey.rows[0]?.last;
+    lastEmittedByPathId.survey_to_logistics = lastSurvey.rows[0]?.last;
+
+    const lastMaint = await pool.query(
+      `SELECT MAX(updated_at) AS last FROM house_maintenance`
+    );
+    lastEmittedByPathId.sealer_to_verification = lastMaint.rows[0]?.last;
+
+    const lastFill = await pool.query(
+      `SELECT MAX(filled_at) AS last FROM grid_cells WHERE status = 'filled'`
+    );
+    lastEmittedByPathId.assembly_to_verification = lastFill.rows[0]?.last;
+    lastEmittedByPathId.logistics_to_assembly = lastFill.rows[0]?.last;
+
+    const health = buildContractHealthSummary(lastEmittedByPathId);
+    res.json(health);
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
 app.get("/api/logistics/lanes", async (_req, res) => {
   try {
     const rows = await logisticsLaneSummary();

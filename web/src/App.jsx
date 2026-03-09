@@ -731,6 +731,46 @@ function MaintenanceTimeline({ rows }) {
     </div>
   );
 }
+
+function ContractHealthPanel({ health }) {
+  if (!health?.length) {
+    return <div className="chart-empty">Contract health data loading...</div>;
+  }
+
+  const statusColor = {
+    live: "#3ddc97",
+    stale: "#f4d35e",
+    never_emitted: "#c0392b",
+    unknown: "#7f8ea3"
+  };
+
+  const statusLabel = {
+    live: "LIVE",
+    stale: "STALE",
+    never_emitted: "NEVER EMITTED",
+    unknown: "UNKNOWN"
+  };
+
+  return (
+    <div className="contract-health-grid">
+      {health.map((item) => (
+        <div key={item.pathId} className="contract-health-card" style={{ borderColor: statusColor[item.status] ?? "#444" }}>
+          <div className="contract-health-header">
+            <span style={{ color: statusColor[item.status] ?? "#7f8ea3" }}>{statusLabel[item.status] ?? item.status}</span>
+            <small>{item.source} -&gt; {item.destination}</small>
+          </div>
+          <strong>{item.signal}</strong>
+          <small>{item.feedback_action?.replace(/_/g, " ")}</small>
+          <small className="muted-note">
+            via {item.mediating_table}
+            {item.ageSeconds != null ? ` | ${Math.round(item.ageSeconds)}s ago` : ""}
+            {item.threshold != null ? ` | threshold ${item.threshold}s` : ""}
+          </small>
+        </div>
+      ))}
+    </div>
+  );
+}
 function RobotDesignModel({ role }) {
   const color = roleColorMap[role] || "#8aa4c8";
 
@@ -1030,6 +1070,7 @@ export default function App() {
   const [soilLibrary, setSoilLibrary] = useState([]);
   const [siteProbes, setSiteProbes] = useState([]);
   const [maintenanceAlerts, setMaintenanceAlerts] = useState([]);
+  const [contractHealth, setContractHealth] = useState([]);
   const [isMutating, setIsMutating] = useState(false);
   const [resetClicked, setResetClicked] = useState(false);
   const resetAckTimerRef = useRef(null);
@@ -1041,18 +1082,20 @@ export default function App() {
 
     const fetchState = async () => {
       try {
-        const [stateResp, curveResp, matrixResp, soilResp, maintenanceResp] = await Promise.all([
+        const [stateResp, curveResp, matrixResp, soilResp, maintenanceResp, contractResp] = await Promise.all([
           fetch(`${API_BASE}/api/state`),
           fetch(`${API_BASE}/api/metrics/curve`),
           fetch(`${API_BASE}/api/metrics/matrix`),
           fetch(`${API_BASE}/api/soil-library`),
-          fetch(`${API_BASE}/api/maintenance-alerts`)
+          fetch(`${API_BASE}/api/maintenance-alerts`),
+          fetch(`${API_BASE}/api/contract-health`)
         ]);
         const data = await stateResp.json();
         const curveData = await curveResp.json();
         const matrixData = await matrixResp.json();
         const soilData = await soilResp.json();
         const maintenanceData = await maintenanceResp.json();
+        const contractData = await contractResp.json();
 
         if (!isMounted) return;
         setState(data);
@@ -1060,6 +1103,7 @@ export default function App() {
         setMatrix(matrixData);
         setSoilLibrary(Array.isArray(soilData) ? soilData : []);
         setMaintenanceAlerts(Array.isArray(maintenanceData) ? maintenanceData : []);
+        setContractHealth(Array.isArray(contractData) ? contractData : []);
         setTargetHouses(data.houses?.length || 0);
         setTargetRobots(data.robots?.length || 0);
 
@@ -1161,16 +1205,19 @@ export default function App() {
   }, [state?.houses?.length, state?.metrics?.sampled_at]);
 
   const refreshCharts = async () => {
-    const [curveResp, matrixResp, soilResp, maintenanceResp] = await Promise.all([
+    const [curveResp, matrixResp, soilResp, maintenanceResp, contractResp] = await Promise.all([
       fetch(`${API_BASE}/api/metrics/curve`),
       fetch(`${API_BASE}/api/metrics/matrix`),
       fetch(`${API_BASE}/api/soil-library`),
-      fetch(`${API_BASE}/api/maintenance-alerts`)
+      fetch(`${API_BASE}/api/maintenance-alerts`),
+          fetch(`${API_BASE}/api/contract-health`)
     ]);
     setCurve(await curveResp.json());
     setMatrix(await matrixResp.json());
     setSoilLibrary(await soilResp.json());
     setMaintenanceAlerts(await maintenanceResp.json());
+    const contractData = await contractResp.json();
+    setContractHealth(Array.isArray(contractData) ? contractData : []);
   };
 
   const applyHouses = async (value) => {
@@ -1733,6 +1780,11 @@ export default function App() {
             <small>{`${causalByHouse[selectedHouse].survey_status} survey to QC ${Number(causalByHouse[selectedHouse].qc_passed ?? 0)}/${Number(causalByHouse[selectedHouse].qc_total ?? 0)} to conf ${Number(causalByHouse[selectedHouse].short_confidence ?? 0).toFixed(2)}/${Number(causalByHouse[selectedHouse].long_confidence ?? 0).toFixed(2)} to TTL ${causalByHouse[selectedHouse].ttl_days ?? "-"}d to coating v${causalByHouse[selectedHouse].coating_version ?? "-"} to moisture risk ${Number(causalByHouse[selectedHouse].moisture_risk ?? 0).toFixed(2)}`}</small>
           </div>
         ) : null}
+      </section>
+
+      <section className="panel">
+        <h2>Contract Health - Live Feedback Topology</h2>
+        <ContractHealthPanel health={contractHealth} />
       </section>
 
       <section className="panel">
