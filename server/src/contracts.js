@@ -344,6 +344,55 @@ export const FEEDBACK_PATHS = [
   }
 ];
 
+// LAYER 4: PRECONDITION TREE (Cross-Robot Handshake Gates)
+// This makes scheduler dependencies explicit:
+// Excavator/Site Prep -> Fabricator -> Verification -> Assembly.
+export const PRECONDITION_TREE = [
+  {
+    id: "excavator_to_fabricator",
+    step: "Excavator -> Fabricator",
+    handoff_signal: "surface_container_ready",
+    depends_on: [],
+    preconditions: [
+      { id: "terrain_ready", label: "Terrain ready houses", metric: "houses_with_terrain_ready", minimum: 1 },
+      { id: "survey_approved", label: "Survey-approved houses", metric: "houses_with_survey_approved", minimum: 1 }
+    ],
+    blocked_message: "Fabricator blocked until site prep and survey gate are satisfied."
+  },
+  {
+    id: "fabricator_to_verification",
+    step: "Fabricator -> Verification",
+    handoff_signal: "fabrication_record_emitted",
+    depends_on: ["excavator_to_fabricator"],
+    preconditions: [
+      { id: "ready_components", label: "Ready fabricated components", metric: "ready_fabricator_components", minimum: 1 },
+      { id: "houses_with_ready_components", label: "Houses with ready components", metric: "houses_with_ready_fabricator_component", minimum: 1 }
+    ],
+    blocked_message: "Verification blocked until Fabricator emits ready components."
+  },
+  {
+    id: "verification_to_assembly",
+    step: "Verification -> Assembly",
+    handoff_signal: "verification_approved",
+    depends_on: ["fabricator_to_verification"],
+    preconditions: [
+      { id: "verification_approvals", label: "Inline verification approvals", metric: "verification_approvals", minimum: 1 },
+      { id: "houses_with_qc_pass", label: "Houses with QC approval", metric: "houses_with_verification_approval", minimum: 1 }
+    ],
+    blocked_message: "Assembly blocked until Verification approves block quality."
+  },
+  {
+    id: "assembly_execution",
+    step: "Assembly Execution",
+    handoff_signal: "placement_report",
+    depends_on: ["verification_to_assembly"],
+    preconditions: [
+      { id: "reserved_cells", label: "Reserved cells awaiting placement", metric: "reserved_cells_waiting_assembly", minimum: 1 },
+      { id: "active_assembly_robots", label: "Assembly robots active", metric: "active_assembly_robots", minimum: 1 }
+    ],
+    blocked_message: "No assembly placement can occur without claims and active assembly robots."
+  }
+];
 export function validateTelemetry(schemaName, record) {
   const schema = TELEMETRY_SCHEMAS[schemaName];
   if (!schema) {
@@ -391,3 +440,43 @@ export function buildContractHealthSummary(lastEmittedByPathId) {
     mediating_table: path.mediating_table
   }));
 }
+
+function evaluatePrecondition(snapshot, condition) {
+  const value = Number(snapshot?.[condition.metric] || 0);
+  return {
+    ...condition,
+    value,
+    passed: value >= Number(condition.minimum || 0)
+  };
+}
+
+export function buildPreconditionSummary(snapshot = {}) {
+  const satisfied = new Set();
+
+  return PRECONDITION_TREE.map((node) => {
+    const dependencyFailures = (node.depends_on || []).filter((depId) => !satisfied.has(depId));
+    const checks = (node.preconditions || []).map((condition) => evaluatePrecondition(snapshot, condition));
+    const checkFailures = checks.filter((check) => !check.passed).map((check) => check.label);
+
+    const isReady = dependencyFailures.length === 0 && checkFailures.length === 0;
+    if (isReady) satisfied.add(node.id);
+
+    const blockedBy = [
+      ...dependencyFailures.map((depId) => `dependency:${depId}`),
+      ...checkFailures
+    ];
+
+    return {
+      id: node.id,
+      step: node.step,
+      handoff_signal: node.handoff_signal,
+      status: isReady ? "ready" : "blocked",
+      depends_on: node.depends_on || [],
+      requires: checks,
+      blocked_by: blockedBy,
+      blocked_message: isReady ? null : node.blocked_message,
+      evidence: checks.map((check) => `${check.label} ${check.value}/${check.minimum}`).join(" | ")
+    };
+  });
+}
+

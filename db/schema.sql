@@ -461,3 +461,136 @@ ALTER TABLE house_maintenance ADD COLUMN IF NOT EXISTS critical_constraint_role 
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS verification_contradictions INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_signature_maturity NUMERIC(8,3) NOT NULL DEFAULT 0;
 ALTER TABLE metrics_samples ADD COLUMN IF NOT EXISTS avg_ttl_role_weighted_confidence NUMERIC(8,3) NOT NULL DEFAULT 0;
+
+-- ============================================================
+-- PHASE 1: Robot Runtime State Persistence (the amnesia fix)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS robot_runtime_state (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
+  state_type TEXT NOT NULL CHECK (state_type IN ('fabricator', 'excavator', 'sealer', 'insertion_profile')),
+  state_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (house_id, state_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_robot_runtime_state_lookup ON robot_runtime_state (house_id, state_type);
+
+-- ============================================================
+-- PHASE 2: Contracted Telemetry Tables
+-- ============================================================
+
+-- Excavation records (excavator -> house brain)
+CREATE TABLE IF NOT EXISTS excavation_records (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
+  robot_id INTEGER REFERENCES robots(id) ON DELETE SET NULL,
+  zone_id TEXT NOT NULL,
+  depth_m NUMERIC(8,3) NOT NULL,
+  blade_load_score NUMERIC(8,4) NOT NULL,
+  lift_flow_score NUMERIC(8,4) NOT NULL DEFAULT 0,
+  good_stream_rate NUMERIC(8,4) NOT NULL DEFAULT 0,
+  reject_stream_rate NUMERIC(8,4) NOT NULL DEFAULT 0,
+  jam_state BOOLEAN NOT NULL DEFAULT FALSE,
+  blade_wear_index NUMERIC(8,4) NOT NULL DEFAULT 0,
+  container_fill_pct NUMERIC(8,3) NOT NULL DEFAULT 0,
+  backpressure_state TEXT NOT NULL CHECK (backpressure_state IN ('nominal', 'elevated', 'critical')) DEFAULT 'nominal',
+  expected_hard_layer_depth_m NUMERIC(8,3),
+  actual_hard_layer_depth_m NUMERIC(8,3),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_excavation_records_house ON excavation_records (house_id, created_at DESC);
+
+-- Fabrication records (fabricator -> house brain)
+CREATE TABLE IF NOT EXISTS fabrication_records (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
+  robot_id INTEGER REFERENCES robots(id) ON DELETE SET NULL,
+  part_id TEXT NOT NULL,
+  recipe_id TEXT,
+  batch_id TEXT NOT NULL,
+  fill_volume_used_l NUMERIC(8,3) NOT NULL,
+  fill_volume_target_l NUMERIC(8,3) NOT NULL,
+  incoming_moisture_pct NUMERIC(8,3) NOT NULL,
+  conditioning_applied TEXT NOT NULL CHECK (conditioning_applied IN ('none', 'water_dose', 'dry_pass')) DEFAULT 'none',
+  anchor_seat_confidence NUMERIC(8,4) NOT NULL,
+  compression_force_kn NUMERIC(8,3) NOT NULL DEFAULT 0,
+  press_depth_mm NUMERIC(8,3) NOT NULL DEFAULT 0,
+  ejection_dwell_seconds NUMERIC(8,3) NOT NULL,
+  calibration_cycle_count INTEGER NOT NULL DEFAULT 0,
+  block_type TEXT NOT NULL CHECK (block_type IN ('production', 'calibration')) DEFAULT 'production',
+  convergence_limit_hit BOOLEAN NOT NULL DEFAULT FALSE,
+  soil_signature TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_fabrication_records_house ON fabrication_records (house_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_fabrication_records_batch ON fabrication_records (batch_id, created_at DESC);
+
+-- Fabricator feed quality records (fabricator -> excavator via house brain)
+CREATE TABLE IF NOT EXISTS fabricator_feed_quality_records (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
+  batch_id TEXT NOT NULL,
+  source_zone_id TEXT NOT NULL,
+  calibration_cycles_to_convergence INTEGER NOT NULL DEFAULT 0,
+  fill_volume_delta_from_nominal NUMERIC(8,4) NOT NULL DEFAULT 0,
+  conditioning_applied TEXT NOT NULL CHECK (conditioning_applied IN ('none', 'water_dose', 'dry_pass')) DEFAULT 'none',
+  batch_reject_rate NUMERIC(8,4) NOT NULL DEFAULT 0,
+  convergence_limit_hit BOOLEAN NOT NULL DEFAULT FALSE,
+  assessment TEXT NOT NULL CHECK (assessment IN ('gate_well_tuned', 'gate_slightly_permissive', 'gate_too_permissive', 'soil_flagged')) DEFAULT 'gate_well_tuned',
+  soil_signature TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_feed_quality_records_house ON fabricator_feed_quality_records (house_id, created_at DESC);
+
+-- Placement reports (assembly -> house brain)
+CREATE TABLE IF NOT EXISTS placement_reports (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
+  robot_id INTEGER REFERENCES robots(id) ON DELETE SET NULL,
+  cell_id BIGINT REFERENCES grid_cells(id) ON DELETE SET NULL,
+  component_type TEXT NOT NULL CHECK (component_type IN ('foundation', 'wall', 'mep', 'roof')),
+  insertion_result TEXT NOT NULL CHECK (insertion_result IN ('success', 'failed', 'escalated')),
+  retries INTEGER NOT NULL DEFAULT 0,
+  resistance_at_seat NUMERIC(8,4) NOT NULL DEFAULT 0,
+  calibration_pass BOOLEAN NOT NULL DEFAULT FALSE,
+  pre_scan_drift_detected BOOLEAN NOT NULL DEFAULT FALSE,
+  post_seat_micro_load_passed BOOLEAN NOT NULL DEFAULT FALSE,
+  work_seconds NUMERIC(8,3) NOT NULL DEFAULT 0,
+  lane_travel_factor NUMERIC(8,4) NOT NULL DEFAULT 1,
+  escalation_reason TEXT,
+  neighbor_geometry_delta NUMERIC(8,4),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_placement_reports_house ON placement_reports (house_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_placement_reports_result ON placement_reports (insertion_result, created_at DESC);
+
+-- Neighbor drift telemetry (assembly -> verification via house brain)
+CREATE TABLE IF NOT EXISTS neighbor_drift_telemetry (
+  id BIGSERIAL PRIMARY KEY,
+  house_id INTEGER NOT NULL REFERENCES houses(id) ON DELETE CASCADE,
+  robot_id INTEGER REFERENCES robots(id) ON DELETE SET NULL,
+  zone_id TEXT NOT NULL,
+  drift_detected BOOLEAN NOT NULL DEFAULT FALSE,
+  drift_magnitude NUMERIC(8,4) NOT NULL DEFAULT 0,
+  affected_cells INTEGER NOT NULL DEFAULT 0,
+  escalated_to_house_brain BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_neighbor_drift_house ON neighbor_drift_telemetry (house_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_neighbor_drift_detected ON neighbor_drift_telemetry (drift_detected, created_at DESC);
+
+-- ============================================================
+-- Missing indexes for existing tables
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_block_verifications_house_mode_created
+  ON block_verifications (house_id, verification_mode, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_site_surveys_house_notes
+  ON site_surveys (house_id, surveyed_at DESC)
+  WHERE COALESCE(notes, '') NOT LIKE 'scheduler:excavator_ground_truth%';

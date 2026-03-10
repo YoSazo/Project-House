@@ -1,0 +1,919 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Verification Robot Blueprint                                          |
+|                                                                       |
+| Refined from C2A Transmutation Chain | v1                             |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: Trust process trace and reference libraries first — not
+  repeated destructive testing of every real part.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: The Verification Robot is a mostly stationary QC
+  and durability-truth system that certifies whether Fabricator produced
+  the House Brain's requested part through a trusted process, matches its
+  required characteristics, and can be given increasing lifetime
+  confidence through accelerated durability learning over time.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+The Verification Robot is the truth gate between Fabricator and the
+House Brain.
+
+Its job is not to invent what the part should be. The House Brain
+already knows what it needs.
+
+Verification answers two questions:
+
+- Was this part made properly?
+
+- Does this part match what the House Brain asked for?
+
+And later, when idle, it answers a third:
+
+- How long can this material family probably be trusted before
+  maintenance or revalidation is needed?
+
+2. End-to-End Simple Analogy
+
+Think of a bakery.
+
+- The House Brain is the customer order: "I need a wedding cake this
+  big, this strong, this shape."
+
+- The Fabricator is the baker making the cake.
+
+- The Verification Robot is the checkout counter before the cake ever
+  leaves the bakery.
+
+Verification does two checks:
+
+- Did the baker follow the trusted process?
+
+- Does the final cake match the order's characteristics?
+
+A cake can be well-baked and still be the wrong cake. A cupcake may be
+good food, but it is not a wedding cake.
+
+Then later, when the bakery is idle, it runs shelf-life stress tests on
+cake families to learn how long those kinds of cakes stay good.
+
+3. Final C2A Logic
+
+The final doctrine of Verification:
+
+- Do not destroy every real part just to know if it is good
+
+- Trust process trace first, not repeated destructive testing
+
+- Do not trust Fabricator's opinion
+
+- Use action log + direct machine-state readings
+
+- Sacrifice one sample once to create a trusted reference
+
+- If future process matches that reference, fast-pass
+
+- If process drifts, escalate
+
+- House Brain defines the required role/spec first
+
+- Verification only checks conformance to that requested role
+
+- Idle time is used for accelerated durability learning
+
+- TTL is learned progressively, not guessed with fake certainty at birth
+
+4. Constraints and Your Transmutations
+
++-----------------------------------------------------------------------+
+| Constraint 1 — The Bite-the-Cookie Problem                            |
++-----------------------------------------------------------------------+
+| Problem: If Verification has to aggressively test every real block,   |
+| it damages the very thing the house needs.                            |
++-----------------------------------------------------------------------+
+| Transmutation: Process Becomes the Taste                              |
+|                                                                       |
+| Don't keep tasting every cookie. If the recipe, bake time, oven temp, |
+| and all the data point toward a good cookie, then the data itself     |
+| becomes the taste.                                                    |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Verification becomes process-certification first                    |
+|                                                                       |
+| - Destructive testing only when needed — not on every real part       |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 2 — The Lying Oven Problem                                 |
++-----------------------------------------------------------------------+
+| Problem: If Verification trusts Fabricator's own report, it may       |
+| confidently approve bad parts.                                        |
++-----------------------------------------------------------------------+
+| Transmutation: Remove the Intern's Opinion                            |
+|                                                                       |
+| Remove the intern's opinion. His actions only matter to know what was |
+| done and when. The truth comes directly from the oven, timer,         |
+| sensors, machine state — not from what the intern says.               |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Fabricator emits: action trace, timestamps, process events only     |
+|                                                                       |
+| - Verification trusts: machine-state readings, independent sensors,   |
+|   direct measured conditions                                          |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 3 — The Eat-One-Cookie-Once Problem                        |
++-----------------------------------------------------------------------+
+| Problem: Even with machine truth, you still need some real reference  |
+| of what "good" actually looks like.                                   |
++-----------------------------------------------------------------------+
+| Transmutation: One Cookie Becomes the Reference                       |
+|                                                                       |
+| The checker eats one whole cookie once. If it is good, then all the   |
+| data around that cookie becomes the reference point. From then on,    |
+| matching that data means the cookie is trusted.                       |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - One sacrificial validated sample is consumed                        |
+|                                                                       |
+| - One trusted process signature is created                            |
+|                                                                       |
+| - Future parts are fast-passed if they match that trusted signature   |
+|   closely enough                                                      |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 4 — The Drift-from-Reference Problem                       |
++-----------------------------------------------------------------------+
+| Problem: How close is "close enough" before trust breaks?             |
++-----------------------------------------------------------------------+
+| Transmutation: Variables, Relationships, and Outcome                  |
+|                                                                       |
+| Look at the variables, the relationship between the variables, and    |
+| the outcome. If one or more meaningful variables deviates from the    |
+| reference point, treat it as a new cookie.                            |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Verification stores: target variables, target relationships between |
+|   variables, outcome expectations, tolerance bands                    |
+|                                                                       |
+| - Outside the band: no longer same batch — escalate, optimize, or     |
+|   create new trusted signature                                        |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 5 — The Slow Relearning Problem                            |
++-----------------------------------------------------------------------+
+| Problem: Every new soil or deviation should not require starting from |
+| zero.                                                                 |
++-----------------------------------------------------------------------+
+| Transmutation: Correction Becomes the Optimizer                       |
+|                                                                       |
+| If tea is too strong, add more milk. If a new soil follows the recipe |
+| but comes out too soft, correct what is off. Then log the correction. |
+| After enough rounds, the optimization data itself becomes the         |
+| optimizer.                                                            |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Deviation patterns are stored                                       |
+|                                                                       |
+| - Correction patterns are stored                                      |
+|                                                                       |
+| - Rounds to resolution and similar case matches are logged            |
+|                                                                       |
+| - Becomes: detect deviation → apply learned correction → recheck →    |
+|   store optimization memory                                           |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 6 — The Good Block, Bad Order Problem                      |
++-----------------------------------------------------------------------+
+| Problem: A part can be generally good but still wrong for the actual  |
+| use requested.                                                        |
++-----------------------------------------------------------------------+
+| Transmutation: House Brain Talks to Verification First                |
+|                                                                       |
+| The House Brain knows what it needs first. So the Brain should talk   |
+| to Verification first as the standard. Verification should then check |
+| if the produced part matches the requested characteristics.           |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Verification checks: (1) process conformance and (2)                |
+|   requested-characteristic conformance                                |
+|                                                                       |
+| - Not generic goodness alone — a good part that is the wrong part     |
+|   still fails                                                         |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 7 — The Invisible Rot Problem                              |
++-----------------------------------------------------------------------+
+| Problem: A block can be good now, but how long will it last?          |
++-----------------------------------------------------------------------+
+| Transmutation: Fast-Forward Time During Idle                          |
+|                                                                       |
+| Don't force exact TTL immediately. Let the part be used if it's good  |
+| now. Then, when Verification is idle, it stress-tests material        |
+| families under extreme conditions and learns TTL later — like         |
+| fast-forwarding time.                                                 |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Release confidence = safe to use now                                |
+|                                                                       |
+| - Longevity confidence = likely safe for about this long              |
+|                                                                       |
+| - TTL is provisional first, refined later, improved as durability     |
+|   data grows                                                          |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 8 — The House-Level Mixture Problem                        |
++-----------------------------------------------------------------------+
+| Problem: A house may use multiple soil/material families, so TTL      |
+| should not be based on one simple sample.                             |
++-----------------------------------------------------------------------+
+| Transmutation: Log and Test the Whole Family Mix                      |
+|                                                                       |
+| Log how much of each soil/material family was used in the house. Then |
+| idle Verification can test those variations and use that to           |
+| strengthen the house TTL understanding.                               |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Each house stores: material composition, recipe family composition, |
+|   variant usage percentages                                           |
+|                                                                       |
+| - Durability results are tied back to those specific families         |
+|                                                                       |
+| - House TTL confidence grows with each material family tested         |
++-----------------------------------------------------------------------+
+
+5. Core Mission
+
+The Verification Robot must:
+
+1.  Receive fabricated parts or their fabrication record
+
+2.  Confirm process conformance
+
+3.  Confirm characteristic/spec conformance
+
+4.  Approve / reject / rework
+
+5.  Maintain trusted signatures for soil/recipe/process families
+
+6.  Maintain optimization memory
+
+7.  Run accelerated durability tests during idle time
+
+8.  Update durability class and TTL confidence
+
+9.  Report truth back to the House Brain
+
+6. Final Functional Role
+
+Verification is not:
+
+- A freeform materials scientist
+
+- A final-assembly judge
+
+- A generic inspector of everything
+
+  -----------------------------------------------------------------------
+  Verification is: the robot/system that proves "Fabricator produced what
+  the House Brain asked for, using a trusted process, with enough present
+  confidence to use now and enough durability learning to price its
+  lifetime later."
+
+  -----------------------------------------------------------------------
+
+7. System Architecture
+
+7.1 Inputs
+
+From House Brain
+
+- Requested part role
+
+- Requested dimensions
+
+- Requested mass/density band
+
+- Requested strength band
+
+- Requested exposure class
+
+- Requested durability class if applicable
+
+From Fabricator
+
+- Action trace
+
+- Timestamps
+
+- Recipe used
+
+- Soil signature
+
+- Compaction trace
+
+- Moisture trace
+
+- Cure/bake time
+
+- Machine-state logs
+
+- Produced-part ID
+
+From Sensors / Machine Truth
+
+- Actual moisture
+
+- Actual density
+
+- Penetration/hardness proxy
+
+- Dimensions
+
+- Weight
+
+- Environmental data
+
+- Durability test outcomes for samples
+
+7.2 Outputs
+
+To House Brain
+
+- Approve / reject / rework decision
+
+- Process confidence score
+
+- Characteristic conformance score
+
+- Durability class
+
+- Provisional TTL band
+
+- Updated material-family trust
+
+- Recommended correction to fabrication if needed
+
+To Fabricator
+
+- Correction deltas
+
+- Escalation flags
+
+- New trusted signature candidate
+
+- Quality failure cause
+
+To Library / System Memory
+
+- Trusted signatures
+
+- Deviation patterns
+
+- Correction history
+
+- Durability results
+
+- TTL confidence progression
+
+8. Mechanical / Physical Embodiment
+
+Baseline physical form: compact stationary or semi-stationary QC
+station, mounted near fabrication, with conveyor/dock intake or handoff
+tray.
+
+Not humanoid. Not mobile unless needed. Primary design: receive, sense,
+classify, log, sometimes stress-test.
+
+8.1 Core Hardware
+
+Fast Inline QC Sensors
+
+- Scale / weight measurement
+
+- Dimension scanner
+
+- Moisture sensor
+
+- Density estimation
+
+- Penetration resistance / hardness probe
+
+- Optional vision camera
+
+Durability Testing Subsystem
+
+- Wet-dry cycling chamber
+
+- Heat chamber
+
+- Erosion / water exposure rig
+
+- Capillary rise rig
+
+- Sample holder for sacrificial test pieces
+
+Compute
+
+- Local controller
+
+- Rules engine
+
+- Signature matcher
+
+- Correction recommender
+
+- Link to House Brain and Fabricator
+
+9. Software Architecture
+
+9.1 Main Modules
+
+- Process-trace validator
+
+- Direct sensor truth validator
+
+- Reference signature matcher
+
+- Requested-spec checker
+
+- Approval gate
+
+- Deviation analyzer
+
+- Correction engine
+
+- Durability tester
+
+- TTL confidence updater
+
+- Material-family library manager
+
+9.2 Verification Doctrine
+
+Layer 1 — Immediate Release Gate
+
+Can this part be trusted now?
+
+Checks:
+
+- Process followed trusted bounds
+
+- Machine-state agrees
+
+- Characteristics match requested role/spec
+
+- No immediate QC red flags
+
+If yes: release for use. If no: reject / rework / escalate.
+
+Layer 2 — Deferred Durability Learning
+
+What is this material family's probable life?
+
+During idle time:
+
+- Run accelerated stress tests
+
+- Compare families
+
+- Update durability confidence
+
+- Update TTL band
+
+10. Trusted Signature Model
+
+Each trusted signature stores:
+
+- Soil/material signature
+
+- Recipe
+
+- Process trace
+
+- Compaction band
+
+- Moisture band
+
+- Time/cure band
+
+- Expected output characteristics
+
+- Approved use roles
+
+- Short-term confidence
+
+- Long-term confidence
+
+A future part is fast-passed when:
+
+- Process variables stay in band
+
+- Variable relationships stay in band
+
+- Output characteristics match requested role
+
+- No red-flag drift appears
+
+11. Optimization Memory Model
+
+For each failed or drifting batch, store:
+
+- State variables
+
+- Relationship variables
+
+- Outcome
+
+- Correction applied
+
+- Correction success/failure
+
+- Rounds to resolution
+
+This allows:
+
+- Faster recovery on new soils
+
+- Faster process correction
+
+- Correction-by-pattern rather than blind guessing
+
+12. TTL Logic
+
+TTL is not assigned as fake certainty on day one.
+
+Stage 1 — Provisional Release
+
+Part/material is good enough to use now.
+
+Stage 2 — Accelerated Durability Testing
+
+Idle Verification tests:
+
+- Soil families
+
+- Recipe families
+
+- Coating families
+
+- Block variants
+
+Stage 3 — TTL Confidence Growth
+
+System updates:
+
+- Durability class
+
+- Provisional TTL band
+
+- Higher-confidence TTL band later
+
+TTL means:
+
+- Confidence window for continued trust
+
+- Trigger for maintenance / revalidation / upgrade
+
+- Not necessarily "destroy the house"
+
+13. Commands
+
++-----------------------------------------------------------------------+
+| {                                                                     |
+|                                                                       |
+| "commands": [                                                         |
+|                                                                       |
+| "receive_part(part_id)",                                              |
+|                                                                       |
+| "load_requested_spec(part_role_id)",                                  |
+|                                                                       |
+| "validate_process_trace(batch_id)",                                   |
+|                                                                       |
+| "measure_characteristics(part_id)",                                   |
+|                                                                       |
+| "match_reference_signature(signature_id)",                            |
+|                                                                       |
+| "approve(part_id)",                                                   |
+|                                                                       |
+| "reject(part_id)",                                                    |
+|                                                                       |
+| "rework(part_id, correction_delta)",                                  |
+|                                                                       |
+| "create_trusted_signature(sample_id)",                                |
+|                                                                       |
+| "store_deviation_pattern(batch_id)",                                  |
+|                                                                       |
+| "apply_known_correction(pattern_id)",                                 |
+|                                                                       |
+| "run_accelerated_durability_test(material_family_id)",                |
+|                                                                       |
+| "update_ttl_confidence(material_family_id)",                          |
+|                                                                       |
+| "emit_verification_report(part_id)"                                   |
+|                                                                       |
+| ]                                                                     |
+|                                                                       |
+| }                                                                     |
++-----------------------------------------------------------------------+
+
+14. Data Emitted
+
+14.1 Verification Record
+
++-----------------------------------------------------------------------+
+| {                                                                     |
+|                                                                       |
+| "part_id": "block_128",                                               |
+|                                                                       |
+| "requested_role": "exterior_wall_block",                              |
+|                                                                       |
+| "soil_signature": "clay44_sand38_silt18_org2",                        |
+|                                                                       |
+| "batch_id": "fab_batch_22",                                           |
+|                                                                       |
+| "process_conformance": 0.94,                                          |
+|                                                                       |
+| "characteristic_conformance": 0.91,                                   |
+|                                                                       |
+| "moisture_pct": 12.4,                                                 |
+|                                                                       |
+| "density": 1785,                                                      |
+|                                                                       |
+| "penetration_resistance": 141,                                        |
+|                                                                       |
+| "dimensions_ok": true,                                                |
+|                                                                       |
+| "weight_ok": true,                                                    |
+|                                                                       |
+| "decision": "approve",                                                |
+|                                                                       |
+| "release_confidence": 0.93,                                           |
+|                                                                       |
+| "durability_confidence": 0.68,                                        |
+|                                                                       |
+| "ttl_band_days": [1200, 1850],                                        |
+|                                                                       |
+| "correction_needed": false,                                           |
+|                                                                       |
+| "timestamp": "2026-03-09T10:22:00Z"                                   |
+|                                                                       |
+| }                                                                     |
++-----------------------------------------------------------------------+
+
+14.2 Deviation / Correction Record
+
++-----------------------------------------------------------------------+
+| {                                                                     |
+|                                                                       |
+| "batch_id": "fab_batch_24",                                           |
+|                                                                       |
+| "reference_signature": "sig_extwall_v3",                              |
+|                                                                       |
+| "variable_drift": {                                                   |
+|                                                                       |
+| "moisture_pct": "+4.1",                                               |
+|                                                                       |
+| "density": "-110",                                                    |
+|                                                                       |
+| "compaction_force": "-8%"                                             |
+|                                                                       |
+| },                                                                    |
+|                                                                       |
+| "relationship_drift": {                                               |
+|                                                                       |
+| "moisture_to_density": "out_of_band"                                  |
+|                                                                       |
+| },                                                                    |
+|                                                                       |
+| "outcome": "too_soft",                                                |
+|                                                                       |
+| "recommended_correction": {                                           |
+|                                                                       |
+| "reduce_liquid": "6%",                                                |
+|                                                                       |
+| "increase_compaction": "8%"                                           |
+|                                                                       |
+| },                                                                    |
+|                                                                       |
+| "status": "rework"                                                    |
+|                                                                       |
+| }                                                                     |
++-----------------------------------------------------------------------+
+
+15. Failure Modes
+
+Process-Side Failures
+
+- Missing action trace
+
+- Inconsistent machine-state readings
+
+- Recipe drift
+
+- Compaction drift
+
+- Moisture drift
+
+- Cure/bake timing drift
+
+Part-Side Failures
+
+- Density low
+
+- Too soft
+
+- Too brittle
+
+- Wrong dimensions
+
+- Wrong mass
+
+- Wrong role characteristics
+
+Trust-Side Failures
+
+- Reference signature stale
+
+- No close trusted match
+
+- Contradiction between process conformance and sensor truth
+
+- Repeated drift on same family
+
+Durability-Side Failures
+
+- Accelerated weathering failure
+
+- Erosion score low
+
+- Capillary rise too high
+
+- TTL confidence too weak for required use class
+
+16. Success Criteria
+
+Verification is successful if it can:
+
+10. Approve good parts without destructively testing every one
+
+11. Reject or rework drifting parts early
+
+12. Confirm conformance to House Brain requested role/spec
+
+13. Build trusted signatures from sacrificial validation
+
+14. Learn correction patterns for faster optimization
+
+15. Generate durability / TTL confidence without blocking the pipeline
+
+16. Reduce bad parts reaching Assembly
+
+17. Improve trust in known material families over time
+
+17. Environment Assumptions
+
+Verification assumes:
+
+- Fabricator emits machine-trace events
+
+- Direct sensors can read key physical properties
+
+- House Brain provides requested role/spec
+
+- Sacrificial validation samples are allowed occasionally
+
+- Idle time exists for accelerated durability testing
+
+- Material families are logged per house / batch
+
+18. Build Phases
+
+Phase 1 — Inline Process Checker
+
+Build:
+
+- Process trace validator
+
+- Sensor truth validator
+
+- Approve/reject gate
+
+Goal: release good parts now without destructive testing every time.
+
+Phase 2 — Reference Signature Engine
+
+Build:
+
+- Sacrificial sample validation
+
+- Trusted signature creation
+
+- Fast-pass matching
+
+Goal: prove future batches can inherit trust.
+
+Phase 3 — Spec Conformance Layer
+
+Build:
+
+- Requested role/spec loader from House Brain
+
+- Dimensional/mass/density/tolerance checking
+
+Goal: verify both "good" and "correct for this role."
+
+Phase 4 — Optimization Memory
+
+Build:
+
+- Deviation pattern storage
+
+- Correction recommendation logic
+
+- Rework loop
+
+Goal: make new soils/variants optimize quickly.
+
+Phase 5 — Durability / TTL Learning
+
+Build:
+
+- Accelerated testing station
+
+- Durability confidence update
+
+- Provisional TTL model
+
+Goal: turn "good now" into "trusted for about this long."
+
+19. Cost Direction
+
+Verification should stay:
+
+- Mostly stationary
+
+- Sensor-heavy rather than mobility-heavy
+
+- Simple in motion
+
+- Rich in process logic
+
+- Cheap compared with a general-purpose robot
+
+  -----------------------------------------------------------------------
+  C2A Principle: Make truth come from process and reference libraries
+  first, not from destroying every real part.
+
+  -----------------------------------------------------------------------
+
+20. Out of Scope / Not This Robot's Job
+
+Verification does not:
+
+- Decide what part the house needs
+
+- Fabricate the part
+
+- Carry the part to the house
+
+- Place the part
+
+- Decide final architectural role on its own
+
+Those belong to: House Brain, Fabricator, Logistics, and Assembly.
+
+Verification only says: "This produced part does or does not match the
+trusted process and requested spec."
+
+21. Final Blueprint Summary
+
+  -----------------------------------------------------------------------
+   The Verification Robot is a mostly stationary QC and durability-truth
+    system that certifies whether Fabricator produced the House Brain's
+      requested part through a trusted process, matches its required
+     characteristics, and can be given increasing lifetime confidence
+            through accelerated durability learning over time.
+
+  -----------------------------------------------------------------------

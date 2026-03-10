@@ -1,0 +1,1205 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| MASTER INTERFACE CONTRACT                                             |
+|                                                                       |
+| Stigmergic Hive — Digital Nervous System Specification v1.0           |
++-----------------------------------------------------------------------+
+
++:---------------------------------------------------------------------:+
+| CORE DOCTRINE                                                         |
+|                                                                       |
+| Robots do not talk to each other. They write truth to the shared      |
+| environment. House Brain reads that truth and acts. The database is   |
+| the medium. The feedback paths are the intelligence.                  |
++-----------------------------------------------------------------------+
+
+  ------------------------------ ----------------------------------------
+  Document                       Master Interface Contract — House Brain
+
+  Version                        1.0 — Derived from running scheduler.js
+
+  Scope                          All 7 robots × 3 contract layers × 10
+                                 feedback paths
+
+  Contract Layers                Layer 1: Command (House Brain → Robot)
+                                 Layer 2: Telemetry (Robot → House Brain)
+                                 Layer 3: Feedback (Robot → Robot via
+                                 Brain)
+
+  Source of Truth                server/src/contracts.js —
+                                 machine-readable schemas that
+                                 scheduler.js validates against at
+                                 runtime
+
+  Validation Status              validateTelemetry() defined. Wired into
+                                 scheduler dispatch per robot type.
+  ------------------------------ ----------------------------------------
+
+Architectural Principles
+
+These principles govern every interface in the system. Each contract was
+designed to enforce them.
+
+  -----------------------------------------------------------------------
+  Why Robots Don't Talk Directly to Each Other
+
+  -----------------------------------------------------------------------
+
+Direct robot-to-robot communication creates swarm fragility. If the
+network link between two robots drops, the dependent operation halts and
+the build stalls. The House Brain architecture solves this with
+stigmergic mediation: every robot writes its state to the shared
+database environment, and every robot reads from that environment when
+it needs another robot's output.
+
+This means the Excavator finishing a zone doesn't wait for Survey to
+acknowledge it. It writes excavator_ground_truth_record to the database.
+Survey's calibration model reads that record on its next cycle — whether
+that's one second later or ten minutes later after a network gap. The
+build continues. The learning still happens. Timing is decoupled from
+correctness.
+
+  ----------------------------------- -----------------------------------
+  Direct Communication (Fragile)      Stigmergic Mediation (Resilient)
+
+  Robot A sends message to Robot B    Robot A writes record to database
+
+  If network drops, Robot B never     Robot B reads record when ready —
+  receives it                         timing decoupled
+
+  If Robot B is offline, the message  Record persists until consumed and
+  is lost                             acted on
+
+  Build halts on any link failure     Build continues; calibration
+                                      happens on next cycle
+  ----------------------------------- -----------------------------------
+
+  -----------------------------------------------------------------------
+  Five Principles Encoded in Every Contract
+
+  -----------------------------------------------------------------------
+
+Fix Geometry, Tune Fill: Assembly's dimensional requirement is the hard
+constraint. Every upstream robot — Fabricator, Verification, Excavator —
+bends to it. The insertion corridor is fixed; the fill volume adjusts.
+
+Deviation IS the Signal: Motor impedance is force proxy (Assembly).
+Blade load is wear proxy (Excavator). Anchor current is seating proxy
+(Fabricator). No expensive sensors — expected behavior defines normal,
+and deviation from that expectation is the measurement.
+
+Borrow Mass from Environment: Fabricator's Earth Anvil borrows the
+planet's mass for compression force. Assembly's insertion corridors
+borrow the blueprint geometry as a touch sensor. Survey's sleeve bracing
+borrows the probe hole walls for stability.
+
+Calibration Blocks Are Planned, Not Failures: First 3-5 blocks of any
+new soil patch are expected calibration waste. Convergence limits are
+hard exits, not failures — they escalate to House Brain rather than
+looping forever.
+
+Convergence Limits Protect Pipelines: Every feedback loop has a defined
+exit condition. If Fabricator can't converge in N cycles, it stops and
+flags. If Verification sees repeated handling damage, it increases dwell
+time then escalates. No infinite loops.
+
+Complete Feedback Topology
+
+Every data path in the system. Source emits, House Brain mediates via
+database, destination reads and acts.
+
+  -------------- -------------- -------------------------------- --------------------------------- ----------------
+  Source         Destination    Signal                           Mediating Table                   Feedback Action
+
+  Excavator      Survey         excavator_ground_truth_record    site_surveys                      Calibrate
+                                                                                                   penetration
+                                                                                                   classification
+                                                                                                   model
+
+  Fabricator     Excavator      fabricator_feed_quality_record   fabricator_feed_quality_records   Tune binary gate
+                                                                                                   aperture per
+                                                                                                   zone
+
+  Survey         Excavator      zone_profile                     site_surveys                      Preload depth
+                                                                                                   profile and
+                                                                                                   moisture
+
+  Survey         Fabricator     zone_moisture_score              site_surveys                      Pre-arm
+                                                                                                   conditioning
+                                                                                                   gate
+
+  Verification   Fabricator     fill_correction                  block_verifications               Update fill
+                                                                                                   volume target
+
+  Verification   Fabricator     dwell_recommendation             block_verifications               Update ejection
+                                                                                                   dwell seconds
+
+  Sealer         Verification   water_stress_record              house_maintenance                 Calibrate TTL
+                                                                                                   library from
+                                                                                                   real-world
+                                                                                                   stress
+
+  Assembly       Verification   neighbor_drift_telemetry         grid_cells                        Adjust TTL
+                                                                                                   confidence for
+                                                                                                   drifted zone
+
+  Logistics      Assembly       travel_factor                    logistics_lane_segments           Scale
+                                                                                                   work_seconds by
+                                                                                                   lane condition
+
+  Survey         Logistics      reference_patch_coords           houses                            Seed relay
+                                                                                                   reference origin
+  -------------- -------------- -------------------------------- --------------------------------- ----------------
+
+  -----------------------------------------------------------------------
+  Staleness thresholds are defined per path in contracts.js. The
+  /api/contract-health endpoint checks age of last emit against threshold
+  and returns LIVE, STALE, or NEVER_EMITTED for each path. The
+  ContractHealthPanel in App.jsx surfaces this in real time.
+
+  -----------------------------------------------------------------------
+
+Layer 1 — Command Contracts
+
+House Brain to Robot. Every command is a discrete, acknowledged
+operation. The robot must either execute and emit telemetry, or reject
+with an escalation reason. Silent failure is a contract violation.
+
+  -----------------------------------------------------------------------
+  Survey Robot — Command Surface
+
+  -----------------------------------------------------------------------
+
+House Brain directs Survey to assess a zone before any ground
+disturbance. Survey must confirm reference patch placement before
+Logistics can calibrate. Abort propagates immediately to House Brain
+with reason code.
+
+  --------------------------- ----------------------------------------------
+  Command                     Contract Rule
+
+  load_zone_target(zone_id)   Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  deploy_feet()               Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  equalize_load()             Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  seat_outer_sleeve(depth)    Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  probe_inner(depth)          Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  classify_point()            Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  densify_region(region_id)   Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  stamp_reference_patch()     Acknowledge receipt. Emit status change.
+                              Escalate if unable to comply.
+
+  emit_heatmap(site_id)       Must produce telemetry record before
+                              returning. Missing emit = contract violation.
+
+  abort_probe(reason)         Must produce telemetry record before
+                              returning. Missing emit = contract violation.
+  --------------------------- ----------------------------------------------
+
+  -----------------------------------------------------------------------
+  Excavator Robot — Command Surface
+
+  -----------------------------------------------------------------------
+
+House Brain pre-arms Excavator with Survey's zone profile before
+engagement. Slurry risk is checked pre-mission. Container handshake is
+mandatory before lift starts — backpressure state must be confirmed
+nominal.
+
+  --------------------------------------- ----------------------------------------------
+  Command                                 Contract Rule
+
+  load_survey_zone_profile(zone_id)       Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  check_slurry_risk(zone_id)              Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  confirm_container_ready(container_id)   Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  goto(zone_id)                           Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  penetrate(depth)                        Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  engage_blades()                         Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  start_lift()                            Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  pause_lift(reason)                      Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  route_good_stream(container_id)         Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  route_reject_stream(reject_id)          Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  clear_jam()                             Acknowledge receipt. Emit status change.
+                                          Escalate if unable to comply.
+
+  emit_excavation_report(zone_id)         Must produce telemetry record before
+                                          returning. Missing emit = contract violation.
+
+  emit_ground_truth_record(zone_id)       Must produce telemetry record before
+                                          returning. Missing emit = contract violation.
+
+  abort_job(reason)                       Must produce telemetry record before
+                                          returning. Missing emit = contract violation.
+  --------------------------------------- ----------------------------------------------
+
+  -----------------------------------------------------------------------
+  Fabricator Robot — Command Surface
+
+  -----------------------------------------------------------------------
+
+House Brain loads a recipe targeting Assembly's dimensional requirement.
+Anchor seating is confirmed before every compression cycle —
+below-threshold seat triggers relocate, not compress. Convergence limit
+flag stops the fabrication loop and escalates to House Brain.
+
+  ------------------------------------ ----------------------------------------------
+  Command                              Contract Rule
+
+  load_recipe(recipe_id)               Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  check_feed_moisture()                Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  apply_conditioning(type, dose)       Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  deploy_anchor()                      Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  confirm_anchor_seating()             Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  relocate_anchor(offset)              Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  fill_mold(volume_target)             Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  compress()                           Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  eject_block()                        Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  begin_dwell(dwell_seconds)           Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  release_to_verification(part_id)     Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  update_fill_volume(delta)            Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  update_dwell_seconds(value)          Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+
+  flag_convergence_limit(batch_id)     Must produce telemetry record before
+                                       returning. Missing emit = contract violation.
+
+  emit_fabrication_record(part_id)     Must produce telemetry record before
+                                       returning. Missing emit = contract violation.
+
+  emit_feed_quality_record(batch_id)   Must produce telemetry record before
+                                       returning. Missing emit = contract violation.
+
+  recycle_calibration_block(part_id)   Acknowledge receipt. Emit status change.
+                                       Escalate if unable to comply.
+  ------------------------------------ ----------------------------------------------
+
+  -----------------------------------------------------------------------
+  Verification Robot — Command Surface
+
+  -----------------------------------------------------------------------
+
+House Brain triggers QC after every Fabricator release. Verification is
+the go/no-go gate between Fabricator and Assembly. Fill corrections and
+dwell recommendations are emitted as feedback records — Fabricator reads
+them on next cycle.
+
+  ---------------------------------------- ----------------------------------------------
+  Command                                  Contract Rule
+
+  qc(block_id)                             Acknowledge receipt. Emit status change.
+                                           Escalate if unable to comply.
+
+  runWeathering(signature)                 Acknowledge receipt. Emit status change.
+                                           Escalate if unable to comply.
+
+  updateConfidence(signature)              Acknowledge receipt. Emit status change.
+                                           Escalate if unable to comply.
+
+  emit_fill_correction(part_id)            Must produce telemetry record before
+                                           returning. Missing emit = contract violation.
+
+  emit_dwell_recommendation(part_id)       Must produce telemetry record before
+                                           returning. Missing emit = contract violation.
+
+  emit_ttl_update(soil_signature)          Must produce telemetry record before
+                                           returning. Missing emit = contract violation.
+
+  emit_neighbor_drift_response(house_id)   Must produce telemetry record before
+                                           returning. Missing emit = contract violation.
+  ---------------------------------------- ----------------------------------------------
+
+  -----------------------------------------------------------------------
+  Assembly Robot — Command Surface
+
+  -----------------------------------------------------------------------
+
+House Brain loads an insertion profile before claiming any cell.
+Pre-insertion drift scan runs before placement — detected drift
+escalates proactively. Post-seat micro-load check catches
+seated-but-wrong placements before the robot moves on.
+
+  ----------------------------------------- ----------------------------------------------
+  Command                                   Contract Rule
+
+  load_insertion_profile(component_type)    Acknowledge receipt. Emit status change.
+                                            Escalate if unable to comply.
+
+  claimCell(house_id)                       Acknowledge receipt. Emit status change.
+                                            Escalate if unable to comply.
+
+  pre_insertion_drift_scan(cell_id)         Acknowledge receipt. Emit status change.
+                                            Escalate if unable to comply.
+
+  moveTo(x,y,z)                             Acknowledge receipt. Emit status change.
+                                            Escalate if unable to comply.
+
+  place(block_id,x,y,z)                     Acknowledge receipt. Emit status change.
+                                            Escalate if unable to comply.
+
+  post_seat_micro_load_check(cell_id)       Acknowledge receipt. Emit status change.
+                                            Escalate if unable to comply.
+
+  emit_placement_report(cell_id)            Must produce telemetry record before
+                                            returning. Missing emit = contract violation.
+
+  emit_neighbor_drift_telemetry(house_id)   Must produce telemetry record before
+                                            returning. Missing emit = contract violation.
+
+  escalate_geometry_failure(cell_id)        Acknowledge receipt. Emit status change.
+                                            Escalate if unable to comply.
+  ----------------------------------------- ----------------------------------------------
+
+  -----------------------------------------------------------------------
+  Sealer Robot — Command Surface
+
+  -----------------------------------------------------------------------
+
+House Brain triggers sealing phase by phase: broad spray → dry reset
+confirmation → pressure spray → zone coat. Edge band coat class is
+always one above the highest adjacent zone. Recoat is triggered by
+Verification TTL signals, not calendar schedule.
+
+  ------------------------------------------ ----------------------------------------------
+  Command                                    Contract Rule
+
+  load_zone_vulnerability_map(house_id)      Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  broad_spray(house_id)                      Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  confirm_moisture_baseline_reset(zone_id)   Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  focused_pressure_spray(zone_id)            Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  fuse_zone_scores(house_id)                 Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  apply_edge_band_coat(zone_id)              Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  apply_zone_coat(zone_id)                   Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  emit_water_stress_record(house_id)         Must produce telemetry record before
+                                             returning. Missing emit = contract violation.
+
+  trigger_recoat(house_id)                   Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+
+  escalate_zone_failure(zone_id)             Acknowledge receipt. Emit status change.
+                                             Escalate if unable to comply.
+  ------------------------------------------ ----------------------------------------------
+
+  -----------------------------------------------------------------------
+  Logistics Robot — Command Surface
+
+  -----------------------------------------------------------------------
+
+House Brain routes Logistics based on lane condition scores. Body gauge
+creates road as it travels. Reference relay age is monitored — stale
+relay triggers restamp before Assembly travel factor is updated.
+
+  ------------------------------- ----------------------------------------------
+  Command                         Contract Rule
+
+  goto(x,y)                       Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+
+  pickup(payload_id)              Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+
+  dock(station_id)                Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+
+  lower_body_gauge()              Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+
+  grade_until_match(segment_id)   Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+
+  relay_reference_state()         Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+
+  emit_lane_status()              Must produce telemetry record before
+                                  returning. Missing emit = contract violation.
+
+  yield(robot_id)                 Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+
+  return_to_base()                Acknowledge receipt. Emit status change.
+                                  Escalate if unable to comply.
+  ------------------------------- ----------------------------------------------
+
+Layer 2 — Telemetry Schemas
+
+Robot to House Brain. Every meaningful operation produces a structured
+record written to the database. Missing required fields are contract
+violations caught by validateTelemetry() before DB write. Enum
+violations are also caught — no freeform strings in typed fields.
+
+  -----------------------------------------------------------------------
+  site_survey_probe
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Survey
+
+  Emit Trigger     After every probe point classified
+
+  Required Fields  house_id, probe_x, probe_y, depth_meters,
+                   soil_signature, status, penetration_resistance,
+                   moisture_pct, confidence, foot_balance_score,
+                   sleeve_seat_score, brace_failure, partial_penetration,
+                   penetration_curve, round_index
+
+  Optional Fields  surface_tilt_deg, organic_pct, salinity,
+                   classification_reason, densified
+
+  Enum Constraints status: BUILDABLE | MARGINAL | REJECT
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  excavation_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Excavator
+
+  Emit Trigger     After each extraction cycle
+
+  Required Fields  robot_id, zone_id, depth_m, blade_load_score,
+                   lift_flow_score, good_stream_rate, reject_stream_rate,
+                   jam_state, blade_wear_index, container_fill_pct,
+                   backpressure_state, timestamp
+
+  Optional Fields  expected_hard_layer_depth_m, actual_hard_layer_depth_m
+
+  Enum Constraints backpressure_state: nominal | elevated | critical
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  excavator_ground_truth_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Excavator
+
+  Emit Trigger     Once per zone completion
+
+  Required Fields  robot_id, zone_id, survey_predicted_hard_layer_m,
+                   actual_hard_layer_m, survey_predicted_reject_ratio,
+                   actual_reject_ratio, blade_load_profile,
+                   prediction_delta, timestamp
+
+  Enum Constraints prediction_delta: within_tolerance | over_predicted |
+                   under_predicted
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  fabrication_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Fabricator
+
+  Emit Trigger     After every block ejection
+
+  Required Fields  part_id, recipe_id, batch_id, fill_volume_used_L,
+                   fill_volume_target_L, incoming_moisture_pct,
+                   conditioning_applied, anchor_seat_confidence,
+                   compression_force_kN, press_depth_mm,
+                   ejection_dwell_seconds, calibration_cycle_count,
+                   block_type, timestamp
+
+  Optional Fields  convergence_limit_hit
+
+  Enum Constraints conditioning_applied: none | water_dose | dry_pass |
+                   block_type: production | calibration
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  fabricator_feed_quality_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Fabricator
+
+  Emit Trigger     After each batch completes
+
+  Required Fields  batch_id, source_zone_id,
+                   calibration_cycles_to_convergence,
+                   fill_volume_delta_from_nominal, conditioning_applied,
+                   batch_reject_rate, convergence_limit_hit, assessment,
+                   timestamp
+
+  Enum Constraints assessment: gate_well_tuned | gate_slightly_permissive
+                   | gate_too_permissive | soil_flagged
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  block_verification_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Verification
+
+  Emit Trigger     After every QC pass or accelerated weathering cycle
+
+  Required Fields  house_id, soil_signature, passed, verification_mode,
+                   weathering_cycles
+
+  Optional Fields  penetration_resistance, moisture_pct, density,
+                   retries, fill_volume_correction_delta,
+                   recommended_dwell_seconds, handling_damage_flag
+
+  Enum Constraints verification_mode: inline | accelerated_weathering
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  placement_report
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Assembly
+
+  Emit Trigger     After every cell placement attempt
+
+  Required Fields  robot_id, house_id, cell_id, component_type,
+                   insertion_result, retries, resistance_at_seat,
+                   calibration_pass, pre_scan_drift_detected,
+                   post_seat_micro_load_passed, work_seconds, timestamp
+
+  Optional Fields  escalation_reason, neighbor_geometry_delta
+
+  Enum Constraints insertion_result: success | failed | escalated |
+                   component_type: foundation | wall | mep | roof
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  neighbor_drift_telemetry
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Assembly
+
+  Emit Trigger     When pre-insertion drift scan detects geometry
+                   deviation
+
+  Required Fields  robot_id, house_id, zone_id, drift_detected,
+                   drift_magnitude, affected_cells, timestamp
+
+  Optional Fields  escalated_to_house_brain
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  water_stress_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Sealer
+
+  Emit Trigger     After sealing complete or recoat cycle
+
+  Required Fields  house_id, broad_spray_ingress_score,
+                   pressure_stress_score, material_family_id,
+                   zone_scores, edge_band_scores, baseline_moisture_pct,
+                   reset_confirmed, timestamp
+
+  Optional Fields  post_recoat_delta, recoat_zone_state,
+                   pre_recoat_ingress_delta, gravity_bias_corrected
+
+  Enum Constraints recoat_zone_state: intact_aging | degraded | failed
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  lane_segment_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Robot            Logistics
+
+  Emit Trigger     After every pass over a lane segment
+
+  Required Fields  house_id, lane_id, segment_index, condition_score,
+                   grade_match_score, body_gauge_match, relay_consensus,
+                   reference_relay_age_s, status, passes,
+                   verification_events, restamp_required
+
+  Optional Fields  avg_drag_force, last_verified_at
+
+  Enum Constraints status: raw | conditioning | stable | degraded
+  ---------------- ------------------------------------------------------
+
+Layer 3 — Feedback Contracts
+
+Robot to Robot, mediated by House Brain via shared database tables.
+These are the learning paths — the routes by which the system improves
+with each build. Staleness thresholds define when a path has gone silent
+long enough to be flagged in the Contract Health Panel.
+
+  -----------------------------------------------------------------------
+  Excavator → Survey: Ground Truth Calibration
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Excavator → Survey
+  Destination      
+
+  Trigger          Zone completion
+
+  Signal           excavator_ground_truth_record
+
+  Mediating Table  site_surveys
+
+  Fields Carried   actual_hard_layer_m, actual_reject_ratio,
+                   blade_load_profile, prediction_delta
+
+  Feedback Action  Survey's penetration classification model ingests
+                   actual vs. predicted hard layer depth and reject
+                   ratio. Next survey of similar soil signature gets
+                   tighter depth targets.
+
+  Staleness        300s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Excavator doesn't teach Survey — it writes truth to the database.
+  Survey reads it when it's ready.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Survey → Excavator: Pre-Zone Profile
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Survey → Excavator
+  Destination      
+
+  Trigger          Pre-zone engagement (before penetrate command)
+
+  Signal           zone_profile
+
+  Mediating Table  site_surveys
+
+  Fields Carried   penetration_curve, moisture_pct,
+                   expected_hard_layer_depth_m, zone_moisture_pct
+
+  Feedback Action  Excavator pre-loads expected hard layer depth and zone
+                   moisture before engaging. Slurry risk is flagged to
+                   House Brain if moisture exceeds threshold. Blade speed
+                   targets are adjusted.
+
+  Staleness        900s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  The underground machine should never encounter the ground blind.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Fabricator → Excavator: Feed Quality Feedback
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Fabricator → Excavator
+  Destination      
+
+  Trigger          Batch completion
+
+  Signal           fabricator_feed_quality_record
+
+  Mediating Table  fabricator_feed_quality_records
+
+  Fields Carried   calibration_cycles_to_convergence,
+                   fill_volume_delta_from_nominal, conditioning_applied,
+                   batch_reject_rate, source_zone_id
+
+  Feedback Action  If calibration_cycles_to_convergence is high or
+                   batch_reject_rate is elevated, Excavator tightens
+                   binary gate aperture for the source zone on next
+                   extraction. Hard soil = tighter screen.
+
+  Staleness        600s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Fabricator difficulty is Excavator's feedback signal. If pressing is
+  hard, screening was too loose.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Survey → Fabricator: Moisture Pre-Warning
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Survey → Fabricator
+  Destination      
+
+  Trigger          Pre-batch moisture warning (before feed intake starts)
+
+  Signal           zone_moisture_score
+
+  Mediating Table  site_surveys
+
+  Fields Carried   moisture_pct, zone_id, soil_signature
+
+  Feedback Action  Fabricator pre-arms its moisture conditioning gate
+                   before the wet batch arrives. Avoids reactive
+                   conditioning mid-cycle.
+
+  Staleness        600s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Don't react to wet feed. Pre-arm before it arrives.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Verification → Fabricator: Fill Volume Correction
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Verification → Fabricator
+  Destination      
+
+  Trigger          Block QC result (passed or failed)
+
+  Signal           fill_correction
+
+  Mediating Table  block_verifications
+
+  Fields Carried   fill_volume_correction_delta, block_type, density,
+                   passed
+
+  Feedback Action  If block density is outside spec, Verification emits
+                   fill_volume_correction_delta. Fabricator updates
+                   fillVolumeTarget on next cycle. Geometry stays fixed —
+                   Assembly's insertion corridor is never compromised.
+
+  Staleness        60s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Fix the geometry, tune the fill. The insertion corridor is sacred.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Verification → Fabricator: Ejection Dwell Recommendation
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Verification → Fabricator
+  Destination      
+
+  Trigger          Handling damage detected on received block
+
+  Signal           dwell_recommendation
+
+  Mediating Table  block_verifications
+
+  Fields Carried   recommended_dwell_seconds, handling_damage_flag
+
+  Feedback Action  If Verification observes handling damage (cracked
+                   edges, surface spalling on delivery), it emits
+                   recommended_dwell_seconds. Fabricator increases
+                   ejection dwell time — block cures longer before
+                   release.
+
+  Staleness        60s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Verification sees what Fabricator can't — the block's condition on
+  arrival.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Sealer → Verification: Real-World Durability Evidence
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Sealer → Verification
+  Destination      
+
+  Trigger          Sealing complete or recoat cycle
+
+  Signal           water_stress_record
+
+  Mediating Table  house_maintenance
+
+  Fields Carried   broad_spray_ingress_score, pressure_stress_score,
+                   post_recoat_delta, material_family_id, house_id
+
+  Feedback Action  Sealer's broad spray ingress scores and pressure
+                   stress scores calibrate Verification's TTL library. A
+                   material family that performs better than predicted
+                   under real rain gets its TTL extended. One that
+                   degrades faster gets shortened.
+
+  Staleness        1800s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  The TTL library is only as good as the real-world stress data that
+  feeds it.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Assembly → Verification: Neighbor Drift Telemetry
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Assembly → Verification
+  Destination      
+
+  Trigger          Pre-insertion drift scan detects geometry deviation
+
+  Signal           neighbor_drift_telemetry
+
+  Mediating Table  grid_cells
+
+  Fields Carried   drift_magnitude, affected_cells, zone_id, house_id
+
+  Feedback Action  If placed blocks have drifted from spec, Verification
+                   reduces TTL confidence for the affected zone.
+                   Durability assumption degrades because geometry is
+                   compromised. House Brain may trigger targeted
+                   re-verification.
+
+  Staleness        120s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Block quality in isolation doesn't tell you what a drift-loaded zone
+  will do over time.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Logistics → Assembly: Lane Travel Factor
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Logistics → Assembly
+  Destination      
+
+  Trigger          Per lane pass
+
+  Signal           travel_factor
+
+  Mediating Table  logistics_lane_segments
+
+  Fields Carried   condition_score, relay_consensus,
+                   reference_relay_age_s, status
+
+  Feedback Action  Assembly scales work_seconds by lane condition score.
+                   Degraded lane = slower transport = longer cycle time.
+                   House Brain sees this in throughput telemetry and may
+                   reroute Logistics before Assembly stalls.
+
+  Staleness        30s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Transport creates roads. Assembly uses those roads. Lane degradation is
+  visible before it becomes a bottleneck.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Survey → Logistics: Reference Patch Origin
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source →         Survey → Logistics
+  Destination      
+
+  Trigger          Survey approval (reference patch stamped)
+
+  Signal           reference_patch_coords
+
+  Mediating Table  houses
+
+  Fields Carried   reference_patch_x, reference_patch_y,
+                   reference_patch_protected, recommended_build_zone
+
+  Feedback Action  Logistics seeds its relay reference system from
+                   Survey's stamped reference patch. All gauge
+                   calibration and lane grade measurement originates from
+                   this fixed coordinate. Without it, Logistics cannot
+                   establish accurate positional ground truth.
+
+  Staleness        3600s
+  Threshold        
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Survey stamps reality. Logistics navigates from it.
+
+  -----------------------------------------------------------------------
+
+Contract Validation Layer
+
+contracts.js exports validateTelemetry(schemaName, record) which runs
+before every DB write in scheduler.js. A missing required field or
+invalid enum value throws a contract violation — visible in the Contract
+Health Panel and logged to House Brain's fault table. The system is
+intentionally fragile during testing so it is robust in production.
+
+  -----------------------------------------------------------------------
+  validateTelemetry() — How It Works
+
+  -----------------------------------------------------------------------
+
++-----------------------------------------------------------------------+
+| // Call signature                                                     |
+|                                                                       |
+| const result = validateTelemetry('fabrication_record',                |
+| fabricationData);                                                     |
+|                                                                       |
+| // Returns                                                            |
+|                                                                       |
+| { valid: true, errors: [], schema: 'fabrication_record' }             |
+|                                                                       |
+| -- or --                                                              |
+|                                                                       |
+| { valid: false, errors: ['Missing required field:                     |
+| anchor_seat_confidence'], schema: 'fabrication_record' }              |
+|                                                                       |
+| // Enum violation                                                     |
+|                                                                       |
+| { valid: false, errors: ['Invalid value for block_type: "test" —      |
+| allowed: production, calibration'] }                                  |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  getFeedbackPathHealth() — Contract Health Panel Feed
+
+  -----------------------------------------------------------------------
+
++-----------------------------------------------------------------------+
+| // Checks staleness of a feedback path against its defined threshold  |
+|                                                                       |
+| const health = getFeedbackPathHealth('excavator_to_survey',           |
+| lastEmittedAt);                                                       |
+|                                                                       |
+| // Returns                                                            |
+|                                                                       |
+| { status: 'live', ageSeconds: 42, threshold: 300, pathId:             |
+| 'excavator_to_survey', path: {...} }                                  |
+|                                                                       |
+| -- or --                                                              |
+|                                                                       |
+| { status: 'stale', ageSeconds: 450, threshold: 300, ... }             |
+|                                                                       |
+| -- or --                                                              |
+|                                                                       |
+| { status: 'never_emitted', pathId: 'excavator_to_survey', ... }       |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  buildContractHealthSummary() — Dashboard Endpoint
+
+  -----------------------------------------------------------------------
+
+Called by GET /api/contract-health in index.js. Queries each mediating
+table for the timestamp of the most recent record, then calls
+getFeedbackPathHealth() for each of the 10 defined feedback paths.
+Returns the full array to ContractHealthPanel in App.jsx which renders
+live/stale/never_emitted per path.
+
+  -----------------------------------------------------------------------
+  Convergence Limits — When Feedback Loops Exit
+
+  -----------------------------------------------------------------------
+
+  --------------------- ------------------------ ------------------------------
+  Robot                 Loop                     Exit Condition
+
+  Fabricator            Fill volume calibration  After N cycles without in-spec
+                                                 block → flag_convergence_limit
+                                                 → escalate to House Brain.
+                                                 Default N=8. Configurable via
+                                                 FABRICATOR_CONVERGENCE_LIMIT
+                                                 env.
+
+  Fabricator            Anchor seating retry     If anchor_seat_confidence <
+                                                 threshold → relocate and retry
+                                                 once. Second failure →
+                                                 abort_job.
+
+  Verification          TTL extension from       TTL is only extended if at
+                        Sealer                   least 3 water_stress_records
+                                                 exist for material_family_id.
+                                                 Cold start = conservative TTL.
+
+  Verification          Dwell increase from      Dwell recommendation is capped
+                        handling damage          at 120s. Above that → escalate
+                                                 to House Brain for material
+                                                 review.
+
+  Excavator             Blade wear correction    Blade wear index > threshold →
+                                                 flag to House Brain. Does not
+                                                 stop extraction — House Brain
+                                                 decides maintenance window.
+
+  Sealer                Zone recoat              Recoat triggered by
+                                                 Verification TTL signal, not
+                                                 schedule. Maximum 3 recoat
+                                                 cycles before escalating to
+                                                 House Brain for structural
+                                                 review.
+  --------------------- ------------------------ ------------------------------
+
+Appendix — Full System Topology
+
+House Brain is the only node that receives all telemetry and issues all
+commands. No robot ever commands another robot directly.
+
+  ---------------- -------------------------------- ------------------------------
+  Robot            Emits to House Brain             Receives from House Brain (via
+                                                    DB)
+
+  Survey           site_survey_probe per point,     Zone targets, densify
+                   heatmap per site                 commands, reference patch
+                                                    instructions
+
+  Excavator        excavation_record per cycle,     Survey zone profile (from
+                   excavator_ground_truth_record    site_surveys), container ready
+                   per zone                         signal
+
+  Fabricator       fabrication_record per block,    Recipe, Verification fill
+                   fabricator_feed_quality_record   corrections (from
+                   per batch                        block_verifications), dwell
+                                                    recommendations
+
+  Verification     block_verification_record per QC Block + fabrication_record
+                   pass                             from Fabricator,
+                                                    water_stress_record from
+                                                    Sealer (via
+                                                    house_maintenance), drift
+                                                    telemetry from Assembly (via
+                                                    grid_cells)
+
+  Assembly         placement_report per cell,       Insertion profile,
+                   neighbor_drift_telemetry when    Verification certification
+                   detected                         (from block_verifications),
+                                                    lane travel factor (from
+                                                    logistics_lane_segments)
+
+  Sealer           water_stress_record per sealing  Zone vulnerability map, TTL
+                   phase                            recoat triggers (from
+                                                    block_verifications via
+                                                    Verification)
+
+  Logistics        lane_segment_record per pass     Reference patch coords (from
+                                                    houses, seeded by Survey),
+                                                    routing instructions
+  ---------------- -------------------------------- ------------------------------
+
+  -----------------------------------------------------------------------
+  The complete system learns from every build. Survey gets better at
+  classifying soil. Excavator gets better at setting gate aperture per
+  zone. Fabricator converges faster on fill volume for known soil
+  signatures. Verification's TTL library grows more accurate with each
+  Sealer water stress record. Every robot's telemetry is another robot's
+  training data — mediated always by House Brain and the shared database.
+
+  -----------------------------------------------------------------------

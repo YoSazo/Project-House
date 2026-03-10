@@ -8,26 +8,26 @@ const HOUSE_TARGET_OPTIONS = [3, 5, 10, 20];
 const ROBOT_TARGET_OPTIONS = [9, 18, 36];
 
 const colorMap = {
-  empty: "#6b1d1d",
-  reserved: "#b8860b",
-  filled: "#0a7a43"
+  empty: "#1a2332",
+  reserved: "#8b6914",
+  filled: "#0d8a4a"
 };
 
 const robotColorMap = {
-  idle: "#7f8ea3",
-  waiting_component: "#f4d35e",
-  placing: "#3ddc97",
-  moving: "#7aa2ff"
+  idle: "#5a6a7e",
+  waiting_component: "#fbbf24",
+  placing: "#2dd4bf",
+  moving: "#00b4d8"
 };
 
 const roleColorMap = {
-  survey: "#56b4ff",
+  survey: "#00b4d8",
   excavator: "#c28f5c",
-  fabricator: "#9f7aea",
-  verification: "#f6d365",
-  assembly: "#3ddc97",
-  sealer: "#66d9ef",
-  logistics: "#f4978e"
+  fabricator: "#a78bfa",
+  verification: "#fbbf24",
+  assembly: "#2dd4bf",
+  sealer: "#38bdf8",
+  logistics: "#f43f5e"
 };
 
 const robotRoleCatalog = [
@@ -309,10 +309,10 @@ const robotRoleCatalog = [
 ];
 
 const terrainColorMap = {
-  raw: "#5e3e2d",
-  grading: "#8b5a36",
-  compacted: "#8a7d4a",
-  ready: "#3a6f54"
+  raw: "#4a3020",
+  grading: "#7a4e2e",
+  compacted: "#7a6d3e",
+  ready: "#2e6e4a"
 };
 
 const stageOrder = ["site_prep", "surveying", "foundation", "framing", "mep", "finishing", "sealing", "community_assembly", "complete"];
@@ -341,17 +341,19 @@ const obstacleColorMap = {
 function GridScene({ cells }) {
   return (
     <Canvas camera={{ position: [16, 14, 20], fov: 55 }}>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[10, 20, 10]} intensity={0.8} />
+      <fog attach="fog" args={['#060c14', 20, 60]} />
+      <ambientLight intensity={0.35} />
+      <hemisphereLight args={['#1a3050', '#0a1520', 0.4]} />
+      <directionalLight position={[10, 20, 10]} intensity={1.0} color="#c8daf0" />
       <group position={[-4.5, 0, -4.5]}>
         {cells.map((cell) => (
           <mesh key={cell.id} position={[cell.x, cell.z, cell.y]}>
             <boxGeometry args={[0.92, 0.92, 0.92]} />
-            <meshStandardMaterial color={colorMap[cell.status] || "#444"} opacity={cell.status === "empty" ? 0.35 : 1} transparent />
+            <meshStandardMaterial color={colorMap[cell.status] || "#1a2332"} opacity={cell.status === "empty" ? 0.25 : 1} transparent />
           </mesh>
         ))}
       </group>
-      <gridHelper args={[16, 16, "#666", "#333"]} />
+      <gridHelper args={[16, 16, "#1a3050", "#0d1a28"]} />
       <OrbitControls makeDefault />
     </Canvas>
   );
@@ -386,6 +388,7 @@ function InstancedCells({ positions, color, opacity, size = [0.9, 0.9, 0.9] }) {
 function AnimatedCarrier({ robot, start, end, colorOverride }) {
   const groupRef = useRef(null);
   const cargoRef = useRef(null);
+  const glowRef = useRef(null);
 
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -410,27 +413,41 @@ function AnimatedCarrier({ robot, start, end, colorOverride }) {
     const arc = shuttling ? Math.sin(Math.PI * clamped) * 1.2 : 0.3 + 0.08 * Math.sin(t * 5.2);
     const y = start[1] + (end[1] - start[1]) * clamped + arc;
 
-    groupRef.current.position.set(x + lateral, y, z + (waiting ? lateral * 0.6 : 0));
+    const hover = Math.sin(t * 2.8) * 0.06;
+    groupRef.current.position.set(x + lateral, y + hover, z + (waiting ? lateral * 0.6 : 0));
+
+    const pulse = 0.25 + 0.15 * Math.sin(t * 3.5);
+    if (glowRef.current) {
+      glowRef.current.material.emissiveIntensity = pulse;
+    }
 
     if (cargoRef.current) {
       cargoRef.current.visible = shuttling || waiting;
       cargoRef.current.rotation.y += waiting ? 0.035 : 0.02;
+      const cargoBob = Math.sin(t * 4) * 0.03;
+      cargoRef.current.position.y = 0.6 + cargoBob;
     }
   });
 
+  const baseColor = colorOverride || robotColorMap[robot.status] || "#ffffff";
+
   return (
     <group ref={groupRef}>
-      <mesh>
+      <mesh ref={glowRef}>
         <sphereGeometry args={[0.35, 14, 14]} />
         <meshStandardMaterial
-          color={colorOverride || robotColorMap[robot.status] || "#ffffff"}
-          emissive={colorOverride || robotColorMap[robot.status] || "#ffffff"}
-          emissiveIntensity={0.35}
+          color={baseColor}
+          emissive={baseColor}
+          emissiveIntensity={0.3}
         />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[0.48, 14, 14]} />
+        <meshBasicMaterial color={baseColor} transparent opacity={0.06} />
       </mesh>
       <mesh ref={cargoRef} position={[0, 0.6, 0]}>
         <boxGeometry args={[0.45, 0.45, 0.45]} />
-        <meshStandardMaterial color="#9fc6ff" emissive="#3d7fff" emissiveIntensity={0.2} />
+        <meshStandardMaterial color="#6aa0d0" emissive="#00b4d8" emissiveIntensity={0.15} />
       </mesh>
     </group>
   );
@@ -549,22 +566,24 @@ function SuburbScene({ houses, cells, terrain, robots, selectedHouse, roleByRobo
 
   return (
     <Canvas camera={{ position: [worldWidth * 0.7, Math.max(20, worldWidth * 0.5), worldDepth * 1.05], fov: 55 }}>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[40, 50, 20]} intensity={0.9} />
+      <fog attach="fog" args={['#060c14', 30, Math.max(worldWidth, worldDepth) * 2.5]} />
+      <ambientLight intensity={0.35} />
+      <hemisphereLight args={['#1a3050', '#0a1520', 0.5]} />
+      <directionalLight position={[40, 50, 20]} intensity={1.1} color="#c8daf0" />
 
       <group position={[bayCenter[0], 0, bayCenter[2]]}>
         <mesh position={[0, -0.4, 0]}>
           <boxGeometry args={[12.5, 0.35, 4.4]} />
-          <meshStandardMaterial color="#2e4158" />
+          <meshStandardMaterial color="#1a2e42" />
         </mesh>
         <mesh position={[0, 0.35, 0]}>
           <boxGeometry args={[11.8, 0.18, 3.4]} />
-          <meshStandardMaterial color="#1a6e9c" emissive="#0b3f5a" emissiveIntensity={0.2} />
+          <meshStandardMaterial color="#0d5a8a" emissive="#00b4d8" emissiveIntensity={0.08} />
         </mesh>
         {Array.from({ length: 8 }).map((_, i) => (
           <mesh key={i} position={[-4 + (i % 4) * 2.7, 0.25 + Math.floor(i / 4) * 0.52, -0.6 + (i % 2) * 1.2]}>
             <boxGeometry args={[0.9, 0.45, 0.9]} />
-            <meshStandardMaterial color="#9fc6ff" />
+            <meshStandardMaterial color="#6aa0d0" emissive="#00b4d8" emissiveIntensity={0.05} />
           </mesh>
         ))}
       </group>
@@ -572,7 +591,11 @@ function SuburbScene({ houses, cells, terrain, robots, selectedHouse, roleByRobo
       {Array.from(layout.houseMap.entries()).map(([houseId, offset]) => (
         <mesh key={houseId} position={[offset.x + 4.5, -0.72, offset.z + 4.5]}>
           <boxGeometry args={[10.2, 0.05, 10.2]} />
-          <meshStandardMaterial color={selectedHouse === houseId ? "#1d3b57" : "#132234"} />
+          <meshStandardMaterial
+            color={selectedHouse === houseId ? "#0d3050" : "#0a1a28"}
+            emissive={selectedHouse === houseId ? "#00b4d8" : "#000000"}
+            emissiveIntensity={selectedHouse === houseId ? 0.08 : 0}
+          />
         </mesh>
       ))}
 
@@ -591,7 +614,7 @@ function SuburbScene({ houses, cells, terrain, robots, selectedHouse, roleByRobo
       {robotMarkers.map((robot) => (
         <mesh key={`target-${robot.id}`} position={robot.end}>
           <sphereGeometry args={[0.14, 10, 10]} />
-          <meshStandardMaterial color="#9ec5ff" opacity={0.35} transparent />
+          <meshStandardMaterial color="#00b4d8" emissive="#00b4d8" emissiveIntensity={0.2} opacity={0.3} transparent />
         </mesh>
       ))}
 
@@ -608,11 +631,11 @@ function SuburbScene({ houses, cells, terrain, robots, selectedHouse, roleByRobo
       {selectedOffset ? (
         <mesh position={[selectedOffset.x + 4.5, 2.6, selectedOffset.z + 4.5]}>
           <boxGeometry args={[10.8, 5.6, 10.8]} />
-          <meshBasicMaterial color="#f4d35e" wireframe transparent opacity={0.8} />
+          <meshBasicMaterial color="#00b4d8" wireframe transparent opacity={0.5} />
         </mesh>
       ) : null}
 
-      <gridHelper args={[Math.max(worldWidth, worldDepth) + 12, Math.max(layout.cols, layout.rows) * 12, "#4e6075", "#243245"]} position={target} />
+      <gridHelper args={[Math.max(worldWidth, worldDepth) + 12, Math.max(layout.cols, layout.rows) * 12, "#1a3050", "#0d1a28"]} position={target} />
       <OrbitControls makeDefault target={target} />
     </Canvas>
   );
@@ -643,22 +666,22 @@ function CurveChart({ points }) {
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg" role="img" aria-label="Efficiency vs houses">
-      <line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="#4d627c" />
-      <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="#4d627c" />
-      <polyline fill="none" stroke="#45d483" strokeWidth="3" points={polyline} />
+      <line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="#1a3050" />
+      <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="#1a3050" />
+      <polyline fill="none" stroke="#2dd4bf" strokeWidth="3" points={polyline} />
       {points.map((p) => {
         const x = scaleX(Number(p.active_houses));
         const y = scaleY(Number(p.avg_efficiency));
         return (
           <g key={`${p.active_houses}-${p.samples}`}>
-            <circle cx={x} cy={y} r="4" fill="#ffd166" />
-            <text x={x} y={height - 8} textAnchor="middle" fontSize="10" fill="#c7d7ea">{p.active_houses}</text>
-            <text x={x + 6} y={y - 6} fontSize="10" fill="#c7d7ea">{Number(p.avg_efficiency).toFixed(0)}%</text>
+            <circle cx={x} cy={y} r="4" fill="#fbbf24" />
+            <text x={x} y={height - 8} textAnchor="middle" fontSize="10" fill="#8b9db8">{p.active_houses}</text>
+            <text x={x + 6} y={y - 6} fontSize="10" fill="#c0d0e0">{Number(p.avg_efficiency).toFixed(0)}%</text>
           </g>
         );
       })}
-      <text x={width / 2} y={height - 2} textAnchor="middle" fontSize="10" fill="#8da8c8">Active Houses</text>
-      <text x={10} y={12} fontSize="10" fill="#8da8c8">Efficiency %</text>
+      <text x={width / 2} y={height - 2} textAnchor="middle" fontSize="10" fill="#5a7a9a">Active Houses</text>
+      <text x={10} y={12} fontSize="10" fill="#5a7a9a">Efficiency %</text>
     </svg>
   );
 }
@@ -669,9 +692,9 @@ function SiteHeatmap({ probes }) {
     .slice(0, 20);
 
   const colorForStatus = (status) => {
-    if (status === "BUILDABLE") return "#2e8b57";
-    if (status === "MARGINAL") return "#c49a3a";
-    return "#8f2c2c";
+    if (status === "BUILDABLE") return "#0d6a42";
+    if (status === "MARGINAL") return "#8a6a1a";
+    return "#7a2222";
   };
 
   if (!ordered.length) {
@@ -738,10 +761,10 @@ function ContractHealthPanel({ health }) {
   }
 
   const statusColor = {
-    live: "#3ddc97",
-    stale: "#f4d35e",
-    never_emitted: "#c0392b",
-    unknown: "#7f8ea3"
+    live: "#2dd4bf",
+    stale: "#fbbf24",
+    never_emitted: "#f43f5e",
+    unknown: "#5a6a7e"
   };
 
   const statusLabel = {
@@ -756,7 +779,7 @@ function ContractHealthPanel({ health }) {
       {health.map((item) => (
         <div key={item.pathId} className="contract-health-card" style={{ borderColor: statusColor[item.status] ?? "#444" }}>
           <div className="contract-health-header">
-            <span style={{ color: statusColor[item.status] ?? "#7f8ea3" }}>{statusLabel[item.status] ?? item.status}</span>
+            <span style={{ color: statusColor[item.status] ?? "#5a6a7e" }}>{statusLabel[item.status] ?? item.status}</span>
             <small>{item.source} -&gt; {item.destination}</small>
           </div>
           <strong>{item.signal}</strong>
@@ -768,6 +791,45 @@ function ContractHealthPanel({ health }) {
           </small>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PreconditionTreePanel({ rows }) {
+  if (!rows?.length) {
+    return <div className="chart-empty">Precondition tree loading...</div>;
+  }
+
+  return (
+    <div className="precondition-table-wrap">
+      <table className="precondition-table">
+        <thead>
+          <tr>
+            <th>Step</th>
+            <th>Signal</th>
+            <th>Requires</th>
+            <th>Evidence</th>
+            <th>Status</th>
+            <th>Blocked By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td>{row.step}</td>
+              <td>{row.handoff_signal}</td>
+              <td>{(row.requires || []).map((check) => `${check.label} >= ${check.minimum}`).join(" | ")}</td>
+              <td>{row.evidence || "-"}</td>
+              <td>
+                <span className={`precondition-status ${row.status === "ready" ? "ready" : "blocked"}`}>
+                  {String(row.status || "unknown").toUpperCase()}
+                </span>
+              </td>
+              <td>{row.blocked_by?.length ? row.blocked_by.join(", ") : "-"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -882,11 +944,13 @@ function RobotDesignScene({ role }) {
   return (
     <div className="robot-design-wrap">
       <Canvas camera={{ position: [2.2, 1.9, 2.3], fov: 46 }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[4, 5, 3]} intensity={1.1} />
+        <fog attach="fog" args={['#060c14', 4, 12]} />
+        <ambientLight intensity={0.4} />
+        <hemisphereLight args={['#1a3050', '#0a1520', 0.3]} />
+        <directionalLight position={[4, 5, 3]} intensity={1.2} color="#c8daf0" />
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.45, 0]}>
           <circleGeometry args={[1.5, 48]} />
-          <meshStandardMaterial color="#102235" />
+          <meshStandardMaterial color="#0a1a28" />
         </mesh>
         <RobotDesignModel role={role} />
         <OrbitControls makeDefault autoRotate autoRotateSpeed={0.7} enableZoom={false} />
@@ -1071,6 +1135,7 @@ export default function App() {
   const [siteProbes, setSiteProbes] = useState([]);
   const [maintenanceAlerts, setMaintenanceAlerts] = useState([]);
   const [contractHealth, setContractHealth] = useState([]);
+  const [preconditionRows, setPreconditionRows] = useState([]);
   const [isMutating, setIsMutating] = useState(false);
   const [resetClicked, setResetClicked] = useState(false);
   const resetAckTimerRef = useRef(null);
@@ -1082,13 +1147,14 @@ export default function App() {
 
     const fetchState = async () => {
       try {
-        const [stateResp, curveResp, matrixResp, soilResp, maintenanceResp, contractResp] = await Promise.all([
+        const [stateResp, curveResp, matrixResp, soilResp, maintenanceResp, contractResp, preconditionResp] = await Promise.all([
           fetch(`${API_BASE}/api/state`),
           fetch(`${API_BASE}/api/metrics/curve`),
           fetch(`${API_BASE}/api/metrics/matrix`),
           fetch(`${API_BASE}/api/soil-library`),
           fetch(`${API_BASE}/api/maintenance-alerts`),
-          fetch(`${API_BASE}/api/contract-health`)
+          fetch(`${API_BASE}/api/contract-health`),
+          fetch(`${API_BASE}/api/contract-preconditions`)
         ]);
         const data = await stateResp.json();
         const curveData = await curveResp.json();
@@ -1096,6 +1162,7 @@ export default function App() {
         const soilData = await soilResp.json();
         const maintenanceData = await maintenanceResp.json();
         const contractData = await contractResp.json();
+        const preconditionData = await preconditionResp.json();
 
         if (!isMounted) return;
         setState(data);
@@ -1104,6 +1171,7 @@ export default function App() {
         setSoilLibrary(Array.isArray(soilData) ? soilData : []);
         setMaintenanceAlerts(Array.isArray(maintenanceData) ? maintenanceData : []);
         setContractHealth(Array.isArray(contractData) ? contractData : []);
+        setPreconditionRows(Array.isArray(preconditionData?.summary) ? preconditionData.summary : []);
         setTargetHouses(data.houses?.length || 0);
         setTargetRobots(data.robots?.length || 0);
 
@@ -1205,19 +1273,22 @@ export default function App() {
   }, [state?.houses?.length, state?.metrics?.sampled_at]);
 
   const refreshCharts = async () => {
-    const [curveResp, matrixResp, soilResp, maintenanceResp, contractResp] = await Promise.all([
+    const [curveResp, matrixResp, soilResp, maintenanceResp, contractResp, preconditionResp] = await Promise.all([
       fetch(`${API_BASE}/api/metrics/curve`),
       fetch(`${API_BASE}/api/metrics/matrix`),
       fetch(`${API_BASE}/api/soil-library`),
       fetch(`${API_BASE}/api/maintenance-alerts`),
-          fetch(`${API_BASE}/api/contract-health`)
+      fetch(`${API_BASE}/api/contract-health`),
+      fetch(`${API_BASE}/api/contract-preconditions`)
     ]);
     setCurve(await curveResp.json());
     setMatrix(await matrixResp.json());
     setSoilLibrary(await soilResp.json());
     setMaintenanceAlerts(await maintenanceResp.json());
     const contractData = await contractResp.json();
+    const preconditionData = await preconditionResp.json();
     setContractHealth(Array.isArray(contractData) ? contractData : []);
+    setPreconditionRows(Array.isArray(preconditionData?.summary) ? preconditionData.summary : []);
   };
 
   const applyHouses = async (value) => {
@@ -1579,8 +1650,10 @@ export default function App() {
   return (
     <div className="layout">
       <header>
-        <h1>House Brain Mission Control</h1>
-        <p>Neon + scheduler + stigmergic grid dispatch</p>
+        <div>
+          <h1>House Brain Mission Control</h1>
+          <p>Stigmergic hive dispatch &mdash; {houses.length} houses &middot; {robots.length} robots &middot; {Number(metrics?.throughput_cells_per_hour ?? 0).toFixed(0)} cells/h</p>
+        </div>
       </header>
 
       <section className="panel tab-strip">
@@ -1661,43 +1734,58 @@ export default function App() {
       </section>
 
       <section className="kpis">
-        <article><span>Active Houses</span><strong>{houses.length}</strong></article>
-        <article><span>Active Robots</span><strong>{robots.length}</strong></article>
-        <article><span>Idle (Snapshot)</span><strong>{Number(metrics?.robot_idle_percent ?? 0).toFixed(1)}%</strong><small className="kpi-meta">latest sample</small></article>
-        <article><span>Throughput (Snapshot)</span><strong>{Number(metrics?.throughput_cells_per_hour ?? 0).toFixed(1)} cells/h</strong><small className="kpi-meta">latest sample</small></article>
-        <article><span>Efficiency (Snapshot)</span><strong>{Number(metrics?.pipeline_efficiency ?? 0).toFixed(1)}%</strong><small className="kpi-meta">latest sample</small></article>
-        <article><span>Cells Filled</span><strong>{metrics?.cells_filled ?? 0} / {metrics?.total_cells ?? 0}</strong></article>
-        <article><span>Efficiency (Matrix Avg)</span><strong>{matrixEfficiency.toFixed(1)}%</strong><small className="kpi-meta">aggregate window</small></article>
-        <article><span>Terrain Cells Ready</span><strong>{terrainOverall.ready} / {terrainOverall.total}</strong></article>
-        <article><span>Obstacles Left</span><strong>{Number(metrics?.obstacle_cells_remaining ?? 0)}</strong></article>
-        <article><span>Avg Grade Error</span><strong>{Number(metrics?.avg_grade_error ?? 0).toFixed(3)}</strong></article>
-        <article><span>Avg Compaction</span><strong>{Number(metrics?.avg_compaction ?? 0).toFixed(3)}</strong></article>
-        <article><span>Kits Activated</span><strong>{Number(metrics?.community_kits_activated ?? 0)}</strong></article>
-        <article><span>Kits Pending</span><strong>{Number(metrics?.community_kits_pending ?? 0)}</strong></article>
-        <article><span>Kits Failed</span><strong>{Number(metrics?.community_kits_failed ?? 0)}</strong></article>
-        <article><span>Active Surveys</span><strong>{Number(metrics?.active_surveys ?? 0)}</strong></article>
-        <article><span>Soil Recipes Learned</span><strong>{Number(metrics?.soil_recipes_learned ?? 0)}</strong></article>
-        <article><span>Blocks QC Passed</span><strong>{Number(metrics?.blocks_verified ?? 0)}</strong></article>
-        <article><span>Blocks QC Failed</span><strong>{Number(metrics?.blocks_failed_qc ?? 0)}</strong></article>
-        <article><span>Verification Fast-Pass</span><strong>{Number(metrics?.verification_fast_pass_rate ?? 0).toFixed(1)}%</strong></article>
-        <article><span>Drift Escalations</span><strong>{Number(metrics?.verification_drift_escalations ?? 0)}</strong></article>
-        <article><span>Rework Loops</span><strong>{Number(metrics?.verification_rework_loops ?? 0)}</strong></article>
-        <article><span>Release Conf (avg)</span><strong>{Number(metrics?.avg_release_confidence ?? 0).toFixed(2)}</strong></article>
-        <article><span>Longevity Conf (avg)</span><strong>{Number(metrics?.avg_longevity_confidence ?? 0).toFixed(2)}</strong></article>
-        <article><span>Verification Contradictions</span><strong>{Number(metrics?.verification_contradictions ?? 0)}</strong></article>
-        <article><span>Signature Maturity (avg)</span><strong>{Number(metrics?.avg_signature_maturity ?? 0).toFixed(2)}</strong></article>
-        <article><span>TTL Role-Weighted Conf</span><strong>{Number(metrics?.avg_ttl_role_weighted_confidence ?? 0).toFixed(2)}</strong></article>
-        <article><span>Avg TTL (days)</span><strong>{Number(metrics?.avg_ttl_days ?? 0).toFixed(0)}</strong></article>
-        <article><span>Maintenance Alerts</span><strong>{Number(metrics?.houses_in_maintenance ?? 0)}</strong></article>
-        <article><span>Lane Condition</span><strong>{Number(metrics?.avg_lane_condition ?? laneAggregate.avgCondition ?? 0).toFixed(2)}</strong></article>
-        <article><span>Conditioned Lanes</span><strong>{Number(metrics?.conditioned_lane_percent ?? laneAggregate.conditionedPct ?? 0).toFixed(1)}%</strong></article>
-        <article><span>Degraded Segments</span><strong>{Number(metrics?.degraded_lane_segments ?? laneAggregate.degraded ?? 0)}</strong></article>
-        <article><span>Stale Relay Segments</span><strong>{Number(metrics?.stale_relay_segments ?? laneAggregate.stale ?? 0)}</strong></article>
-        <article><span>Lane Verifications</span><strong>{Number(metrics?.lane_verification_events ?? laneAggregate.verificationEvents ?? 0)}</strong></article>
-        <article><span>Reference Patches</span><strong>{Number(metrics?.reference_patches_protected ?? 0)} / {Number(metrics?.reference_patches_total ?? 0)}</strong></article>
-        <article><span>Corrections</span><strong>{Number(metrics?.placement_corrections ?? 0)}</strong></article>
-        <article><span>Insert Fails</span><strong>{Number(metrics?.placement_failures ?? 0)}</strong></article>
-        <article><span>Avg Retries</span><strong>{Number(metrics?.avg_retries_per_placement ?? 0).toFixed(2)}</strong></article>
+        <div className="kpi-section">
+          <h4 className="kpi-section-title">Build Progress</h4>
+          <article><span>Active Houses</span><strong>{houses.length}</strong></article>
+          <article><span>Cells Filled</span><strong>{metrics?.cells_filled ?? 0} / {metrics?.total_cells ?? 0}</strong></article>
+          <article><span>Terrain Ready</span><strong>{terrainOverall.ready} / {terrainOverall.total}</strong></article>
+          <article><span>Obstacles Left</span><strong>{Number(metrics?.obstacle_cells_remaining ?? 0)}</strong></article>
+          <article><span>Avg Grade Error</span><strong>{Number(metrics?.avg_grade_error ?? 0).toFixed(3)}</strong></article>
+          <article><span>Avg Compaction</span><strong>{Number(metrics?.avg_compaction ?? 0).toFixed(3)}</strong></article>
+          <article><span>Active Surveys</span><strong>{Number(metrics?.active_surveys ?? 0)}</strong></article>
+          <article><span>Soil Recipes</span><strong>{Number(metrics?.soil_recipes_learned ?? 0)}</strong></article>
+        </div>
+
+        <div className="kpi-section">
+          <h4 className="kpi-section-title">Robot Fleet</h4>
+          <article><span>Active Robots</span><strong>{robots.length}</strong></article>
+          <article><span>Idle</span><strong>{Number(metrics?.robot_idle_percent ?? 0).toFixed(1)}%</strong></article>
+          <article><span>Throughput</span><strong>{Number(metrics?.throughput_cells_per_hour ?? 0).toFixed(1)} cells/h</strong></article>
+          <article><span>Efficiency (Snap)</span><strong>{Number(metrics?.pipeline_efficiency ?? 0).toFixed(1)}%</strong></article>
+          <article><span>Efficiency (Avg)</span><strong>{matrixEfficiency.toFixed(1)}%</strong></article>
+          <article><span>Corrections</span><strong>{Number(metrics?.placement_corrections ?? 0)}</strong></article>
+          <article><span>Insert Fails</span><strong>{Number(metrics?.placement_failures ?? 0)}</strong></article>
+          <article><span>Avg Retries</span><strong>{Number(metrics?.avg_retries_per_placement ?? 0).toFixed(2)}</strong></article>
+        </div>
+
+        <div className="kpi-section">
+          <h4 className="kpi-section-title">Quality Pipeline</h4>
+          <article><span>QC Passed</span><strong>{Number(metrics?.blocks_verified ?? 0)}</strong></article>
+          <article><span>QC Failed</span><strong>{Number(metrics?.blocks_failed_qc ?? 0)}</strong></article>
+          <article><span>Fast-Pass</span><strong>{Number(metrics?.verification_fast_pass_rate ?? 0).toFixed(1)}%</strong></article>
+          <article><span>Drift Escalations</span><strong>{Number(metrics?.verification_drift_escalations ?? 0)}</strong></article>
+          <article><span>Rework Loops</span><strong>{Number(metrics?.verification_rework_loops ?? 0)}</strong></article>
+          <article><span>Release Conf</span><strong>{Number(metrics?.avg_release_confidence ?? 0).toFixed(2)}</strong></article>
+          <article><span>Longevity Conf</span><strong>{Number(metrics?.avg_longevity_confidence ?? 0).toFixed(2)}</strong></article>
+          <article><span>Contradictions</span><strong>{Number(metrics?.verification_contradictions ?? 0)}</strong></article>
+          <article><span>Sig Maturity</span><strong>{Number(metrics?.avg_signature_maturity ?? 0).toFixed(2)}</strong></article>
+          <article><span>Ref Patches</span><strong>{Number(metrics?.reference_patches_protected ?? 0)} / {Number(metrics?.reference_patches_total ?? 0)}</strong></article>
+        </div>
+
+        <div className="kpi-section">
+          <h4 className="kpi-section-title">Infrastructure</h4>
+          <article><span>Kits Activated</span><strong>{Number(metrics?.community_kits_activated ?? 0)}</strong></article>
+          <article><span>Kits Pending</span><strong>{Number(metrics?.community_kits_pending ?? 0)}</strong></article>
+          <article><span>Kits Failed</span><strong>{Number(metrics?.community_kits_failed ?? 0)}</strong></article>
+          <article><span>TTL Conf</span><strong>{Number(metrics?.avg_ttl_role_weighted_confidence ?? 0).toFixed(2)}</strong></article>
+          <article><span>Avg TTL</span><strong>{Number(metrics?.avg_ttl_days ?? 0).toFixed(0)} d</strong></article>
+          <article><span>Maintenance</span><strong>{Number(metrics?.houses_in_maintenance ?? 0)}</strong></article>
+          <article><span>Lane Condition</span><strong>{Number(metrics?.avg_lane_condition ?? laneAggregate.avgCondition ?? 0).toFixed(2)}</strong></article>
+          <article><span>Conditioned Lanes</span><strong>{Number(metrics?.conditioned_lane_percent ?? laneAggregate.conditionedPct ?? 0).toFixed(1)}%</strong></article>
+          <article><span>Degraded Segs</span><strong>{Number(metrics?.degraded_lane_segments ?? laneAggregate.degraded ?? 0)}</strong></article>
+          <article><span>Stale Relay</span><strong>{Number(metrics?.stale_relay_segments ?? laneAggregate.stale ?? 0)}</strong></article>
+          <article><span>Lane Verifications</span><strong>{Number(metrics?.lane_verification_events ?? laneAggregate.verificationEvents ?? 0)}</strong></article>
+        </div>
       </section>
 
       <section className="panel">
@@ -1785,6 +1873,11 @@ export default function App() {
       <section className="panel">
         <h2>Contract Health - Live Feedback Topology</h2>
         <ContractHealthPanel health={contractHealth} />
+      </section>
+
+      <section className="panel">
+        <h2>Precondition Tree - Runtime Handshake Gates</h2>
+        <PreconditionTreePanel rows={preconditionRows} />
       </section>
 
       <section className="panel">
@@ -1971,12 +2064,12 @@ export default function App() {
                   onClick={() => setSelectedHouse(house.id)}
                 >
                   <strong>{house.name}</strong>
+                  <div className="card-progress">
+                    <div className={`card-progress-fill ${progressPct >= 100 ? "complete" : ""}`} style={{ width: `${Math.min(100, progressPct)}%` }} />
+                  </div>
                   <small>{progressPct}% {progressLabel}</small>
                   <small>{detailLine}</small>
-                  <small>survey: {house.survey_status ?? "pending"} | zone: {house.site_zone ?? "BUILDABLE"}</small>
-                  <small>uncertainty: {Number(house.survey_uncertainty_remaining ?? 0).toFixed(2)} | probes: {house.survey_probe_count ?? 0}</small>
-                  <small>soil: {house.soil_signature ?? "-"}</small>
-                  <small>sealed: {house.sealing_complete ? "yes" : "no"} | cluster: {house.cluster_id ?? "unassigned"}</small>
+                  <small>zone: {house.site_zone ?? "BUILDABLE"} | soil: {house.soil_signature ?? "-"}</small>
                   <small>obstacles: {obstaclesRemaining} | ttl: {maintenanceRow?.ttl_days ?? "-"}d</small>
                 </button>
               );
@@ -2067,4 +2160,7 @@ export default function App() {
     </div>
   );
 }
+
+
+
 

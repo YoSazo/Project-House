@@ -1,0 +1,1199 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Fabricator Robot Blueprint                                            |
+|                                                                       |
+| Refined from C2A Transmutation Chain | v1                             |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: Borrow the Earth's mass for compression force. Let
+  Verification do the quality thinking. Fix the geometry, tune the fill —
+  never the other way around.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: The Fabricator Robot is a ground-anchored,
+  earth-pressing machine that ingests the Excavator's coarse-qualified
+  soil feed, conditions it minimally, compresses it to a fixed geometry
+  using the Earth itself as the compression anvil, and tunes fill volume
+  dynamically via Verification feedback until the calibration loop
+  converges on a stable, spec-conforming block.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+The Fabricator Robot is the machine that turns raw earth feed into
+usable structural blocks.
+
+It sits between the Excavator (which liberates and coarse-qualifies
+soil) and Verification (which certifies the finished block). Its job is
+purely mechanical and process-oriented.
+
+It is not trying to be:
+
+- A soil scientist
+
+- A quality inspector
+
+- A structural engineer
+
+  -----------------------------------------------------------------------
+    Ingest coarse earth feed. Condition minimally. Compress to correct
+                    geometry. Hand off to Verification.
+
+  -----------------------------------------------------------------------
+
+2. Where the Fabricator Starts
+
+Unlike other robots in the system, the Fabricator's constraint space was
+already 70% resolved by the time it was defined — because every other
+robot's boundary had already been drawn.
+
+The known constraints entering design:
+
+- Input is fixed: Excavator hands it a coarse-qualified soil feed via
+  surface sorting container. Fabricator does not dig.
+
+- Output is fixed: Verification is waiting to certify the finished block
+  against the House Brain's recipe. Fabricator does not self-diagnose
+  quality.
+
+- Material is fixed: In-situ resource utilization. The ground the house
+  sits on is the primary structural material. Zero supply chain.
+
+The only open problem was the mechanics of turning that earth into a
+spec-conforming block — cheaply, reliably, at field scale.
+
+3. End-to-End Simple Analogy
+
+Think of baking cookies with a cookie-cutter press.
+
+- The House Brain is the recipe: this shape, this thickness, this
+  density.
+
+- The Excavator is the flour mill: it delivers coarse-qualified raw
+  material.
+
+- The Fabricator is the person pressing each cookie to the exact same
+  size and handing it to the oven.
+
+- Verification is the oven and the quality checker: it confirms the
+  cookie came out right.
+
+The hard part is not the pressing itself. The hard part is that the
+flour changes every batch — sometimes dry and powdery, sometimes clumpy
+and humid. If you press to a fixed pressure, the cookies come out
+different sizes. If you press to a fixed size, the thin batches come out
+crumbly.
+
+  -----------------------------------------------------------------------
+  The transmutation: Always press to the fixed size. Then adjust how much
+  flour goes into the mold based on what Verification says about the last
+  cookie. The size never changes. The fill volume does.
+
+  -----------------------------------------------------------------------
+
+4. Final C2A Logic
+
+The final doctrine of Fabricator:
+
+- Do not try to generate compression force from robot mass alone
+
+- Anchor into the Earth and borrow its mass as the anvil
+
+- Always press to a fixed geometry — Assembly depends on dimensional
+  consistency
+
+- Adjust fill volume, not target size, to compensate for variable soil
+  density
+
+- Confirm anchor seating before every compression cycle — not assumed
+
+- Detect incoming moisture before pressing — apply minimum conditioning
+  only
+
+- Let Verification close the quality loop — Fabricator learns from
+  feedback, not from onboard sensors
+
+- Convergence limit protects against bad soil patches that can never
+  calibrate
+
+- First 3–5 blocks of any new soil patch are calibration blocks —
+  expected and planned for
+
+- Feed quality data back to Excavator so its gate improves over time
+
+5. Constraints and Your Transmutations
+
++-----------------------------------------------------------------------+
+| Constraint 1 — The Hydraulic Leviathan Problem                        |
++-----------------------------------------------------------------------+
+| Problem: To make a Compressed Earth Block that won't dissolve in the  |
+| rain, you must squeeze dirt with 1,000–3,000 PSI. Traditional CEB     |
+| machines solve this by being massive, heavy, diesel-powered hydraulic |
+| presses that weigh several tons. A lightweight cheap robot that tries |
+| to push down on a mold with 3,000 PSI of force will just lift itself  |
+| off the ground or tear its own chassis apart.                         |
+|                                                                       |
+| Simple analogy: Trying to crush a soda can with your hands while it   |
+| floats in the air — you won't crush it, you'll just push yourself     |
+| upward. But if the can sits on a solid table, you can press down and  |
+| crush it. The table resists for you.                                  |
++-----------------------------------------------------------------------+
+| Transmutation: The Earth Anvil — Borrow the Ground's Mass             |
+|                                                                       |
+| Why not use the ground itself? Instead of robot weight resisting the  |
+| press force, the ground resists the press force. Drive ground anchors |
+| in, lock the robot to the Earth, then compress between the anchor and |
+| the press plate. The Earth is already infinitely heavy.               |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Robot drives ground screws or expanding friction anchors before any |
+|   compression cycle                                                   |
+|                                                                       |
+| - Compression force path: anchor → Earth → press plate — not through  |
+|   the robot chassis                                                   |
+|                                                                       |
+| - Robot mass no longer limits maximum achievable press force          |
+|                                                                       |
+| - Cheap, high-torque ball screw or toggle joint replaces multi-ton    |
+|   hydraulic press frame                                               |
+|                                                                       |
+| - Same principle the Survey Robot uses: make the contact zone do the  |
+|   work, not the whole machine                                         |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Constraint 2 — The Wet Flour Problem                                  |
++-----------------------------------------------------------------------+
+| Problem: The Assembly Robot needs every block geometrically perfect   |
+| to place it blindly using motor impedance. Verification needs every   |
+| block at the correct density. Pressing to a fixed pressure produces   |
+| consistent density but inconsistent size. Pressing to a fixed size    |
+| produces consistent geometry but inconsistent density. The Fabricator |
+| is a cheap robot with no onboard soil lab.                            |
+|                                                                       |
+| Simple analogy: If the flour is dry and powdery one day, and clumpy   |
+| and humid the next, following the exact same recipe produces cookies  |
+| of totally different sizes and textures.                              |
++-----------------------------------------------------------------------+
+| Transmutation: Dynamic Fill Volume — Fix the Size, Tune the Fill      |
+|                                                                       |
+| If we can't change the characteristics of the flour we can manipulate |
+| its shape. We will use a reference point — the first block is what is |
+| used. Every block made after must be within a threshold. The fill     |
+| volume adjusts, not the target size. Verification communicates this   |
+| back to Fabricator and by then Verification has enough data to guide  |
+| it reliably.                                                          |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Target geometry is always fixed — Assembly's dimensional            |
+|   requirement is the hard constraint                                  |
+|                                                                       |
+| - Fill volume is the variable — more soil crammed into the same mold  |
+|   space = higher density                                              |
+|                                                                       |
+| - If Verification reports block too light: increase fill volume for   |
+|   next cycle                                                          |
+|                                                                       |
+| - If Verification reports block too dense or overloaded: reduce fill  |
+|   volume                                                              |
+|                                                                       |
+| - First 3–5 blocks of each new soil patch are calibration blocks —    |
+|   expected, recycled, not failures                                    |
+|                                                                       |
+| - System accepts calibration waste as the cost of soil variability —  |
+|   explicitly planned, not improvised                                  |
++-----------------------------------------------------------------------+
+
+6. Refinements
+
+Five gaps identified after blueprint review. Each adds a safety
+boundary, a sensing layer, a handling protocol, or a cross-system data
+path the original two-constraint design left open.
+
++-----------------------------------------------------------------------+
+| Refinement 1 — The Calibration Spiral Problem                         |
++-----------------------------------------------------------------------+
+| Gap identified: The blueprint establishes that the first 3–5 blocks   |
+| of any new soil patch are calibration blocks — they get rejected and  |
+| recycled. But there is no convergence limit. A soil patch that keeps  |
+| producing out-of-spec blocks after 10 iterations is not a calibration |
+| problem — it is a soil problem. Without a limit, a bad soil batch can |
+| consume the entire feed stream in an infinite calibration loop while  |
+| the House Brain waits.                                                |
++-----------------------------------------------------------------------+
+| Refinement:                                                           |
+|                                                                       |
+| The calibration loop needs a hard convergence limit. If the dynamic   |
+| fill volume adjustment has not produced an in-spec block within N     |
+| cycles, the Fabricator stops, flags the soil patch to the House       |
+| Brain, and requests either a new feed from a different Excavator zone |
+| or a soil conditioning intervention. The convergence limit is not a   |
+| failure state — it is the Fabricator correctly identifying that       |
+| Verification and fill volume adjustment alone cannot fix what is      |
+| wrong with this soil.                                                 |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Hard convergence limit added: N calibration cycles maximum before   |
+|   soil-flag escalation                                                |
+|                                                                       |
+| - If limit exceeded: Fabricator stops, flags to House Brain with      |
+|   calibration history                                                 |
+|                                                                       |
+| - House Brain decides: request new Excavator zone, request            |
+|   conditioning, or reclassify zone                                    |
+|                                                                       |
+| - Prevents infinite calibration spiral consuming the entire feed      |
+|   stream                                                              |
+|                                                                       |
+| - Calibration cycle count added to Fabricator telemetry as a live     |
+|   signal                                                              |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Refinement 2 — The Anchor Reliability Problem                         |
++-----------------------------------------------------------------------+
+| Gap identified: The Earth Anvil transmutation is correct — ground     |
+| anchors let the Fabricator borrow the Earth's mass. But the blueprint |
+| assumes the anchor seats properly on every cycle. Loose topsoil, wet  |
+| ground near the excavation edge, or previously disturbed ground can   |
+| all prevent the anchor from achieving the friction required to resist |
+| compression force. If the anchor slips mid-cycle, the compression     |
+| force transmits through the chassis instead, and block geometry is    |
+| corrupted mid-press.                                                  |
++-----------------------------------------------------------------------+
+| Refinement:                                                           |
+|                                                                       |
+| Anchor seating quality must be confirmed before the compression cycle |
+| begins — not assumed. The anchor drive motor's current signature at   |
+| full depth is the confirmation signal. Low resistance at full depth   |
+| means the anchor is spinning free in loose soil, not gripping. If     |
+| current draw falls below the seating threshold, the Fabricator        |
+| relocates the anchor point by a defined offset and retries. If it     |
+| still cannot achieve seating confidence, it flags ground condition to |
+| House Brain. Same logic the Survey Robot applies to sleeve seating    |
+| confidence — the contact zone confirms its own grip before force is   |
+| applied.                                                              |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Anchor seating confirmation added as mandatory pre-compression step |
+|                                                                       |
+| - Motor current signature at full anchor depth is the seating quality |
+|   signal                                                              |
+|                                                                       |
+| - Below-threshold current = free-spinning anchor = relocation         |
+|   triggered automatically                                             |
+|                                                                       |
+| - If anchor cannot seat after relocation attempts: ground condition   |
+|   flagged to House Brain                                              |
+|                                                                       |
+| - New field: anchor_seat_confidence score emitted with every          |
+|   compression record                                                  |
+|                                                                       |
+| - Compression cycle blocked until anchor_seat_confidence exceeds      |
+|   minimum threshold                                                   |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Refinement 3 — The Soil Conditioning Gap                              |
++-----------------------------------------------------------------------+
+| Gap identified: The Gemini session identifies 'add liquid if dry, add |
+| heat if wet' as a named transmutation — but the blueprint never       |
+| specifies how or when conditioning is applied, or what the trigger    |
+| threshold is. Dynamic fill volume can compensate for density          |
+| variation within a band. But extremely dry soil will not bind under   |
+| compression regardless of fill volume. Extremely wet soil will not    |
+| hold geometry after ejection. Volume adjustment alone cannot fix      |
+| either extreme.                                                       |
++-----------------------------------------------------------------------+
+| Refinement:                                                           |
+|                                                                       |
+| A simple inline moisture probe on the feed intake provides a          |
+| two-condition gate before fill begins. If incoming moisture is below  |
+| the lower threshold, a small onboard conditioning reservoir adds a    |
+| measured water dose to the mold before fill. If above the upper       |
+| threshold, compression speed is reduced and a brief drying pass —     |
+| heat coil or forced air — is applied before pressing. This is not a   |
+| soil lab. It is a minimum conditioning gate: too dry adds water, too  |
+| wet slows and dries. The Survey Robot's moisture data for the source  |
+| zone should also pre-warn the Fabricator before a problematic batch   |
+| arrives.                                                              |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Inline moisture probe added at feed intake — single measurement per |
+|   fill cycle                                                          |
+|                                                                       |
+| - Two-condition gate: below lower threshold = add water dose, above   |
+|   upper threshold = drying pass                                       |
+|                                                                       |
+| - Conditioning is minimal and binary — not a soil lab, just a         |
+|   boundary enforcer                                                   |
+|                                                                       |
+| - Survey zone moisture score consumed as a pre-batch warning signal   |
+|   before problematic soil arrives                                     |
+|                                                                       |
+| - New fields: incoming_moisture_pct, conditioning_applied             |
+|   (none/water/dry) emitted per cycle                                  |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Refinement 4 — The Block Ejection and Handling Problem                |
++-----------------------------------------------------------------------+
+| Gap identified: The blueprint defines compression well but says       |
+| nothing about what happens after the press releases. A                |
+| freshly-pressed compressed earth block at ejection is at peak         |
+| vulnerability — binder not cured, block warm, corners fragile. Any    |
+| lateral force during immediate transfer can chip edges or crack the   |
+| block face. If the Fabricator hands a fresh block directly to         |
+| Logistics or Assembly without any dwell, handling damage before       |
+| Verification even sees it corrupts the quality pipeline.              |
++-----------------------------------------------------------------------+
+| Refinement:                                                           |
+|                                                                       |
+| After press release, the block is held in a support cradle for a      |
+| defined ejection dwell time before handoff. This is not full cure —   |
+| it is the minimum dwell for the block to achieve handling strength.   |
+| The dwell time is a parameter Verification learns over time: if       |
+| blocks arrive at Verification with fresh-handling damage, dwell is    |
+| insufficient. Verification feeds the recommended dwell time back to   |
+| the Fabricator as a tunable parameter, exactly as it feeds fill       |
+| volume. New field: ejection_dwell_seconds as a Verification-tuned     |
+| parameter.                                                            |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - Controlled ejection cradle added — block held in support position   |
+|   after press release                                                 |
+|                                                                       |
+| - Ejection dwell time: minimum hold before handoff to                 |
+|   Logistics/Assembly                                                  |
+|                                                                       |
+| - Dwell time is a Verification-tuned parameter — not a fixed constant |
+|                                                                       |
+| - If Verification sees handling damage on arrival, it increases       |
+|   recommended dwell                                                   |
+|                                                                       |
+| - New field: ejection_dwell_seconds emitted per fabrication record    |
+|                                                                       |
+| - New Verification → Fabricator feedback field:                       |
+|   recommended_dwell_seconds                                           |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+| Cross-System Refinement — Fabricator Feeds Excavator Feed Quality —   |
+| Cross-System Data Path                                                |
++-----------------------------------------------------------------------+
+| Gap identified: The Excavator delivers a coarse-qualified feed stream |
+| and considers its job done. But the Fabricator is the first system    |
+| that processes that feed at fine resolution — it knows calibration    |
+| cycles to convergence, fill volume adjustment required, moisture      |
+| conditioning applied, and reject rate per batch. All of this is       |
+| ground-truth quality data about the Excavator's output that the       |
+| Excavator never receives. The Excavator's binary gate is currently    |
+| tuned blind.                                                          |
++-----------------------------------------------------------------------+
+| Refinement:                                                           |
+|                                                                       |
+| After each soil batch processed, the Fabricator emits a feed-quality  |
+| record to the Excavator and House Brain. This record includes         |
+| calibration cycles to convergence, fill volume delta from nominal,    |
+| moisture conditioning applied, and batch reject rate. The Excavator   |
+| uses this to tune its binary gate aperture. If the Fabricator         |
+| consistently reports high calibration cycles and heavy conditioning   |
+| from a particular zone, that zone's gate threshold is too permissive  |
+| — letting through borderline material that should have been rejected. |
+| Over builds, the Fabricator's processing difficulty becomes the       |
+| Excavator's calibration signal, tightening the whole pipeline without |
+| any additional sensors.                                               |
++-----------------------------------------------------------------------+
+| Result:                                                               |
+|                                                                       |
+| - New output channel: fabricator_feed_quality_record emitted to       |
+|   Excavator and House Brain after each batch                          |
+|                                                                       |
+| - Record includes: calibration_cycles_to_convergence,                 |
+|   fill_volume_delta, conditioning_applied, batch_reject_rate,         |
+|   source_zone_id                                                      |
+|                                                                       |
+| - Excavator uses feed quality history to tune binary gate aperture    |
+|   per zone                                                            |
+|                                                                       |
+| - High Fabricator difficulty from zone X → Excavator tightens gate    |
+|   threshold for zone X                                                |
+|                                                                       |
+| - Pipeline improves across builds with no additional sensors added to |
+|   either robot                                                        |
+|                                                                       |
+| - Excavator blueprint updated: new input channel from Fabricator feed |
+|   quality records                                                     |
++-----------------------------------------------------------------------+
+
+7. Core Mission
+
+The Fabricator Robot must:
+
+1.  Receive coarse-qualified soil feed from the surface sorting
+    container
+
+2.  Read incoming moisture and apply minimum conditioning if outside
+    threshold
+
+3.  Drive ground anchors and confirm seating before every compression
+    cycle
+
+4.  Fill mold to current fill-volume target
+
+5.  Compress to fixed target geometry using Earth-anchored press force
+
+6.  Hold block in ejection cradle for Verification-tuned dwell time
+
+7.  Hand off completed block to Verification / Logistics
+
+8.  Receive fill volume and dwell time feedback from Verification
+
+9.  Escalate to House Brain if calibration loop exceeds convergence
+    limit
+
+10. Emit feed quality records to Excavator after each batch
+
+11. Emit full fabrication telemetry to House Brain
+
+8. Functional Role
+
+Fabricator turns:
+
+- Coarse-qualified earth feed
+
+- Inline moisture reading
+
+- House Brain recipe (target geometry and density class)
+
+- Verification feedback (fill volume and dwell corrections)
+
+  -----------------------------------------------------------------------
+   ...into dimensionally consistent, density-verified structural blocks
+                            ready for Assembly.
+
+  -----------------------------------------------------------------------
+
+It is the conversion point between raw earth and structural material.
+
+9. System Architecture
+
+9.1 Inputs
+
+From House Brain
+
+- Block role and recipe ID
+
+- Target geometry (dimensions and density class)
+
+- Convergence limit (max calibration cycles before escalation)
+
+- Batch routing instructions
+
+From Verification
+
+- Block density result: too light / in-spec / too dense
+
+- Fill volume correction delta
+
+- Recommended ejection dwell seconds
+
+- Handling damage flag (triggers dwell increase)
+
+From Surface Container / Excavator
+
+- Soil feed stream
+
+- Feed rate and availability signal
+
+From Survey
+
+- Zone moisture score — pre-batch warning before problematic soil
+  arrives
+
+9.2 Outputs
+
+To Verification / Logistics
+
+- Completed block with part ID
+
+- Fabrication record: fill volume, compression force, moisture reading,
+  anchor seating score, dwell applied
+
+To House Brain
+
+- Block produced / calibration block rejected
+
+- Calibration cycle count per batch
+
+- Convergence limit flag if exceeded
+
+- Anchor seating failure flag
+
+- Conditioning applied per cycle
+
+To Excavator
+
+- fabricator_feed_quality_record per batch: calibration cycles, fill
+  volume delta, conditioning applied, reject rate, source zone ID
+
+10. Mechanical Architecture
+
+10.1 Baseline Physical Form
+
+Recommended baseline:
+
+- Wheeled or tracked mobile base
+
+- Ground anchor deployment system — screw or expanding friction type
+
+- Mold / press cavity with fixed target geometry
+
+- Compression actuator — ball screw, toggle joint, or equivalent
+  high-force low-mass mechanism
+
+- Feed hopper intake from surface container
+
+- Inline moisture probe at feed intake
+
+- Minimal conditioning system — small water reservoir + optional
+  heat/air element
+
+- Ejection cradle with dwell timer
+
+- Anchor motor with current sensing
+
+This is not a hydraulic press on a truck. It is a field-anchored
+compression cell that borrows the Earth's mass.
+
+10.2 Ground Anchor System
+
+Purpose: resist compression reaction force without requiring robot mass.
+
+- Anchor deployed into undisturbed ground before each compression cycle
+
+- Motor current at full depth is the seating quality signal
+
+- Below-threshold current: anchor relocates by defined offset and
+  retries
+
+- Failed seating after retries: flag to House Brain, do not compress
+
+  -----------------------------------------------------------------------
+  Key insight: The robot is not pushing against its own weight. It is
+  pulling itself between the anchor and the press plate. The Earth is the
+  anvil. The Earth is also the strap.
+
+  -----------------------------------------------------------------------
+
+10.3 Compression Mechanism
+
+- Fixed mold geometry — target dimensions do not change
+
+- Fill volume is the variable parameter, not press depth
+
+- Compression force path: ground anchor → compression actuator → press
+  plate → mold → Earth
+
+- No force transmitted through robot chassis
+
+10.4 Moisture Conditioning System
+
+Two-condition gate — not a soil lab:
+
+- Below lower moisture threshold: water dose added to mold before fill
+
+- Above upper moisture threshold: drying pass (heat or forced air)
+  before press
+
+- Within range: no conditioning — proceed directly
+
+- Water reservoir sized for a defined number of conditioning cycles
+  before refill
+
+10.5 Ejection Cradle
+
+- Block held in support cradle after press release
+
+- Dwell timer controlled by Verification feedback parameter
+
+- No lateral force on block during dwell
+
+- Handoff to Logistics/Assembly only after dwell complete
+
+11. Sensor Stack
+
+11.1 Required Sensors
+
+Anchor and Ground
+
+- Anchor drive motor current sensor — seating confidence
+
+- Anchor depth encoder
+
+Feed and Conditioning
+
+- Inline moisture probe at feed intake
+
+- Fill volume encoder / hopper weight
+
+- Water dose meter (if conditioning applied)
+
+Compression
+
+- Compression force estimate — actuator current or load cell
+
+- Press depth encoder
+
+- Mold release sensor — confirms block ejection
+
+Positioning
+
+- IMU
+
+- Wheel/track encoders
+
+- UWB / site localization
+
+11.2 Minimum Sensed Outputs Per Cycle
+
+- Block part ID
+
+- Fill volume used
+
+- Anchor seat confidence score
+
+- Incoming moisture pct
+
+- Conditioning applied
+
+- Compression force achieved
+
+- Press depth reached
+
+- Ejection dwell seconds applied
+
+- Calibration cycle count for current batch
+
+- Decision: production block or calibration block
+
+12. Software Architecture
+
+12.1 Main Modules
+
+- Survey moisture pre-warning consumer
+
+- Feed intake moisture checker and conditioning gate
+
+- Anchor deployment and seating confirmation module
+
+- Fill volume controller — current target maintained and updated from
+  Verification
+
+- Compression cycle controller
+
+- Ejection cradle and dwell timer
+
+- Calibration loop manager — convergence counter and limit enforcer
+
+- Verification feedback receiver — fill volume and dwell corrections
+
+- Feed quality record emitter — to Excavator after each batch
+
+- Telemetry emitter — to House Brain
+
+12.2 Fabricator Doctrine
+
+Stage 0 — Pre-Batch Warning
+
+Consume Survey zone moisture score for incoming feed. If above slurry
+threshold, pre-arm the conditioning gate and notify House Brain before
+the first fill cycle.
+
+Stage 1 — Moisture Check and Conditioning
+
+Read inline moisture at feed intake. Apply conditioning if outside
+bounds: water dose if too dry, drying pass if too wet. Record
+conditioning_applied for telemetry.
+
+Stage 2 — Anchor and Confirm
+
+Deploy ground anchor. Read motor current at full depth. Confirm seating
+confidence exceeds threshold. Relocate and retry if insufficient. Block
+compression until confirmed. Do not compress on a floating anchor.
+
+Stage 3 — Fill
+
+Load mold to current fill_volume_target. Fill volume is the only
+parameter adjusted by the calibration loop — geometry target does not
+move.
+
+Stage 4 — Compress
+
+Drive actuator to target press depth. Force path runs through anchor and
+Earth, not chassis. Record compression force and depth.
+
+Stage 5 — Eject and Dwell
+
+Release press. Transfer block to ejection cradle. Hold for
+ejection_dwell_seconds. No handoff until dwell complete.
+
+Stage 6 — Hand Off
+
+Transfer block to Verification / Logistics with fabrication record.
+Await Verification result.
+
+Stage 7 — Calibration Update
+
+Receive Verification feedback: density result, fill volume correction
+delta, recommended dwell. Update fill_volume_target and
+ejection_dwell_seconds for next cycle. Increment calibration cycle
+counter if block was rejected.
+
+Stage 8 — Convergence Check
+
+If calibration_cycle_count exceeds convergence limit: stop pressing,
+flag soil batch to House Brain with full calibration history. Wait for
+instruction — do not continue on bad soil.
+
+Stage 9 — Feed Quality Emit
+
+After each batch, emit fabricator_feed_quality_record to Excavator and
+House Brain: calibration cycles, fill volume delta, conditioning
+applied, reject rate, source zone ID.
+
+13. Calibration Loop Detail
+
+The calibration loop is the core of Fabricator's intelligence. It is not
+a sensor system. It is a feedback cycle.
+
+  -----------------------------------------------------------------------
+  The invariant rule: Target geometry never changes. Fill volume is the
+  only knob. Assembly's dimensional requirement is sacred. Everything
+  else bends to it.
+
+  -----------------------------------------------------------------------
+
+Calibration States
+
+- too_light → increase fill volume by delta
+
+- in_spec → no change, reset calibration counter
+
+- too_dense / overloaded → decrease fill volume by delta
+
+- calibration_limit_exceeded → stop, flag, request new feed or
+  intervention
+
+Calibration Block Policy
+
+- First 3–5 blocks of any new soil patch are expected calibration blocks
+
+- Calibration blocks are recycled back into the feed hopper — not wasted
+
+- Calibration cycle count resets on each new identified soil patch
+
+- Calibration block count is reported to House Brain so pipeline
+  scheduling can account for it
+
+Convergence Signal to Excavator
+
+- Batches that converge in 1–2 cycles: gate threshold is well-tuned
+
+- Batches that need 5+ cycles: gate is too permissive for this zone
+
+- Batches that hit convergence limit: flag zone as poor quality feed
+  source
+
+14. Commands
+
++-----------------------------------------------------------------------+
+| {                                                                     |
+|                                                                       |
+| "commands": [                                                         |
+|                                                                       |
+| "load_recipe(recipe_id)",                                             |
+|                                                                       |
+| "check_feed_moisture()",                                              |
+|                                                                       |
+| "apply_conditioning(type, dose)",                                     |
+|                                                                       |
+| "deploy_anchor()",                                                    |
+|                                                                       |
+| "confirm_anchor_seating()",                                           |
+|                                                                       |
+| "relocate_anchor(offset)",                                            |
+|                                                                       |
+| "fill_mold(volume_target)",                                           |
+|                                                                       |
+| "compress()",                                                         |
+|                                                                       |
+| "eject_block()",                                                      |
+|                                                                       |
+| "begin_dwell(dwell_seconds)",                                         |
+|                                                                       |
+| "release_to_verification(part_id)",                                   |
+|                                                                       |
+| "update_fill_volume(delta)",                                          |
+|                                                                       |
+| "update_dwell_seconds(value)",                                        |
+|                                                                       |
+| "flag_convergence_limit(batch_id)",                                   |
+|                                                                       |
+| "emit_fabrication_record(part_id)",                                   |
+|                                                                       |
+| "emit_feed_quality_record(batch_id)",                                 |
+|                                                                       |
+| "recycle_calibration_block(part_id)",                                 |
+|                                                                       |
+| "return_to_base()",                                                   |
+|                                                                       |
+| "abort_job(reason)"                                                   |
+|                                                                       |
+| ]                                                                     |
+|                                                                       |
+| }                                                                     |
++-----------------------------------------------------------------------+
+
+15. Data Emitted
+
+15.1 Fabrication Record — Per Block
+
++-----------------------------------------------------------------------+
+| {                                                                     |
+|                                                                       |
+| "part_id": "block_244",                                               |
+|                                                                       |
+| "recipe_id": "ext_wall_v3",                                           |
+|                                                                       |
+| "batch_id": "batch_18",                                               |
+|                                                                       |
+| "fill_volume_used_L": 4.31,                                           |
+|                                                                       |
+| "fill_volume_target_L": 4.28,                                         |
+|                                                                       |
+| "incoming_moisture_pct": 11.2,                                        |
+|                                                                       |
+| "conditioning_applied": "none",                                       |
+|                                                                       |
+| "anchor_seat_confidence": 0.91,                                       |
+|                                                                       |
+| "compression_force_kN": 142.0,                                        |
+|                                                                       |
+| "press_depth_mm": 150,                                                |
+|                                                                       |
+| "ejection_dwell_seconds": 45,                                         |
+|                                                                       |
+| "calibration_cycle_count": 2,                                         |
+|                                                                       |
+| "block_type": "production",                                           |
+|                                                                       |
+| "timestamp": "2026-03-09T18:40:00Z"                                   |
+|                                                                       |
+| }                                                                     |
++-----------------------------------------------------------------------+
+
+15.2 Feed Quality Record — Per Batch, Emitted to Excavator
+
++-----------------------------------------------------------------------+
+| {                                                                     |
+|                                                                       |
+| "batch_id": "batch_18",                                               |
+|                                                                       |
+| "source_zone_id": "siteprep_a1",                                      |
+|                                                                       |
+| "calibration_cycles_to_convergence": 3,                               |
+|                                                                       |
+| "fill_volume_delta_from_nominal": 0.12,                               |
+|                                                                       |
+| "conditioning_applied": "water_dose",                                 |
+|                                                                       |
+| "batch_reject_rate": 0.08,                                            |
+|                                                                       |
+| "convergence_limit_hit": false,                                       |
+|                                                                       |
+| "assessment": "gate_slightly_permissive",                             |
+|                                                                       |
+| "timestamp": "2026-03-09T19:10:00Z"                                   |
+|                                                                       |
+| }                                                                     |
++-----------------------------------------------------------------------+
+
+15.3 Anchor Failure Record
+
++-----------------------------------------------------------------------+
+| {                                                                     |
+|                                                                       |
+| "event": "anchor_seating_failed",                                     |
+|                                                                       |
+| "zone_id": "siteprep_a1",                                             |
+|                                                                       |
+| "anchor_attempts": 3,                                                 |
+|                                                                       |
+| "motor_current_at_depth": 0.31,                                       |
+|                                                                       |
+| "seating_threshold": 0.65,                                            |
+|                                                                       |
+| "ground_condition": "loose_disturbed",                                |
+|                                                                       |
+| "action": "flagged_to_house_brain",                                   |
+|                                                                       |
+| "timestamp": "2026-03-09T18:20:00Z"                                   |
+|                                                                       |
+| }                                                                     |
++-----------------------------------------------------------------------+
+
+16. Failure Modes
+
+Anchor-Side Failures
+
+- Anchor fails to seat in loose or wet ground
+
+- Anchor seating confidence below threshold after relocation attempts
+
+- Anchor seizes mid-cycle — compression force transmitted to chassis
+
+- Anchor retraction failure after compression
+
+Feed and Conditioning Failures
+
+- Incoming moisture probe failure — conditioning gate blind
+
+- Moisture too extreme for two-condition gate to compensate
+
+- Water reservoir empty — conditioning unavailable
+
+- Feed hopper clog — fill volume inconsistent
+
+Calibration Failures
+
+- Calibration loop fails to converge — soil patch too variable
+
+- Convergence limit hit — soil flagged, production stops
+
+- Verification feedback delayed — fill volume target stale
+
+- Fill volume correction overshoots — oscillation in calibration loop
+
+Compression and Ejection Failures
+
+- Compression force insufficient — actuator underperforms
+
+- Block sticks in mold — ejection incomplete
+
+- Block damaged in cradle — dwell too short
+
+- Ejection cradle misalignment — block corners exposed to lateral force
+
+System-Side Failures
+
+- Wrong recipe loaded
+
+- Stale Survey moisture data — conditioning mismatch
+
+- Feed quality record not emitted — Excavator gate calibration gap
+
+- Verification feedback channel broken — fill volume target frozen
+
+17. Success Criteria
+
+Fabricator is successful if it can:
+
+12. Produce dimensionally consistent blocks from variable soil feed
+
+13. Confirm anchor seating before every compression cycle — never
+    compress on a floating anchor
+
+14. Apply minimum conditioning without becoming a soil lab
+
+15. Converge the calibration loop within the defined limit on normal
+    soil
+
+16. Correctly escalate soil batches that exceed convergence limit rather
+    than looping indefinitely
+
+17. Protect freshly-pressed blocks in the ejection cradle until handling
+    strength is reached
+
+18. Receive Verification feedback and update fill volume and dwell
+    without human intervention
+
+19. Emit feed quality records that allow the Excavator to tune its gate
+    over time
+
+18. Environment Assumptions
+
+Fabricator assumes:
+
+- Surface sorting container provides a coarse-qualified soil feed
+
+- Ground is suitable for anchor deployment within the work zone — not
+  solid bedrock, not fully saturated
+
+- Verification is available at end of each production or calibration
+  cycle
+
+- House Brain provides recipe and convergence limit before production
+  begins
+
+- Survey has provided zone moisture data before the first feed batch
+  arrives
+
+- Excavator has an input channel to receive feed quality records
+
+19. Build Phases
+
+Phase 1 — Static Compression Bench
+
+Build:
+
+- Ground anchor system
+
+- Fixed mold geometry
+
+- Compression actuator
+
+- Anchor seating confirmation via motor current
+
+Goal: prove Earth Anvil principle — compress to spec without machine
+mass.
+
+Phase 2 — Fill Volume Calibration Loop
+
+Add:
+
+- Fill volume encoder
+
+- Verification feedback receiver
+
+- Dynamic fill volume update logic
+
+- Calibration cycle counter
+
+Goal: prove fill volume loop converges on variable test soil within N
+cycles.
+
+Phase 3 — Moisture Conditioning Gate
+
+Add:
+
+- Inline moisture probe
+
+- Water conditioning reservoir
+
+- Two-condition gate logic
+
+- Survey moisture pre-warning consumer
+
+Goal: prove Fabricator handles soil at the dry and wet extremes without
+calibration loop failure.
+
+Phase 4 — Ejection Cradle and Dwell
+
+Add:
+
+- Ejection support cradle
+
+- Dwell timer
+
+- Verification-tuned dwell feedback
+
+Goal: prove blocks arrive at Verification without handling damage.
+
+Phase 5 — Convergence Limit and Escalation
+
+Add:
+
+- Convergence limit enforcement
+
+- Soil patch flagging to House Brain
+
+- Calibration block recycling path
+
+Goal: prove Fabricator cannot be trapped in an infinite calibration
+spiral.
+
+Phase 6 — Feed Quality Emit and House Brain Integration
+
+Connect:
+
+- Feed quality record channel to Excavator
+
+- Full House Brain command and telemetry loop
+
+- Zone navigation for multi-position press operation
+
+Goal: make Fabricator a full participant in the system feedback loop —
+not just a press.
+
+20. Cost Direction
+
+Fabricator stays cheap by:
+
+- Using Earth mass instead of machine mass for compression force
+
+- Using a ball screw or toggle joint instead of a multi-ton hydraulic
+  frame
+
+- Replacing an onboard soil lab with a two-condition moisture gate
+
+- Replacing quality intelligence with a feedback tether to Verification
+
+- Keeping geometry fixed and only tuning fill volume — one variable
+  instead of many
+
+- Using the Survey Robot's existing moisture data rather than new
+  sensors
+
+  -----------------------------------------------------------------------
+  C2A Principle: Borrow the Earth's mass. Fix the shape. Tune the fill.
+  Let Verification be the brain. Feed what you learned back to Excavator.
+
+  -----------------------------------------------------------------------
+
+21. Out of Scope / Not This Robot's Job
+
+Fabricator does not:
+
+- Determine final recipe suitability or structural role
+
+- Certify block quality — that is Verification's job
+
+- Dig or classify soil — that is Excavator's job
+
+- Transport finished blocks to the build site — that is Logistics
+
+- Place blocks — that is Assembly
+
+Those belong to: Excavator, Verification, Logistics, Assembly, and House
+Brain.
+
+Fabricator only says: "Given this earth feed and this recipe, I can
+produce dimensionally consistent blocks and converge on the correct
+density with Verification's guidance."
+
+22. Final Blueprint Summary
+
+  -----------------------------------------------------------------------
+  The Fabricator Robot is a ground-anchored, earth-pressing machine that
+    ingests the Excavator's coarse-qualified soil feed, applies minimum
+  moisture conditioning via a two-condition gate, confirms anchor seating
+   before every compression cycle, compresses to a fixed geometry using
+      the Earth as the anvil, tunes fill volume dynamically through a
+      Verification feedback loop bounded by a hard convergence limit,
+  protects freshly-pressed blocks in an ejection cradle, and feeds batch
+    quality data back to the Excavator to improve its gate calibration
+                         across all future builds.
+
+  -----------------------------------------------------------------------

@@ -4,7 +4,7 @@ import cors from "cors";
 import { WebSocketServer } from "ws";
 import { pool, withTx } from "./db.js";
 import { schedulerTick, systemState, sampleMetrics, surveyHouse, verifyBlock, runWeatheringTest, completeSealingForHouse, triggerMaintenanceForHouse, getMaintenanceAlerts, logisticsLaneSummary } from "./scheduler.js";
-import { buildContractHealthSummary } from "./contracts.js";
+import { buildContractHealthSummary, buildPreconditionSummary, PRECONDITION_TREE } from "./contracts.js";
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -377,6 +377,12 @@ async function resetExperimentState(client) {
   await client.query(`DELETE FROM block_verifications WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
   await client.query(`DELETE FROM house_maintenance WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
   await client.query(`DELETE FROM logistics_lane_segments WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM robot_runtime_state WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM excavation_records WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM fabrication_records WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM fabricator_feed_quality_records WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM placement_reports WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
+  await client.query(`DELETE FROM neighbor_drift_telemetry WHERE house_id IN (SELECT id FROM houses WHERE is_active = TRUE)`);
 
   await client.query(`
     UPDATE grid_cells
@@ -585,8 +591,9 @@ app.get("/api/site-heatmap/:houseId", async (req, res) => {
       `SELECT *
        FROM site_surveys
        WHERE house_id = $1
+         AND COALESCE(notes, '') NOT LIKE $2
        ORDER BY surveyed_at DESC, probe_y, probe_x`,
-      [houseId]
+      [houseId, 'scheduler:excavator_ground_truth%']
     );
 
     res.json(result.rows);
@@ -615,15 +622,23 @@ app.get("/api/contract-health", async (_req, res) => {
     );
     lastEmittedByPathId.excavator_to_survey = excavatorGT.rows[0]?.last;
 
-    const fabQuality = await pool.query(
-      `SELECT MAX(created_at) AS last FROM block_verifications WHERE verification_mode = 'inline'`
+    // Use actual fabricator_feed_quality_records instead of proxy
+    const feedQuality = await pool.query(
+      `SELECT MAX(created_at) AS last FROM fabricator_feed_quality_records`
     );
-    lastEmittedByPathId.fabricator_to_excavator = fabQuality.rows[0]?.last;
-    lastEmittedByPathId.verification_to_fabricator_fill = fabQuality.rows[0]?.last;
-    lastEmittedByPathId.verification_to_fabricator_dwell = fabQuality.rows[0]?.last;
+    lastEmittedByPathId.fabricator_to_excavator = feedQuality.rows[0]?.last;
+
+    // Use actual fabrication_records for verification feedback paths
+    const fabRecords = await pool.query(
+      `SELECT MAX(created_at) AS last FROM fabrication_records`
+    );
+    lastEmittedByPathId.verification_to_fabricator_fill = fabRecords.rows[0]?.last;
+    lastEmittedByPathId.verification_to_fabricator_dwell = fabRecords.rows[0]?.last;
 
     const lastSurvey = await pool.query(
-      `SELECT MAX(surveyed_at) AS last FROM site_surveys`
+      `SELECT MAX(surveyed_at) AS last
+       FROM site_surveys
+       WHERE COALESCE(notes, '') NOT LIKE 'scheduler:excavator_ground_truth%'`
     );
     lastEmittedByPathId.survey_to_excavator = lastSurvey.rows[0]?.last;
     lastEmittedByPathId.survey_to_fabricator = lastSurvey.rows[0]?.last;
@@ -634,14 +649,94 @@ app.get("/api/contract-health", async (_req, res) => {
     );
     lastEmittedByPathId.sealer_to_verification = lastMaint.rows[0]?.last;
 
-    const lastFill = await pool.query(
-      `SELECT MAX(filled_at) AS last FROM grid_cells WHERE status = 'filled'`
+    // Use actual placement_reports instead of proxy grid_cells
+    const placementReports = await pool.query(
+      `SELECT MAX(created_at) AS last FROM placement_reports`
     );
-    lastEmittedByPathId.assembly_to_verification = lastFill.rows[0]?.last;
-    lastEmittedByPathId.logistics_to_assembly = lastFill.rows[0]?.last;
+    lastEmittedByPathId.assembly_to_verification = placementReports.rows[0]?.last;
+    lastEmittedByPathId.logistics_to_assembly = placementReports.rows[0]?.last;
 
     const health = buildContractHealthSummary(lastEmittedByPathId);
     res.json(health);
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+app.get("/api/contract-preconditions", async (_req, res) => {
+  try {
+    const [activeHousesRes, terrainReadyRes, surveyApprovedRes, fabricatorReadyRes, verificationRes, reservedCellsRes, assemblyRobotsRes] = await Promise.all([
+      pool.query(`SELECT COUNT(*)::int AS active_houses FROM houses WHERE is_active = TRUE`),
+      pool.query(
+        `SELECT COUNT(*)::int AS houses_with_terrain_ready
+         FROM (
+           SELECT tc.house_id
+           FROM terrain_cells tc
+           JOIN houses h ON h.id = tc.house_id
+           WHERE h.is_active = TRUE
+           GROUP BY tc.house_id
+           HAVING COUNT(*) FILTER (WHERE tc.status = 'ready') = COUNT(*)
+         ) ready_houses`
+      ),
+      pool.query(
+        `SELECT COUNT(*)::int AS houses_with_survey_approved
+         FROM houses
+         WHERE is_active = TRUE
+           AND survey_status = 'approved'`
+      ),
+      pool.query(
+        `SELECT
+           COUNT(*)::int AS ready_fabricator_components,
+           COUNT(DISTINCT fq.house_id)::int AS houses_with_ready_fabricator_component
+         FROM fabricator_queue fq
+         JOIN houses h ON h.id = fq.house_id
+         WHERE h.is_active = TRUE
+           AND fq.status = 'ready'`
+      ),
+      pool.query(
+        `SELECT
+           COUNT(*)::int AS verification_approvals,
+           COUNT(DISTINCT b.house_id)::int AS houses_with_verification_approval
+         FROM block_verifications b
+         JOIN houses h ON h.id = b.house_id
+         WHERE h.is_active = TRUE
+           AND b.verification_mode = 'inline'
+           AND b.passed = TRUE
+           AND COALESCE(b.decision, 'approve') = 'approve'`
+      ),
+      pool.query(
+        `SELECT
+           COUNT(*)::int AS reserved_cells_waiting_assembly,
+           COUNT(DISTINCT gc.house_id)::int AS houses_with_reserved_cells
+         FROM grid_cells gc
+         JOIN houses h ON h.id = gc.house_id
+         WHERE h.is_active = TRUE
+           AND gc.status = 'reserved'`
+      ),
+      pool.query(
+        `SELECT COUNT(*)::int AS active_assembly_robots
+         FROM robots r
+         JOIN houses h ON h.id = r.active_house_id
+         WHERE h.is_active = TRUE
+           AND r.status = 'placing'
+           AND h.stage IN ('foundation', 'framing', 'mep', 'finishing')`
+      )
+    ]);
+
+    const snapshot = {
+      active_houses: Number(activeHousesRes.rows[0]?.active_houses || 0),
+      houses_with_terrain_ready: Number(terrainReadyRes.rows[0]?.houses_with_terrain_ready || 0),
+      houses_with_survey_approved: Number(surveyApprovedRes.rows[0]?.houses_with_survey_approved || 0),
+      ready_fabricator_components: Number(fabricatorReadyRes.rows[0]?.ready_fabricator_components || 0),
+      houses_with_ready_fabricator_component: Number(fabricatorReadyRes.rows[0]?.houses_with_ready_fabricator_component || 0),
+      verification_approvals: Number(verificationRes.rows[0]?.verification_approvals || 0),
+      houses_with_verification_approval: Number(verificationRes.rows[0]?.houses_with_verification_approval || 0),
+      reserved_cells_waiting_assembly: Number(reservedCellsRes.rows[0]?.reserved_cells_waiting_assembly || 0),
+      houses_with_reserved_cells: Number(reservedCellsRes.rows[0]?.houses_with_reserved_cells || 0),
+      active_assembly_robots: Number(assemblyRobotsRes.rows[0]?.active_assembly_robots || 0)
+    };
+
+    const summary = buildPreconditionSummary(snapshot);
+    res.json({ ok: true, snapshot, summary, tree: PRECONDITION_TREE });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -1002,6 +1097,7 @@ process.on("SIGINT", async () => {
   await pool.end();
   process.exit(0);
 });
+
 
 
 

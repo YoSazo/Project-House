@@ -77,26 +77,69 @@ const LOGISTICS_DEGRADE_RATE = Number(process.env.LOGISTICS_DEGRADE_RATE || 0.06
 const LOGISTICS_VERIFY_INTERVAL = Number(process.env.LOGISTICS_VERIFY_INTERVAL || 5);
 const LOGISTICS_TRAVEL_FACTOR_MIN = Number(process.env.LOGISTICS_TRAVEL_FACTOR_MIN || 0.72);
 const LOGISTICS_TRAVEL_FACTOR_MAX = Number(process.env.LOGISTICS_TRAVEL_FACTOR_MAX || 1.35);
+const EXCAVATOR_GROUND_TRUTH_NOTE_PREFIX = "scheduler:excavator_ground_truth";
 
 let lastWeatheringRunAt = 0;
 let lastMaintenanceRunAt = 0;
-const insertionProfileMemory = new Map();
 
-// Fabricator calibration state - per house, per batch
-const fabricatorState = new Map();
+// ============================================================
+// Persistent state wrappers — load from DB, mutate, flush back
+// ============================================================
+const _stateCache = new Map(); // transient per-tick cache keyed by "houseId:type"
 
-function getFabricatorState(houseId) {
-  if (!fabricatorState.has(houseId)) {
-    fabricatorState.set(houseId, {
-      fillVolumeTarget: 4.0,
-      calibrationCycles: 0,
-      batchId: `batch_${houseId}_0`,
-      anchorSeatHistory: [],
-      ejectionDwellSeconds: 45,
-      convergenceLimitHit: false
-    });
-  }
-  return fabricatorState.get(houseId);
+function _stateCacheKey(houseId, stateType) {
+  return `${houseId}:${stateType}`;
+}
+
+async function _loadState(client, houseId, stateType, defaults) {
+  const key = _stateCacheKey(houseId, stateType);
+  if (_stateCache.has(key)) return _stateCache.get(key);
+
+  const res = await client.query(
+    `SELECT state_json FROM robot_runtime_state WHERE house_id = $1 AND state_type = $2`,
+    [houseId, stateType]
+  );
+
+  const state = res.rows[0]?.state_json
+    ? { ...defaults, ...res.rows[0].state_json }
+    : { ...defaults };
+
+  _stateCache.set(key, state);
+  return state;
+}
+
+async function _flushState(client, houseId, stateType, state) {
+  const key = _stateCacheKey(houseId, stateType);
+  _stateCache.set(key, state);
+
+  await client.query(
+    `INSERT INTO robot_runtime_state (house_id, state_type, state_json, updated_at)
+     VALUES ($1, $2, $3::jsonb, NOW())
+     ON CONFLICT (house_id, state_type) DO UPDATE
+       SET state_json = EXCLUDED.state_json,
+           updated_at = NOW()`,
+    [houseId, stateType, JSON.stringify(state)]
+  );
+}
+
+function _clearStateCache() {
+  _stateCache.clear();
+}
+
+// Fabricator calibration state - per house, per batch (DB-backed)
+async function getFabricatorState(client, houseId) {
+  return _loadState(client, houseId, 'fabricator', {
+    fillVolumeTarget: 4.0,
+    calibrationCycles: 0,
+    batchId: `batch_${houseId}_0`,
+    anchorSeatHistory: [],
+    ejectionDwellSeconds: 45,
+    convergenceLimitHit: false
+  });
+}
+
+async function flushFabricatorState(client, houseId, state) {
+  return _flushState(client, houseId, 'fabricator', state);
 }
 
 const FABRICATOR_CONVERGENCE_LIMIT = Number(process.env.FABRICATOR_CONVERGENCE_LIMIT || 8);
@@ -105,46 +148,44 @@ const FABRICATOR_ANCHOR_THRESHOLD = Number(process.env.FABRICATOR_ANCHOR_THRESHO
 const FABRICATOR_MOISTURE_LOW = Number(process.env.FABRICATOR_MOISTURE_LOW || 8);
 const FABRICATOR_MOISTURE_HIGH = Number(process.env.FABRICATOR_MOISTURE_HIGH || 28);
 
-// Excavator runtime state
-const excavatorState = new Map();
+// Excavator runtime state (DB-backed)
+async function getExcavatorState(client, houseId) {
+  return _loadState(client, houseId, 'excavator', {
+    containerFillPct: 0,
+    backpressureState: "nominal",
+    bladeWearIndex: 0,
+    cumulativeLoad: 0,
+    cumulativeThroughput: 0,
+    lastGroundTruthEmit: null,
+    currentZoneId: null
+  });
+}
 
-function getExcavatorState(houseId) {
-  if (!excavatorState.has(houseId)) {
-    excavatorState.set(houseId, {
-      containerFillPct: 0,
-      backpressureState: "nominal",
-      bladeWearIndex: 0,
-      cumulativeLoad: 0,
-      cumulativeThroughput: 0,
-      lastGroundTruthEmit: null,
-      currentZoneId: null
-    });
-  }
-  return excavatorState.get(houseId);
+async function flushExcavatorState(client, houseId, state) {
+  return _flushState(client, houseId, 'excavator', state);
 }
 
 const EXCAVATOR_CONTAINER_FILL_THRESHOLD = Number(process.env.EXCAVATOR_CONTAINER_FILL_THRESHOLD || 80);
 const EXCAVATOR_BLADE_WEAR_THRESHOLD = Number(process.env.EXCAVATOR_BLADE_WEAR_THRESHOLD || 0.35);
 const EXCAVATOR_SLURRY_MOISTURE_THRESHOLD = Number(process.env.EXCAVATOR_SLURRY_MOISTURE_THRESHOLD || 32);
 
-// Sealer zone risk state
-const sealerState = new Map();
+// Sealer zone risk state (DB-backed)
+async function getSealerState(client, houseId) {
+  return _loadState(client, houseId, 'sealer', {
+    phase: "broad_spray",
+    broadSprayIngressScore: null,
+    pressureStressScore: null,
+    baselineMoisturePct: null,
+    resetConfirmed: false,
+    zoneScores: {},
+    edgeBandScores: {},
+    gravityBiasCorrected: false,
+    recoatState: "intact_aging"
+  });
+}
 
-function getSealerState(houseId) {
-  if (!sealerState.has(houseId)) {
-    sealerState.set(houseId, {
-      phase: "broad_spray",
-      broadSprayIngressScore: null,
-      pressureStressScore: null,
-      baselineMoisturePct: null,
-      resetConfirmed: false,
-      zoneScores: {},
-      edgeBandScores: {},
-      gravityBiasCorrected: false,
-      recoatState: "intact_aging"
-    });
-  }
-  return sealerState.get(houseId);
+async function flushSealerState(client, houseId, state) {
+  return _flushState(client, houseId, 'sealer', state);
 }
 
 const SEALER_MOISTURE_RESET_TOLERANCE = Number(process.env.SEALER_MOISTURE_RESET_TOLERANCE || 2.0);
@@ -1417,6 +1458,80 @@ async function completeSealingTx(client, { houseId, soilSignature }) {
   };
 }
 
+async function emitWaterStressCalibration(client, houseId, soilSignature) {
+  const seState = await getSealerState(client, houseId);
+  if (!seState || seState.phase === "broad_spray") return;
+
+  const ingress = Number(seState.broadSprayIngressScore ?? 0);
+  const pressure = Number(seState.pressureStressScore ?? 0);
+  const stressAvg = (ingress + pressure) / 2;
+
+  const longevityDelta = stressAvg > 0.5 ? -0.03 : (stressAvg < 0.25 ? 0.02 : 0);
+
+  await client.query(
+    `INSERT INTO block_verifications (
+      house_id,
+      soil_signature,
+      verification_mode,
+      weathering_cycles,
+      passed,
+      retries,
+      decision,
+      escalation_reason,
+      correction_delta,
+      created_at
+    ) VALUES (
+      $1,
+      $2,
+      'accelerated_weathering',
+      0,
+      $3,
+      0,
+      'approve',
+      'sealer_water_stress',
+      $4::jsonb,
+      NOW()
+    )`,
+    [
+      houseId,
+      soilSignature,
+      longevityDelta >= 0,
+      JSON.stringify({
+        source: "sealer",
+        broad_spray_ingress_score: Number(ingress.toFixed(4)),
+        pressure_stress_score: Number(pressure.toFixed(4)),
+        stress_avg: Number(stressAvg.toFixed(4)),
+        longevity_delta: Number(longevityDelta.toFixed(4))
+      })
+    ]
+  );
+
+  if (longevityDelta !== 0) {
+    const persisted = await client.query(
+      `SELECT correction_delta
+       FROM block_verifications
+       WHERE house_id = $1
+         AND soil_signature = $2
+         AND verification_mode = 'accelerated_weathering'
+         AND escalation_reason = 'sealer_water_stress'
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [houseId, soilSignature]
+    );
+
+    const persistedDelta = Number(persisted.rows[0]?.correction_delta?.longevity_delta ?? longevityDelta);
+    await client.query(
+      `UPDATE soil_library
+       SET longevity_confidence = GREATEST(0.01, LEAST(0.999,
+             longevity_confidence + $2
+           )),
+           updated_at = NOW()
+       WHERE soil_signature = $1`,
+      [soilSignature, persistedDelta]
+    );
+  }
+}
+
 
 async function triggerMaintenanceTx(client, houseId) {
   const maintenance = await client.query(
@@ -1537,18 +1652,16 @@ function insertionProfileKey(componentType, cell) {
   return `${componentType}:${cell?.z ?? 0}`;
 }
 
-function simulateInsertion(componentType, cell) {
+async function simulateInsertion(client, houseId, componentType, cell) {
   const base = COMPONENT_BASE_IMPEDANCE[componentType] ?? 0.5;
   const profileKey = insertionProfileKey(componentType, cell);
 
-  if (!insertionProfileMemory.has(profileKey)) {
-    insertionProfileMemory.set(profileKey, {
-      attempts: 0,
-      successfulSeats: 0
-    });
+  // Load insertion profile from DB-backed state
+  const profileState = await _loadState(client, houseId, 'insertion_profile', {});
+  if (!profileState[profileKey]) {
+    profileState[profileKey] = { attempts: 0, successfulSeats: 0 };
   }
-
-  const profile = insertionProfileMemory.get(profileKey);
+  const profile = profileState[profileKey];
   const calibrationPass = profile.successfulSeats === 0;
   const preScanTolerance = calibrationPass ? ASSEMBLY_PRE_SCAN_TOLERANCE_CAL : ASSEMBLY_PRE_SCAN_TOLERANCE;
   const preScanAlignment = Math.random();
@@ -1557,6 +1670,7 @@ function simulateInsertion(componentType, cell) {
   profile.attempts += 1;
 
   if (preScanEscalated) {
+    await _flushState(client, houseId, 'insertion_profile', profileState);
     return {
       success: false,
       retries: 0,
@@ -1588,6 +1702,7 @@ function simulateInsertion(componentType, cell) {
   }
 
   if (retries >= MAX_INSERTION_RETRIES && resistance > threshold) {
+    await _flushState(client, houseId, 'insertion_profile', profileState);
     return {
       success: false,
       retries,
@@ -1612,6 +1727,7 @@ function simulateInsertion(componentType, cell) {
     profile.successfulSeats += 1;
   }
 
+  await _flushState(client, houseId, 'insertion_profile', profileState);
   return {
     success: postSeatPassed,
     retries,
@@ -1948,19 +2064,20 @@ async function applyLogisticsPass(client, { houseId, robotId, robotStatus }) {
 
 async function runFabricatorStep(client, robot, soilSignature) {
   const houseId = robot.active_house_id;
-  const fabState = getFabricatorState(houseId);
+  const fabState = await getFabricatorState(client, houseId);
 
   const moistureRes = await client.query(
     `WITH recent AS (
        SELECT moisture_pct
        FROM site_surveys
        WHERE house_id = $1
+         AND COALESCE(notes, '') NOT LIKE $2
        ORDER BY surveyed_at DESC
        LIMIT 5
      )
      SELECT AVG(moisture_pct)::float AS avg_moisture
      FROM recent`,
-    [houseId]
+    [houseId, EXCAVATOR_GROUND_TRUTH_NOTE_PREFIX + '%']
   );
   const incomingMoisture = Number(moistureRes.rows[0]?.avg_moisture ?? 15);
 
@@ -1983,6 +2100,7 @@ async function runFabricatorStep(client, robot, soilSignature) {
        WHERE id = $1`,
       [robot.id]
     );
+    await flushFabricatorState(client, houseId, fabState);
     return {
       event: "anchor_seating_failed",
       anchorSeatConfidence,
@@ -2025,6 +2143,7 @@ async function runFabricatorStep(client, robot, soilSignature) {
        WHERE id = $1`,
       [robot.id]
     );
+    await flushFabricatorState(client, houseId, fabState);
     return {
       event: "convergence_limit_hit",
       houseId,
@@ -2057,6 +2176,71 @@ async function runFabricatorStep(client, robot, soilSignature) {
     [robot.id, compressionSeconds]
   );
 
+  if (blockType === "calibration" || fabState.calibrationCycles > 0) {
+    const calibrationStress = clamp(fabState.calibrationCycles / FABRICATOR_CONVERGENCE_LIMIT, 0, 1);
+    await client.query(
+      `UPDATE soil_library
+       SET correction_events = correction_events + 1,
+           last_drift_score = GREATEST(COALESCE(last_drift_score, 0), $2),
+           updated_at = NOW()
+       WHERE soil_signature = $1`,
+      [soilSignature, calibrationStress]
+    );
+  }
+
+  // Emit fabrication_record telemetry
+  const partId = `fab-${houseId}-${fabState.batchId}-${Date.now()}`;
+  await client.query(
+    `INSERT INTO fabrication_records
+       (house_id, robot_id, part_id, batch_id, fill_volume_used_l, fill_volume_target_l,
+        incoming_moisture_pct, conditioning_applied, anchor_seat_confidence,
+        compression_force_kn, press_depth_mm, ejection_dwell_seconds,
+        calibration_cycle_count, block_type, convergence_limit_hit, soil_signature, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())`,
+    [
+      houseId, robot.id, partId, fabState.batchId,
+      Number((fabState.fillVolumeTarget + randRange(-0.2, 0.2)).toFixed(3)),
+      fabState.fillVolumeTarget,
+      incomingMoisture, conditioningApplied, anchorSeatConfidence,
+      Number(randRange(380, 520).toFixed(1)),
+      Number(randRange(28, 42).toFixed(1)),
+      fabState.ejectionDwellSeconds,
+      fabState.calibrationCycles, blockType,
+      fabState.convergenceLimitHit, soilSignature
+    ]
+  );
+
+  // Emit fabricator_feed_quality_record on batch transitions (calibration or convergence)
+  if (blockType === "calibration" || fabState.calibrationCycles > 0) {
+    const batchRejectRate = fabState.calibrationCycles > 0
+      ? clamp(fabState.calibrationCycles / 10, 0, 1)
+      : 0;
+    const assessment = fabState.convergenceLimitHit
+      ? "soil_flagged"
+      : (batchRejectRate > 0.5
+        ? "gate_too_permissive"
+        : (batchRejectRate > 0.2
+          ? "gate_slightly_permissive"
+          : "gate_well_tuned"));
+
+    await client.query(
+      `INSERT INTO fabricator_feed_quality_records
+         (house_id, batch_id, source_zone_id, calibration_cycles_to_convergence,
+          fill_volume_delta_from_nominal, conditioning_applied, batch_reject_rate,
+          convergence_limit_hit, assessment, soil_signature, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+      [
+        houseId, fabState.batchId, `siteprep_${houseId}`,
+        fabState.calibrationCycles,
+        Number((fabState.fillVolumeTarget - 4.0).toFixed(4)),
+        conditioningApplied, batchRejectRate,
+        fabState.convergenceLimitHit, assessment, soilSignature
+      ]
+    );
+  }
+
+  await flushFabricatorState(client, houseId, fabState);
+
   return {
     fillVolumeTarget: fabState.fillVolumeTarget,
     anchorSeatConfidence,
@@ -2069,13 +2253,14 @@ async function runFabricatorStep(client, robot, soilSignature) {
 
 async function runExcavatorStep(client, robot) {
   const houseId = robot.active_house_id;
-  const exState = getExcavatorState(houseId);
+  const exState = await getExcavatorState(client, houseId);
 
   const moistureRes = await client.query(
     `WITH recent AS (
        SELECT moisture_pct, penetration_resistance
        FROM site_surveys
        WHERE house_id = $1
+         AND COALESCE(notes, '') NOT LIKE $2
        ORDER BY surveyed_at DESC
        LIMIT 8
      )
@@ -2083,7 +2268,7 @@ async function runExcavatorStep(client, robot) {
        AVG(moisture_pct)::float AS avg_moisture,
        AVG(penetration_resistance)::float AS avg_resistance
      FROM recent`,
-    [houseId]
+    [houseId, EXCAVATOR_GROUND_TRUTH_NOTE_PREFIX + '%']
   );
   const zoneMoisture = Number(moistureRes.rows[0]?.avg_moisture ?? 15);
   const avgResistance = Number(moistureRes.rows[0]?.avg_resistance ?? 120);
@@ -2098,6 +2283,7 @@ async function runExcavatorStep(client, robot) {
        WHERE id = $1`,
       [robot.id]
     );
+    await flushExcavatorState(client, houseId, exState);
     return { event: "slurry_risk_pause", zoneMoisture, houseId };
   }
 
@@ -2118,6 +2304,7 @@ async function runExcavatorStep(client, robot) {
     );
 
     exState.containerFillPct = Math.max(0, exState.containerFillPct - 15);
+    await flushExcavatorState(client, houseId, exState);
     return { event: "container_backpressure_pause", fillPct: exState.containerFillPct, houseId };
   }
 
@@ -2151,17 +2338,68 @@ async function runExcavatorStep(client, robot) {
          AVG(penetration_resistance)::float AS pred_resistance,
          COUNT(*) FILTER (WHERE status = 'REJECT')::float / NULLIF(COUNT(*), 0) AS pred_reject_ratio
        FROM site_surveys
-       WHERE house_id = $1`,
-      [houseId]
+       WHERE house_id = $1
+         AND COALESCE(notes, '') NOT LIKE $2`,
+      [houseId, EXCAVATOR_GROUND_TRUTH_NOTE_PREFIX + '%']
     );
 
     const predRejectRatio = Number(surveyPrediction.rows[0]?.pred_reject_ratio ?? 0.2);
     const actualRejectRatio = clamp(predRejectRatio + randRange(-0.1, 0.1), 0, 1);
     exState.lastGroundTruthEmit = new Date().toISOString();
-
     exState.currentZoneId = `siteprep_${houseId}`;
-    void actualRejectRatio;
+
+    const predictionDelta = Math.abs(actualRejectRatio - predRejectRatio);
+    await client.query(
+      `INSERT INTO site_surveys (
+        house_id, probe_x, probe_y, depth_meters, soil_signature,
+        status, confidence, surface_tilt_deg, penetration_resistance,
+        notes, surveyed_at
+      ) VALUES (
+        $1, $2, $3, $4, 'ground_truth',
+        CASE WHEN $5 < 0.3 THEN 'BUILDABLE' WHEN $5 < 0.6 THEN 'MARGINAL' ELSE 'REJECT' END,
+        $6, 0, $7,
+        $8, NOW()
+      )`,
+      [
+        houseId,
+        Math.floor(Math.random() * 10),
+        Math.floor(Math.random() * 10),
+        Number(exState.currentDepth ?? 1.5),
+        actualRejectRatio,
+        clamp(1 - predictionDelta * 2, 0.3, 1),
+        Number(surveyPrediction.rows[0]?.pred_resistance ?? 120) + randRange(-20, 20),
+        EXCAVATOR_GROUND_TRUTH_NOTE_PREFIX
+      ]
+    );
   }
+
+  await flushExcavatorState(client, houseId, exState);
+
+  // Emit excavation_record telemetry per contract
+  const goodStreamRate = clamp(1 - (exState.containerFillPct / 100) * 0.3, 0.5, 1);
+  const rejectStreamRate = clamp((exState.containerFillPct / 100) * 0.3, 0, 0.5);
+  await client.query(
+    `INSERT INTO excavation_records (
+      house_id, robot_id, zone_id, depth_m, blade_load_score, lift_flow_score,
+      good_stream_rate, reject_stream_rate, jam_state,
+      blade_wear_index, container_fill_pct, backpressure_state,
+      expected_hard_layer_depth_m, actual_hard_layer_depth_m
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+    [
+      houseId, robot.id,
+      exState.currentZoneId ?? `siteprep_${houseId}`,
+      Number(exState.currentDepth ?? 1.5),
+      bladeLoad,
+      clamp(throughput / 18, 0, 1),
+      goodStreamRate, rejectStreamRate,
+      exState.containerFillPct > EXCAVATOR_CONTAINER_FILL_THRESHOLD ? 'clearing' : 'nominal',
+      exState.bladeWearIndex,
+      exState.containerFillPct,
+      exState.backpressureState,
+      Number(exState.currentDepth ?? 1.5) + randRange(-0.3, 0.3),
+      Number(exState.currentDepth ?? 1.5)
+    ]
+  );
 
   return {
     containerFillPct: exState.containerFillPct,
@@ -2175,7 +2413,7 @@ async function runExcavatorStep(client, robot) {
 
 async function runSealerStep(client, robot) {
   const houseId = robot.active_house_id;
-  const seState = getSealerState(houseId);
+  const seState = await getSealerState(client, houseId);
 
   const x = Math.floor(Math.random() * 10);
   const y = Math.floor(Math.random() * 10);
@@ -2244,6 +2482,8 @@ async function runSealerStep(client, robot) {
      WHERE id = $1`,
     [robot.id, x, y, workSeconds]
   );
+
+  await flushSealerState(client, houseId, seState);
 
   return {
     phase: seState.phase,
@@ -2737,7 +2977,7 @@ async function runRobotStep(client, robot) {
   }
 
   const cell = { x: job.x, y: job.y, z: job.z };
-  const insertion = simulateInsertion(job.component_type, cell);
+  const insertion = await simulateInsertion(client, robot.active_house_id, job.component_type, cell);
   const retrySeconds = insertion.retries * RETRY_ADJUST_SECONDS;
   const failurePenalty = insertion.success ? 0 : FAILED_INSERTION_PENALTY_SECONDS;
   const insertionOverhead = Number(insertion.preScanSeconds || 0) + Number(insertion.postSeatSeconds || 0) + Number(insertion.calibrationSeconds || 0);
@@ -2778,6 +3018,64 @@ async function runRobotStep(client, robot) {
      WHERE id = $1`,
     [job.queue_id]
   );
+
+  // Emit placement_report telemetry per contract
+  await client.query(
+    `INSERT INTO placement_reports (
+      house_id, robot_id, cell_id, component_type, insertion_result,
+      retries, resistance_at_seat, calibration_pass,
+      pre_scan_drift_detected, post_seat_micro_load_passed,
+      work_seconds, lane_travel_factor, escalation_reason,
+      neighbor_geometry_delta
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+    [
+      robot.active_house_id,
+      robot.id,
+      job.cell_id,
+      job.component_type,
+      insertion.success ? 'seated' : (insertion.preScanEscalated ? 'escalated' : 'failed'),
+      insertion.retries,
+      insertion.resistanceAtSeat ?? 0,
+      insertion.calibrationPass ?? true,
+      insertion.preScanEscalated ?? false,
+      insertion.postSeatPassed ?? true,
+      workSec,
+      laneTravelFactor,
+      insertion.escalationReason ?? null,
+      insertion.neighborGeometryDelta ?? 0
+    ]
+  );
+
+  // Emit neighbor_drift_telemetry if insertion succeeded
+  if (insertion.success) {
+    const neighbors = await client.query(
+      `SELECT id, x, y, z FROM grid_cells
+       WHERE house_id = $1
+         AND status = 'filled'
+         AND ABS(x - $2) <= 1 AND ABS(y - $3) <= 1 AND ABS(z - $4) <= 1
+         AND id <> $5`,
+      [robot.active_house_id, cell.x, cell.y, cell.z, job.cell_id]
+    );
+    if (neighbors.rows.length > 0) {
+      const driftMagnitude = Math.random() * 0.15;
+      const driftDetected = driftMagnitude > 0.08;
+      await client.query(
+        `INSERT INTO neighbor_drift_telemetry (
+          house_id, robot_id, zone_id, drift_detected, drift_magnitude,
+          affected_cells, escalated_to_house_brain
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [
+          robot.active_house_id,
+          robot.id,
+          `zone_${cell.x}_${cell.y}`,
+          driftDetected,
+          driftMagnitude,
+          JSON.stringify(neighbors.rows.map(n => n.id)),
+          driftDetected && driftMagnitude > 0.12
+        ]
+      );
+    }
+  }
 }
 
 async function progressHouseStages(client) {
@@ -2886,6 +3184,7 @@ async function progressHouseStages(client) {
 
       const soilSignature = house.soil_signature || (await ensureHouseSoilSignature(client, house.id));
       await completeSealingTx(client, { houseId: house.id, soilSignature });
+      await emitWaterStressCalibration(client, house.id, soilSignature);
 
       await client.query(
         `UPDATE houses
@@ -2979,6 +3278,7 @@ async function progressHouseStages(client) {
 }
 
 export async function schedulerTick() {
+  _clearStateCache();
   await withTx(async (client) => {
     await reconcileAssignments(client);
     await assignIdleClusters(client);
@@ -3277,9 +3577,10 @@ export async function systemState() {
       FROM site_surveys s
       JOIN houses h ON h.id = s.house_id
       WHERE h.is_active = TRUE
+        AND COALESCE(s.notes, '') NOT LIKE $1
       GROUP BY s.house_id
       ORDER BY s.house_id
-    `),
+    `, [EXCAVATOR_GROUND_TRUTH_NOTE_PREFIX + '%']),
     pool.query(`
       SELECT sr.*
       FROM survey_runs sr
@@ -3405,6 +3706,7 @@ export async function systemState() {
           COUNT(*) FILTER (WHERE s.status = 'BUILDABLE')::int AS buildable,
           COUNT(*) FILTER (WHERE s.status = 'REJECT')::int AS reject
         FROM site_surveys s
+        WHERE COALESCE(s.notes, '') NOT LIKE $1
         GROUP BY s.house_id
       ),
       qc AS (
@@ -3452,7 +3754,7 @@ export async function systemState() {
       LEFT JOIN house_maintenance hm ON hm.house_id = h.id
       WHERE h.is_active = TRUE
       ORDER BY h.id
-    `)
+    `, [EXCAVATOR_GROUND_TRUTH_NOTE_PREFIX + '%'])
   ]);
 
   return {
