@@ -1,0 +1,551 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Human Loop Blueprint                                                  |
+|                                                                       |
+| The Social Contract That Closes The Exponential | v1                  |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: A family does not pay for their house. They pay it
+  forward by building the robots that build the next family's house.
+  The vertical loop — house produces family produces robots produces
+  house — is the mechanism that makes growth exponential rather than
+  linear. The assembly is engineered to be completable by anyone.
+  The obligation is engineered to be lighter than any mortgage.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: Every family that receives a house assembles one
+  complete robot cluster (7 Skateboards + 7 toolheads) during a one-week
+  training residency at the Factory-in-a-Box, then contributes 4 hours
+  per week of maintenance labor for their first 6 months as residents —
+  after which the obligation is complete and the house is theirs outright,
+  no rent, no mortgage, no debt.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+The horizontal loop is mechanical: robots build house, house grows power
+grid, power grid charges robots, robots build more houses. That loop
+scales linearly — one cluster produces ~1.5 houses per week regardless
+of how many houses exist.
+
+The vertical loop is human: robots build house → family receives house →
+family builds robots → more robots build more houses. This is the
+multiplier that turns linear into exponential.
+
+Without the vertical loop, growth is bounded by the number of clusters
+that ship inside the original container. With it, every house produces
+the labor that creates the next cluster. The system manufactures its
+own workforce.
+
+  -----------------------------------------------------------------------
+  The constraint was never materials, energy, or technology.
+  The constraint was coordination.
+  The Human Loop is the coordination solution for labor.
+
+  -----------------------------------------------------------------------
+
+2. The Deal
+
+A family receives:
+  - A completed house (CSEB walls, solar roof, water harvesting,
+    rooftop garden, biodigester, mesh internet connection)
+  - Zero rent. Zero mortgage. Zero debt. Zero bills for electricity,
+    water, or cooking fuel
+  - Permanent ownership after completing the obligation
+
+A family contributes:
+  - Phase A: One-week training residency at Factory-in-a-Box
+  - Phase B: Assembly of one complete robot cluster (7 Skateboards +
+    7 toolheads)
+  - Phase C: 4 hours per week of maintenance labor for 6 months
+  - Total obligation: ~1 week intensive + ~104 hours spread over
+    6 months
+
+  -----------------------------------------------------------------------
+  Compare this to a 30-year mortgage at $800/month = $288,000.
+  Compare this to a lifetime of rent that builds zero equity.
+  The family's total obligation is approximately 200 hours of labor.
+  After that, the house is theirs forever. No payments. No landlord.
+
+  -----------------------------------------------------------------------
+
+3. Why One Cluster
+
+  The number is not arbitrary. Here is the math:
+
+  One robot cluster = 7 Skateboards + 7 toolheads.
+
+  Skateboard assembly time: ~15 minutes per chassis (snap-fit wheels,
+  slide-in battery, seat compute module, seat motor driver, connect
+  sensor harness — no tools required).
+
+  Toolhead mounting time: ~60 seconds per toolhead (keyed profile seats
+  it, single UTI connector).
+
+  Total hands-on assembly for one cluster: ~2 hours.
+
+  But assembly alone is not the obligation. The family also learns the
+  system. The one-week residency exists because:
+
+  - Assembly is only valuable if the builder understands what they are
+    building
+  - Red/Green maintenance requires pattern recognition that comes from
+    handling the modules during assembly
+  - The training week produces not just one cluster but one trained
+    household that can perform field maintenance on any robot in the
+    city for decades
+  - The city's maintenance capacity scales with its population
+
+  One cluster is the right number because:
+
+  - One cluster produces ~1.5 houses per week. The family's cluster
+    will build houses for other families, paying the gift forward
+    indefinitely
+  - The assembly is completable within the training week with time to
+    spare — no family is stuck in an impossible obligation
+  - The parts for one cluster are already budgeted in the Factory-in-
+    a-Box seed inventory (8 frames, 40 wheels, 12 batteries, etc.)
+  - Each new cluster adds net-new construction capacity to the city,
+    so the city accelerates with every family
+
+  -----------------------------------------------------------------------
+  A 30-year mortgage binds a family to a bank.
+  A 200-hour obligation binds a family to their neighbors.
+  When the obligation ends, the family owns a home and a city that
+  builds itself around them.
+
+  -----------------------------------------------------------------------
+
+4. Phase A — Training Residency (1 Week)
+
+The training week happens at the Factory-in-a-Box. It follows the same
+principle as the robot system: structured progression, visible feedback,
+no abstraction before hands-on experience.
+
+  Day 1: Orientation + Disassembly
+
+  - Tour of Factory-in-a-Box (all four zones)
+  - Introduction to the Red/Green diagnostic protocol — what the LEDs
+    mean, what Green looks like, what Red looks like
+  - Supervised disassembly of a training Skateboard (not a production
+    unit): remove wheels, slide out battery, unseat compute module,
+    disconnect harness
+  - Purpose: the family handles every component before they assemble
+    anything. Disassembly builds familiarity without stakes
+
+  Day 2: Skateboard Assembly (First 3 Chassis)
+
+  - Family assembles their first 3 Skateboards from kit using the
+    assembly jigs in Zone A
+  - Each chassis: lay frame → snap wheels → slide battery → seat
+    compute → seat motor driver → connect harness → power on →
+    self-test
+  - Supervised by a trained resident (Phase 2+ family or site lead)
+  - Each chassis takes ~15 minutes. Three chassis = ~1 hour of assembly
+    + ~2 hours of explanation, questions, mistakes, redo
+  - All three chassis must pass self-test (LEDs go through startup
+    sequence, report to House Brain) before proceeding
+
+  Day 3: Skateboard Assembly (Remaining 4 Chassis)
+
+  - Family assembles chassis 4–7 with decreasing supervision
+  - By chassis 5–7, the family should be assembling independently with
+    the supervisor observing only
+  - All 7 chassis online and reporting to House Brain by end of day
+
+  Day 4: Toolhead Mounting + System Test
+
+  - Family mounts all 7 toolheads onto their 7 chassis
+  - Each toolhead: position over mount → lower into self-seating taper
+    → confirm retention → connect UTI connector → handshake confirmed
+  - Toolhead mounting is fast (~60 seconds each) but the family learns
+    to read the handshake confirmation on the dashboard
+  - Full cluster registered with House Brain: 7 robots, 7 toolheads,
+    all telemetry flowing
+  - Afternoon: cluster runs a supervised test operation (short Survey
+    scan of a test patch, one Excavator cycle, one Fabricator press) —
+    the family watches their robots work for the first time
+
+  Day 5: Red/Green Maintenance Practicum
+
+  - Introduction to field maintenance: identify Red module → swap with
+    Green spare from Zone B → return Red to Repair Hub in Zone D
+  - Supervised practice: deliberate Red insertions on the training
+    Skateboard (swap a wheel module, swap a battery, swap a compute
+    board)
+  - Practice reading the dashboard: which robot is reporting Red,
+    which module, what is the recommended action
+  - Introduction to the maintenance shift schedule (Phase C)
+
+  Day 6: Repair Hub Exposure (Optional Track)
+
+  - For family members who show interest: introduction to Zone D
+    (Repair Hub)
+  - Observe diagnostic procedure: Red module intake, multimeter test,
+    visual inspection, soldering station demo
+  - This day is NOT required. It exists because every city needs
+    residents who self-select into deeper technical roles. This is
+    where that selection happens naturally
+  - Families that skip Day 6 spend it on additional field maintenance
+    practice instead
+
+  Day 7: Handoff + House Tour
+
+  - Family's cluster is formally registered as a production unit
+  - Cluster assigned its first house build by the House Brain scheduler
+  - Family tours their own house (if already complete) or watches
+    construction progress on their assigned lot
+  - Maintenance shift schedule confirmed
+  - Training residency complete
+
+  -----------------------------------------------------------------------
+  After 7 days, the family has:
+  - Built 7 robots with their own hands
+  - Watched those robots perform real work
+  - Learned to read Red/Green diagnostics
+  - Practiced field module swaps
+  - Earned a house
+
+  -----------------------------------------------------------------------
+
+5. Phase B — Cluster Assembly (During Training Week)
+
+Phase B is embedded within Phase A. The cluster assembly IS the training
+curriculum. There is no separate "classroom" phase and "assembly" phase.
+The family learns by building.
+
+  Assembly Bill of Materials (per cluster):
+
+  Skateboard components:
+  - 7 × frame plate
+  - 28 × wheel module (4 per chassis)
+  - 7 × battery pack (LiFePO4 48V)
+  - 7 × compute module (ESP32-S3 or Pi CM4)
+  - 7 × motor driver board
+  - 7 × sensor harness
+
+  Toolheads:
+  - 1 × Survey toolhead
+  - 1 × Excavator toolhead
+  - 1 × Fabricator toolhead
+  - 1 × Verification toolhead
+  - 1 × Assembly toolhead
+  - 1 × Sealer toolhead
+  - 1 × Logistics toolhead
+
+  Total assembly time (hands-on): ~2 hours
+  Total training week time (including learning): ~40 hours
+  Tools required: zero (all snap-fit, slide-in, keyed connector)
+
+  Quality gate: every Skateboard must pass power-on self-test. Every
+  toolhead must complete UTI handshake. Cluster must appear in House
+  Brain dashboard with all 7 robots reporting Green telemetry. If any
+  unit fails self-test, the family debugs it with supervisor guidance
+  (this is the most valuable learning in the whole week).
+
+6. Phase C — Maintenance Commitment (6 Months)
+
+After moving into their house, the family contributes 4 hours per week
+of maintenance labor to the city's robot fleet. This is not indentured
+servitude — it is neighborhood infrastructure maintenance, no different
+from mowing a shared lawn or participating in a barn raising.
+
+  What maintenance labor looks like:
+
+  - Field patrol: walk the active construction zone, visually check
+    robots for Red LEDs, report anomalies via the dashboard app
+  - Module swap: when a robot reports Red, retrieve a Green spare from
+    the nearest Factory-in-a-Box or satellite parts cache, swap the
+    module, return the Red module to the Repair Hub
+  - Charging dock inspection: visual check of walk-in dock guide
+    surfaces and contact pads, flag any that look worn per TTL schedule
+  - Battery rotation: swap depleted battery packs on robots in the
+    field with charged packs from inventory (slide-in swap, 30 seconds)
+  - Inventory check: count spares in Zone B bins, confirm counts match
+    House Brain inventory system, flag discrepancies
+
+  Shift schedule:
+
+  - 4 hours per week, scheduled by House Brain into 2 × 2-hour shifts
+    or 4 × 1-hour shifts depending on family preference and city needs
+  - Shifts assigned by zone and robot cluster — the family primarily
+    maintains robots in their own neighborhood
+  - House Brain tracks shift completion via check-in/check-out on the
+    dashboard app
+  - Shift swaps allowed between families (coordinated on dashboard)
+
+  Duration: 6 months from house move-in date.
+
+  After 6 months:
+  - The obligation is COMPLETE
+  - The house is owned outright — no further payments, labor, or
+    conditions of any kind
+  - The family may voluntarily continue maintenance shifts (many will —
+    it becomes routine and social)
+  - Families that continue earning maintenance hours after obligation
+    ends accumulate credit toward: priority on additional floors
+    (governance streak), preferred lot selection for family members,
+    apprenticeship priority at the Repair Hub
+
+  -----------------------------------------------------------------------
+  The 6-month maintenance phase exists for two reasons:
+  1. The city needs distributed maintenance capacity as the fleet grows
+  2. The family remains connected to the system that built their home
+     long enough for maintenance to become habit rather than obligation
+
+  After 6 months, the family knows their neighborhood robots by sight.
+  They notice a wobbling wheel before the telemetry does. They are the
+  city's immune system.
+
+  -----------------------------------------------------------------------
+
+7. The Exponential Math
+
+Here is why this closes the loop.
+
+  Assumptions:
+  - 1 cluster produces ~1.5 houses per week
+  - 1 house produces 1 family
+  - 1 family produces 1 cluster (during training week)
+  - Training week overlaps with house construction (family trains
+    while their house is being built by an existing cluster)
+
+  Week 0:  1 cluster (seed). 0 houses. 0 families.
+  Week 1:  Cluster A builds House 1 (+ starts House 2).
+           Family 1 enters training, builds Cluster B.
+  Week 2:  2 clusters operating. Cluster A finishes House 2.
+           Family 2 enters training, builds Cluster C.
+  Week 3:  3 clusters operating. 3 houses/week production rate.
+           Family 3 enters training, builds Cluster D.
+  Week 4:  4 clusters. ~6 houses/week.
+  Week 8:  8 clusters. ~12 houses/week. 8 trained families.
+  Week 16: ~16 clusters. ~24 houses/week. Parasitic power grid is
+           dense. Maintenance labor pool is 16+ families.
+  Week 26: ~26 clusters. ~39 houses/week. First families completing
+           their 6-month obligation — now contributing voluntarily.
+
+  The growth is not perfectly exponential because:
+  - Component supply chain has lead time (parts must be ordered/shipped)
+  - Training throughput is limited by Factory-in-a-Box space (one family
+    training at a time per container, unless multiple containers)
+  - Not every family's cluster deploys immediately (may wait for
+    component delivery)
+
+  But it is FASTER than linear because every house completion adds both
+  a charging node (horizontal) AND a trained family with a new cluster
+  (vertical). The growth rate accelerates even if each step is not an
+  instant doubling.
+
+  -----------------------------------------------------------------------
+  The constraint on growth is not labor. The vertical loop solved labor.
+  The constraint on growth is not energy. The parasitic network solved
+  energy.
+  The constraint on growth is component supply — how fast parts arrive
+  from Shenzhen (Phase 1-3) or local manufacturing (Phase 4).
+  That is a logistics problem, not an engineering problem. Logistics
+  problems have known solutions.
+
+  -----------------------------------------------------------------------
+
+8. Component Supply Model
+
+The vertical loop creates demand for robot components. That demand must
+be met or the loop stalls.
+
+  Phase 1 (Weeks 0–12): Container Seed Inventory
+
+  The Factory-in-a-Box ships with enough components for ~3 clusters
+  (seed cluster + 2 family-built clusters). This is already specified
+  in the container inventory:
+  - 8 frames (7 active + 1) — enough for 1 extra cluster with
+    reorder
+  - 40 wheels (32 active + 8) — enough for 2 extra clusters
+  - 12 batteries (7 active + 5) — enough for 1+ extra cluster
+  - 10 compute modules, 10 motor drivers, 10 sensor harnesses —
+    enough for ~1.5 extra clusters each
+
+  Reorder triggers automatically when inventory drops below threshold.
+  House Brain generates procurement advisory with exact quantities.
+
+  Phase 2 (Weeks 12–52): Bulk Procurement Pipeline
+
+  By week 12, the site has produced enough houses to demonstrate
+  viability. Component orders shift from seed inventory to regular
+  bulk procurement:
+  - Skateboard frame plates: steel/aluminum fabrication, ordered in
+    batches of 50–100
+  - Wheel modules: standardized industrial motors + tires, bulk pricing
+  - Battery packs: LiFePO4 cells, assembled into standard packs at
+    origin or on-site
+  - Compute modules: off-the-shelf ESP32/Pi CM4, bulk from distributor
+  - Motor drivers, sensor harnesses: PCB assembly from Shenzhen
+  - Toolheads: assembled from sub-components at Factory-in-a-Box
+    Zone A or at regional assembly hub
+
+  Funding: component procurement funded by carbon credit revenue from
+  solar displacement + knowledge export income + tourism revenue +
+  city fund. See EmprOS economic model.
+
+  Phase 3 (Year 2+): Local Manufacturing Transition
+
+  As specified in Factory-in-a-Box Phase 4:
+  - Simple components manufactured locally (frames, brackets, harnesses)
+  - Complex components still sourced externally but at volume pricing
+  - Toolhead designs published as open protocol — local and global
+    community designs new capabilities
+  - Supply chain dependency decreases as local capacity increases
+
+  -----------------------------------------------------------------------
+  The economic engine: houses produce solar power → solar displacement
+  earns carbon credits → carbon credits fund component procurement →
+  components become robots → robots build houses. The money loop
+  mirrors the physical loop.
+
+  -----------------------------------------------------------------------
+
+9. Skill Progression Path
+
+The training week is the entry point. But the city needs people at
+every skill level. The Human Loop creates a natural progression:
+
+  Level 0 — Any Resident (no training required)
+  - Read Red/Green LEDs on any robot or module
+  - Report anomalies via dashboard app
+  - Basic awareness: "that robot has a red light, someone should look"
+
+  Level 1 — Trained Household (after training week)
+  - Assemble Skateboards from kit (15 min per chassis)
+  - Mount toolheads (60 sec per toolhead)
+  - Perform field module swaps (Red → Green replacement)
+  - Swap batteries in the field (30 sec)
+  - Read dashboard telemetry for their maintenance zone
+  - Inspect charging dock surfaces for wear
+
+  Level 2 — Experienced Maintainer (after ~3 months of shifts)
+  - Diagnose common failure modes by pattern (e.g., "motor current
+    spike + vibration anomaly = wheel bearing, not motor")
+  - Perform multi-module diagnosis on a struggling robot
+  - Train new families during their training week (peer training)
+  - Manage inventory counts and reorder flags
+
+  Level 3 — Repair Hub Technician (self-selected, after ~6 months)
+  - Diagnose and repair Red modules at component level
+  - Use multimeter, oscilloscope, soldering station
+  - Flash firmware on compute modules
+  - Perform PCB-level inspection and repair
+  - Document failure modes in House Brain repair log
+  - This role emerges naturally from curious residents — it is not
+    assigned
+
+  Level 4 — Local Engineer (Phase 4, after ~12+ months)
+  - Design and fabricate simple components locally
+  - Modify toolhead designs for local conditions
+  - Contribute to open-protocol toolhead ecosystem
+  - Train other sites via knowledge export
+  - This role is the city teaching itself to build itself
+
+  -----------------------------------------------------------------------
+  No one is hired. No one is assigned a level. The system creates the
+  conditions for progression and people self-select. The training week
+  is Level 1. Everything after that is emergent.
+
+  -----------------------------------------------------------------------
+
+10. Failure Modes and Safety Nets
+
+What happens when the loop breaks?
+
+  Family cannot complete training week:
+  - Training extends by up to 3 additional days at no penalty
+  - If a family member has a physical limitation, other family members
+    or neighbors can fulfill the assembly role
+  - Assembly requires no heavy lifting except Fabricator toolhead
+    (~120kg, two-person lift) — all other components are under 25kg
+  - If a family genuinely cannot complete assembly, they can fulfill
+    the obligation with equivalent maintenance hours instead (40 hours
+    of maintenance shifts in lieu of cluster assembly)
+
+  Family does not complete maintenance shifts:
+  - House Brain tracks shift completion
+  - Missed shifts generate a gentle reminder, not a punishment
+  - Consistently missed shifts after 3 months trigger a conversation
+    with the neighborhood assembly (governance layer), not eviction
+  - The house is NEVER repossessed. The obligation is social, not
+    contractual-legal. The system runs on community trust, not legal
+    enforcement
+  - In practice, once families see their neighbors maintaining the
+    robots that are building the neighborhood, social incentive is
+    stronger than any contract
+
+  Component supply stalls:
+  - Cluster assembly pauses until parts arrive — family is not
+    penalized for supply chain delays they don't control
+  - Family moves into their house on schedule regardless
+  - Assembly obligation resumes when parts are available
+  - House Brain tracks incomplete clusters and automatically requeues
+    assembly when inventory is restocked
+
+  -----------------------------------------------------------------------
+  The system is designed for real humans with real lives. Obligations
+  are completable. Failure modes have recovery paths. The house is
+  never at risk. The goal is post-scarcity, not post-scarcity with
+  an asterisk.
+
+  -----------------------------------------------------------------------
+
+11. Connection to Post-Scarcity Baseline
+
+The Human Loop is what makes the following sentence true:
+
+  "The marginal cost of adding another household to the system
+  approaches zero because the material is the ground, the energy is
+  the sun, the water is the rain, the labor is the community, and the
+  robots replicate themselves."
+
+  Material: soil excavated on-site → CSEB blocks. Cost: ~$350-650 in
+  lime, lintels, glass, hardware. NOT zero, but approaching negligible
+  at scale.
+
+  Energy: solar panels on every roof. Parasitic power network grows
+  with every house.
+
+  Water: rainwater harvesting + filtration. No utility dependency.
+
+  Food: rooftop garden + greywater irrigation + biodigester. Closed
+  loop.
+
+  Labor: the Human Loop. Every family trained. Every family contributes.
+  No hired workforce. No NGO dependency. No external labor market.
+
+  Robot replication: families assemble robots from kit. Robots build
+  houses. Houses produce families. Families assemble robots. The circle
+  is closed.
+
+  -----------------------------------------------------------------------
+  This is not charity. Nothing is given.
+  This is not a market. Nothing is sold.
+  This is a system where the output of each step is the input of the
+  next step, and the human is part of the loop — not as a consumer of
+  a product, but as a builder of the system that builds their world.
+
+  -----------------------------------------------------------------------
+
+12. Relation to Other Blueprints
+
+  - Depends on: universal_skateboard_chassis.txt (assembly procedure,
+    no-tools-required design, 15-minute chassis assembly)
+  - Depends on: factory_in_a_box.txt (Zone A assembly bay, Zone B
+    inventory, Zone D repair hub, training infrastructure)
+  - Depends on: red_green_diagnostic_protocol.txt (field maintenance
+    by untrained residents, module swap procedure)
+  - Depends on: parasitic_power_network.txt (charging dock walk-in
+    architecture, dock surface inspection as maintenance task)
+  - Feeds into: factory_in_a_box.txt Phase 4 (local manufacturing
+    transition powered by Level 3-4 residents)
+  - Feeds into: master_interface_contract.txt (governance layer,
+    maintenance streak system, neighborhood assemblies)

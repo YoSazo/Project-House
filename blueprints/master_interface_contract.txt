@@ -1314,7 +1314,12 @@ exponential scale.
     transmutation chain for walk-in capture dock, self-correcting
     geometry, final-pose-only electrical contact)
 
+  Human Systems:
+  - human_loop_blueprint.txt (NEW — social contract, family training
+    residency, cluster assembly obligation, maintenance commitment,
+    skill progression, vertical exponential loop)
+
   -----------------------------------------------------------------------
-  13 documents. One integrated system. From raw earth to finished city.
+  14 documents. One integrated system. From raw earth to finished city.
 
   -----------------------------------------------------------------------

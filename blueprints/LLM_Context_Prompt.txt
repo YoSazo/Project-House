@@ -74,6 +74,11 @@ inventory:
   12. Tool_Free_Retention_Truth_of_Lock_Stackv1.txt
   13. Autonomous_Charging_Dock_Final_Pose_Stackv1.txt
 
+  Human Systems:
+  14. human_loop_blueprint.txt — social contract, family training
+      residency, cluster assembly obligation, maintenance commitment,
+      skill progression, vertical exponential loop
+
 The code lives in:
   - server/src/contracts.js — machine-readable schemas for all 7 robots
   - server/src/scheduler.js — House Brain dispatch logic
@@ -458,7 +463,55 @@ Several recurring moves appear across all three chains:
   hiding its assumptions.
 
 ===========================================================================
-  PART 8 — DATABASE SCHEMA (KEY TABLES)
+  PART 8 — THE VERTICAL EXPONENTIAL (HUMAN LOOP)
+===========================================================================
+
+The horizontal loop is mechanical: robots build house → house grows
+power grid → power grid charges robots → robots build more houses.
+That scales linearly.
+
+The vertical loop is human: robots build house → family receives house →
+family builds robots → more robots build more houses. That is the
+multiplier that turns linear into exponential.
+
+The deal: a family receives a completed house (CSEB walls, solar roof,
+water harvesting, rooftop garden, biodigester, mesh internet) with zero
+rent, zero mortgage, zero debt, zero utility bills. In return:
+
+  Phase A: One-week training residency at the Factory-in-a-Box
+  Phase B: Assembly of one complete robot cluster (7 Skateboards +
+           7 toolheads) — embedded within the training week
+  Phase C: 4 hours/week of field maintenance for 6 months
+
+  Total obligation: ~200 hours. Then the house is theirs forever.
+
+The math: a Skateboard takes 15 minutes to assemble (no tools). A
+toolhead mounts in 60 seconds. A full cluster is ~2 hours of hands-on
+assembly. The training week wraps learning around that assembly.
+
+Growth: Week 0 has 1 cluster. Week 1 produces House 1 + Family 1
+builds Cluster B. Week 2 has 2 clusters, produces 2 houses. Each
+house adds a charging node (horizontal) AND a trained family with a
+new cluster (vertical). Growth accelerates with every house.
+
+Skill progression is emergent:
+  Level 0: Any resident reads Red/Green LEDs
+  Level 1: Trained household assembles Skateboards, does field swaps
+  Level 2: Experienced maintainer diagnoses patterns, trains new
+           families
+  Level 3: Repair Hub technician does component-level repair
+  Level 4: Local engineer designs/fabricates components
+
+No one is hired or assigned a level. The system creates conditions
+for progression. The training week is Level 1. Everything after is
+emergent.
+
+The house is never repossessed. The obligation is social, not legal.
+Failure modes have recovery paths. The goal is post-scarcity, not
+post-scarcity with an asterisk.
+
+===========================================================================
+  PART 9 — DATABASE SCHEMA (KEY TABLES)
 ===========================================================================
 
 The schema reflects the chassis/toolhead separation:
@@ -479,7 +532,7 @@ This lets the system track which chassis carried which toolhead, when
 swaps happened, and who/what triggered them.
 
 ===========================================================================
-  PART 9 — HOW TO WORK WITH THIS CONTEXT
+  PART 10 — HOW TO WORK WITH THIS CONTEXT
 ===========================================================================
 
 When working on this project:
