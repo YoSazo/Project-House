@@ -1055,6 +1055,99 @@ app.post("/api/reset-metrics", async (_req, res) => {
   }
 });
 
+// ============================================================
+// Bench Test Endpoints — ESP32 Survey Rig
+// ============================================================
+
+// Ingest a complete force-depth session from the ESP32 bench rig.
+// Accepts either:
+//   { curve: [[depth_mm, force_N], ...] }              — pre-formatted array
+//   { samples: [{depth_mm, force_N}, ...] }             — object array from serial bridge
+// Optional: session_label, soil_notes, source
+app.post("/api/bench/ingest", async (req, res) => {
+  try {
+    let curve = req.body?.curve;
+    if (!curve && Array.isArray(req.body?.samples)) {
+      curve = req.body.samples.map((s) => [Number(s.depth_mm), Number(s.force_N)]);
+    }
+    if (!Array.isArray(curve) || curve.length === 0) {
+      return res.status(400).json({ ok: false, error: "curve or samples array required" });
+    }
+
+    // Validate every point is [number, number]
+    for (let i = 0; i < curve.length; i++) {
+      const pt = curve[i];
+      if (!Array.isArray(pt) || pt.length !== 2 || !Number.isFinite(pt[0]) || !Number.isFinite(pt[1])) {
+        return res.status(400).json({ ok: false, error: `Invalid point at index ${i}` });
+      }
+    }
+
+    const maxDepth = Math.max(...curve.map((p) => p[0]));
+    const maxForce = Math.max(...curve.map((p) => p[1]));
+    const lastForces = curve.slice(-5).map((p) => p[1]);
+    const stallDetected = lastForces.length >= 5 && lastForces.every((f) => Math.abs(f - lastForces[0]) < 2);
+
+    const label = typeof req.body?.session_label === "string" ? req.body.session_label.slice(0, 200) : null;
+    const notes = typeof req.body?.soil_notes === "string" ? req.body.soil_notes.slice(0, 1000) : null;
+    const source = typeof req.body?.source === "string" ? req.body.source.slice(0, 50) : "esp32";
+
+    const result = await pool.query(
+      `INSERT INTO bench_sessions (session_label, source, force_depth_curve, sample_count, max_depth_mm, max_force_n, stall_detected, soil_notes)
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8)
+       RETURNING id, created_at`,
+      [label, source, JSON.stringify(curve), curve.length, maxDepth, maxForce, stallDetected, notes]
+    );
+
+    res.json({
+      ok: true,
+      session_id: result.rows[0].id,
+      sample_count: curve.length,
+      max_depth_mm: maxDepth,
+      max_force_n: maxForce,
+      stall_detected: stallDetected,
+      created_at: result.rows[0].created_at
+    });
+  } catch (error) {
+    console.error("Bench ingest error", error);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Retrieve all bench sessions (most recent first)
+app.get("/api/bench/sessions", async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, session_label, source, sample_count, max_depth_mm, max_force_n, stall_detected, soil_notes, created_at
+       FROM bench_sessions
+       ORDER BY created_at DESC
+       LIMIT 100`
+    );
+    res.json({ ok: true, sessions: result.rows });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Retrieve a single session with its full curve
+app.get("/api/bench/sessions/:id", async (req, res) => {
+  try {
+    const sessionId = Number(req.params.id);
+    if (!Number.isFinite(sessionId)) {
+      return res.status(400).json({ ok: false, error: "Invalid session id" });
+    }
+    const result = await pool.query(
+      `SELECT * FROM bench_sessions WHERE id = $1`,
+      [sessionId]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ ok: false, error: "Session not found" });
+    }
+    res.json({ ok: true, session: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 const server = app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
 });

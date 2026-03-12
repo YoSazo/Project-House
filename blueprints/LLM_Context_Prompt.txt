@@ -79,6 +79,10 @@ inventory:
       residency, cluster assembly obligation, maintenance commitment,
       skill progression, vertical exponential loop
 
+  Hardware Validation:
+  15. phase1_survey_bench_test.txt — static bench rig ($150-200), ESP32
+      firmware, force-depth curve ingestion into House Brain API
+
 The code lives in:
   - server/src/contracts.js — machine-readable schemas for all 7 robots
   - server/src/scheduler.js — House Brain dispatch logic

@@ -1319,7 +1319,12 @@ exponential scale.
     residency, cluster assembly obligation, maintenance commitment,
     skill progression, vertical exponential loop)
 
+  Hardware Validation:
+  - phase1_survey_bench_test.txt (NEW — static bench rig BOM, ESP32
+    firmware, serial-to-API bridge, force-depth curve ingestion into
+    House Brain)
+
   -----------------------------------------------------------------------
-  14 documents. One integrated system. From raw earth to finished city.
+  15 documents. One integrated system. From raw earth to finished city.
 
   -----------------------------------------------------------------------

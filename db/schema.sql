@@ -619,3 +619,22 @@ CREATE INDEX IF NOT EXISTS idx_toolhead_pairings_toolhead
 CREATE INDEX IF NOT EXISTS idx_toolhead_pairings_active
   ON toolhead_pairings (chassis_id)
   WHERE unpaired_at IS NULL;
+
+-- ============================================================
+-- Bench test sessions (raw ESP32 force-depth curves)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS bench_sessions (
+  id BIGSERIAL PRIMARY KEY,
+  session_label TEXT,                    -- human label e.g. "backyard clay bucket #3"
+  source TEXT NOT NULL DEFAULT 'esp32',  -- 'esp32', 'manual', 'serial_bridge'
+  force_depth_curve JSONB NOT NULL,      -- [[depth_mm, force_N], ...] raw from sensor
+  sample_count INTEGER NOT NULL DEFAULT 0,
+  max_depth_mm NUMERIC(10,2),
+  max_force_n NUMERIC(10,2),
+  stall_detected BOOLEAN NOT NULL DEFAULT FALSE,
+  soil_notes TEXT,                       -- free-form soil description
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bench_sessions_created
+  ON bench_sessions (created_at DESC);

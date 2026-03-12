@@ -1,0 +1,310 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Phase 1 Survey Bench Test Blueprint                                   |
+|                                                                       |
+| Replace Math.random() With Physics | v1                               |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: The cheapest, dumbest physical rig capable of extracting
+  a real-world force-depth curve from a bucket of compacted dirt, and
+  feeding that array into the Postgres site_surveys table. This is the
+  bridge from simulation to physical reality.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: A static bench test rig — linear actuator,
+  S-type load cell, ESP32, steel probe rod, and a bucket of dirt —
+  produces real [depth_mm, force_N] telemetry at 20Hz over WiFi into
+  the House Brain API, replacing synthetic Math.random() survey data
+  with actual soil resistance curves.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+The survey pipeline in scheduler.js currently generates fake force-depth
+curves via Math.random(). The buildSurveyProbe() function produces
+synthetic penetration_curve arrays that look plausible but contain zero
+physical reality.
+
+This bench test replaces that fiction with measurement. The rig costs
+~$150-200 and produces the exact data format the pipeline already
+expects.
+
+  -----------------------------------------------------------------------
+  The objective is singular: make the database contain numbers that came
+  from dirt, not from Math.random().
+
+  -----------------------------------------------------------------------
+
+2. Bill of Materials
+
+  -----------------------------------------------------------------------
+  Component                       Spec                          Est. Cost
+  -----------------------------------------------------------------------
+  Linear Actuator (12V)           200-300mm stroke, 500-1000N   $40-60
+                                  push force, built-in
+                                  potentiometer feedback
+  S-Type Load Cell                100kg capacity                $15-25
+  HX711 Amplifier Module          Load cell signal amplifier    $5-8
+  ESP32 Microcontroller           ESP32-S3 DevKit or similar    $8-15
+  BTS7960 Motor Driver            Handles 12V actuator amps     $10-15
+  Steel Probe Rod                 1/2" hardened, ~300mm,        $10-15
+                                  blunt conical tip
+  5-Gallon Bucket                 Test environment              $5
+  Bag of Topsoil/Clay             Local soil or purchased       $5-10
+  12V 10A DC Power Supply         Powers actuator               $15-20
+  2×4 Lumber + Bolts              Frame material                $15-20
+  -----------------------------------------------------------------------
+  Total                                                         $130-190
+  -----------------------------------------------------------------------
+
+  Critical: the linear actuator MUST have a built-in potentiometer.
+  This is the depth sensor. Without it you need a separate linear
+  encoder, which adds cost and complexity.
+
+3. Physical Assembly
+
+The rig is a static guillotine. No rover chassis. No wheels. No
+mobility. Just a vertical press.
+
+  Frame:
+  - Inverted "U" shape from heavy 2×4 lumber
+  - Bolted or clamped to a heavy workbench
+  - Frame must NOT lift when actuator pushes against hard soil
+  - If the frame lifts: congratulations, you just experienced the
+    exact constraint that led to the Fabricator's self-grounding
+    anchor feet in the transmutation chain
+
+  Kinematic Stack (top to bottom):
+  1. Linear actuator — mounted pointing straight down from frame top
+  2. S-Type load cell — threaded into actuator shaft tip
+  3. Steel probe rod — threaded into bottom of load cell
+
+  Result: Actuator pushes Load Cell → Load Cell pushes Rod → Rod
+  pushes Dirt.
+
+4. Wiring
+
+  Actuator Power:
+  12V PSU → BTS7960 motor driver → actuator motor wires
+
+  Actuator Position (depth):
+  Actuator potentiometer (3 wires: 5V, GND, Signal) → ESP32 analog
+  input pin (GPIO 34)
+
+  Force Sensor:
+  S-Type load cell → HX711 amplifier → ESP32 digital pins
+  (DT = GPIO 4, SCK = GPIO 5)
+
+5. Microcontroller Firmware
+
+Flash the ESP32 via Arduino IDE. The firmware drives the actuator down
+at constant slow speed and emits JSON telemetry at 20Hz over Serial.
+
+  -----------------------------------------------------------------------
+  // ESP32 Bench Test Firmware — Survey Probe Rig v1
+  // Emits {depth_mm, force_N} at 20Hz
+
+  #include "HX711.h"
+
+  const int LOADCELL_DOUT_PIN = 4;
+  const int LOADCELL_SCK_PIN = 5;
+  const int POTENTIOMETER_PIN = 34;
+  const int MOTOR_PWM_PIN = 18;
+  const int MOTOR_DIR_PIN = 19;
+
+  HX711 scale;
+
+  void setup() {
+    Serial.begin(115200);
+    scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+
+    // Calibrate: hang known weights from load cell to find this value
+    scale.set_scale(2280.f);
+    scale.tare();  // Zero out probe rod weight
+
+    pinMode(MOTOR_PWM_PIN, OUTPUT);
+    pinMode(MOTOR_DIR_PIN, OUTPUT);
+  }
+
+  void loop() {
+    // Drive actuator down at constant slow speed
+    digitalWrite(MOTOR_DIR_PIN, HIGH);
+    analogWrite(MOTOR_PWM_PIN, 150);  // ~60% PWM
+
+    // Read sensors
+    float force_N = scale.get_units();
+    int raw_depth = analogRead(POTENTIOMETER_PIN);
+    float depth_mm = map(raw_depth, 0, 4095, 0, 200);
+
+    // Emit telemetry
+    Serial.print("{\"depth_mm\": ");
+    Serial.print(depth_mm);
+    Serial.print(", \"force_N\": ");
+    Serial.print(force_N);
+    Serial.println("}");
+
+    delay(50);  // 20Hz
+  }
+  -----------------------------------------------------------------------
+
+  Calibration procedure:
+  1. Power on with no load — run scale.tare()
+  2. Hang a known weight (e.g., 5kg = 49.05N) from the load cell
+  3. Adjust scale.set_scale() until Serial output reads ~49.05
+  4. Map potentiometer: actuator fully retracted = 0mm, fully extended
+     = stroke length (200mm or 300mm depending on actuator purchased)
+
+6. Test Protocol
+
+  1. PREP: Fill 5-gallon bucket with soil. Add moisture. Tamp with
+     sledgehammer or heavy post as hard as physically possible. Create
+     an artificially hard layer near the bottom.
+
+  2. POSITION: Slide bucket under probe. Probe tip should be ~5mm
+     above soil surface at actuator starting position.
+
+  3. FIRE: Power on ESP32. Actuator begins driving into soil.
+
+  4. LOG: Serial monitor streams JSON at 20Hz. Each line is one
+     {depth_mm, force_N} sample.
+
+  5. LIMIT: Let it run until one of:
+     - Actuator stalls (motor current limit)
+     - Frame starts lifting or groaning
+     - Load cell approaches 100kg / 981N max
+     - Probe reaches full stroke depth
+
+     This failure point IS data. It defines the soil's resistance
+     ceiling for this probe geometry.
+
+  6. STOP: Cut power. Retract actuator manually or reverse motor
+     direction.
+
+7. Data Pipeline
+
+  Serial Output → Laptop → House Brain API
+
+  Option A: Serial-to-HTTP bridge (Python script on laptop)
+
+    The ESP32 streams JSON over USB serial. A Python script on the
+    laptop collects all samples into an array, then POSTs the complete
+    session to the House Brain API when the test ends.
+
+    ---------------------------------------------------------------
+    import serial, json, requests
+
+    port = serial.Serial("COM3", 115200)  # or /dev/ttyUSB0
+    samples = []
+
+    print("Collecting... press Ctrl+C when done")
+    try:
+        while True:
+            line = port.readline().decode().strip()
+            if line:
+                sample = json.loads(line)
+                samples.append([sample["depth_mm"], sample["force_N"]])
+                print(f"  depth={sample['depth_mm']:.1f}mm  force={sample['force_N']:.1f}N")
+    except KeyboardInterrupt:
+        pass
+
+    print(f"\nCollected {len(samples)} samples. Uploading...")
+    resp = requests.post("http://localhost:8787/api/bench/ingest", json={
+        "curve": samples,
+        "session_label": "backyard bucket test #1",
+        "soil_notes": "clay-heavy topsoil, tamped with sledgehammer",
+        "source": "serial_bridge"
+    })
+    print(resp.json())
+    ---------------------------------------------------------------
+
+  Option B: ESP32 WiFi POST (direct, no laptop bridge)
+
+    Once WiFi is configured on the ESP32, it can POST the curve
+    directly to the House Brain API after completing a test run.
+    This is the eventual production path but requires more firmware
+    work. Use Option A for the bench test.
+
+  API Endpoint:
+
+    POST /api/bench/ingest
+    Body: {
+      "curve": [[0, 0], [10, 15.2], [20, 45.8], ...],
+      "session_label": "bucket test #1",
+      "soil_notes": "description of soil and preparation",
+      "source": "serial_bridge"
+    }
+
+    Response: {
+      "ok": true,
+      "session_id": 1,
+      "sample_count": 847,
+      "max_depth_mm": 187.3,
+      "max_force_n": 642.1,
+      "stall_detected": true
+    }
+
+  Storage:
+
+    Raw curves stored in bench_sessions table (Postgres JSONB).
+    Full curve preserved — no downsampling. At 20Hz for a ~30 second
+    test, each session is ~600 samples = ~15KB of JSON. Negligible.
+
+8. Bridge to Survey Pipeline
+
+  The existing survey pipeline expects penetration_curve as a JSONB
+  array in site_surveys. Currently buildSurveyProbe() in scheduler.js
+  generates 4 fake values.
+
+  To inject real data:
+
+  Step 1: Run bench test, collect curve via /api/bench/ingest
+  Step 2: Retrieve curve via GET /api/bench/sessions/:id
+  Step 3: The curve is real force-depth data. To convert to the
+          format buildSurveyProbe() outputs:
+          - Downsample to 4-8 representative force values at
+            evenly spaced depth intervals
+          - These become the penetration_curve array
+
+  When the full Survey robot toolhead exists, this manual bridge
+  disappears. The robot runs the probe, emits the curve, and the
+  pipeline consumes it directly. The bench test proves the data
+  format works end to end.
+
+9. What This Proves
+
+  When a bench test curve lands in the Postgres database:
+
+  - The sensor stack works (load cell → HX711 → ESP32 → JSON)
+  - The data format is correct (the API accepts it and stores it)
+  - The force-depth curve contains real physics
+  - The classification logic (BUILDABLE / MARGINAL / REJECT) can be
+    run against actual soil resistance instead of random numbers
+  - The Fabricator's compression recipe can be tuned to real soil
+    character instead of synthetic clay/sand ratios
+
+  What it does NOT prove:
+  - Robot mobility (this is a static rig)
+  - Autonomous operation (human presses the button)
+  - Multi-probe site surveying (one bucket, one hole)
+  - Weathering or durability
+
+  That is fine. This is Step 1. Replace fiction with measurement.
+  Everything else follows.
+
+10. Relation to Other Blueprints
+
+  - Feeds into: site_surveys.penetration_curve (Postgres schema)
+  - Feeds into: buildSurveyProbe() in scheduler.js (eventually
+    replaces the Math.random() generator)
+  - Feeds into: Fabricator compression recipe tuning (real soil data
+    enables real recipe optimization)
+  - References: universal_skateboard_chassis.txt Section 5.1 (Survey
+    toolhead spec — this bench test is a simplified static version of
+    that toolhead's probe mechanism)
+  - References: master_interface_contract.txt Layer 2 telemetry
+    schema for site_survey_probe
