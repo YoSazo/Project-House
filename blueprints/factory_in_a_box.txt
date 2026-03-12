@@ -1,0 +1,365 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Factory-in-a-Box Seed Deployment Blueprint                            |
+|                                                                       |
+| One Container = One City Seed | v1                                    |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: The first physical object you ship is not a robot. It is
+  a self-powered, climate-controlled manufacturing environment inside a
+  standard shipping container. Everything needed to bootstrap a new city
+  lives inside it. One container equals one city seed.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: A retrofitted 40-foot shipping container with
+  roof-mounted solar panels, interior climate control, assembly jigs,
+  spare parts inventory, House Brain server, and charging infrastructure
+  — serving as the forward operating base from which the first robot
+  cluster is assembled, tested, and deployed to build the first house.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+When the first cluster arrives at deployment (port, airfield, rural
+site), it cannot be assembled in a dusty tent. Precision electronics,
+calibrated sensors, and clean mechanical connections require a
+controlled environment.
+
+The Factory-in-a-Box solves the Day One problem: how do you establish
+manufacturing-grade capabilities at an undeveloped site with zero
+existing infrastructure?
+
+  -----------------------------------------------------------------------
+  The container IS the infrastructure. Solar-powered, climate-controlled,
+  stocked, and self-sufficient from the moment it lands.
+
+  -----------------------------------------------------------------------
+
+2. Container Physical Specification
+
+2.1 Exterior
+
+  - Standard 40-foot ISO shipping container (12.2m × 2.44m × 2.59m)
+  - Structural modifications: reinforced roof for solar panel mounting
+  - Roof-mounted solar array: minimum 5kW (covers ~28m² roof area)
+  - Exterior charging docks: 4 walk-in charging docks matching
+    Parasitic Power Network spec (48V DC, 30A, walk-in capture geometry)
+  - Water harvesting system: roof gutters → filtration → 500L internal
+    tank
+  - Exterior signage: deployment ID, House Brain network SSID, emergency
+    contacts
+  - Roll-up door on one end for large equipment access
+  - Personnel door on side with security lock
+  - Leveling jacks at four corners for uneven terrain deployment
+
+2.2 Interior — Climate Control Zone
+
+  - Positive-pressure HEPA-filtered air system (keeps dust out of
+    electronics work)
+  - Temperature control: cooling for hot climates, heating for cold
+    — target 18–28°C interior
+  - Humidity control: dehumidifier to protect electronics and stored
+    components
+  - LED strip lighting — full interior illumination for work shifts
+  - Power: interior runs from solar + battery bank (container-local
+    LiFePO4 bank, 10kWh minimum)
+  - UPS for House Brain server — clean shutdown on power loss
+
+2.3 Interior Layout
+
+  The interior is divided into four functional zones:
+
+  -----------------------------------------------------------------------
+  Zone A — Assembly Bay (40% of floor space, near roll-up door)
+
+  -----------------------------------------------------------------------
+
+  - Assembly workbench (welded steel, anti-static mat surface)
+  - Assembly jigs: one jig per component type:
+    - Skateboard frame assembly jig (holds frame, guides wheel module
+      alignment)
+    - UTI connector alignment fixture
+    - Toolhead mounting practice rig
+  - Compressed air for cleaning components
+  - Overhead tool rail with basic hand tools (for initial assembly
+    only — field maintenance is tool-free)
+  - Component test bench: power supply + oscilloscope + multimeter
+    for module QC and repair
+  - Completed robot staging area (2–3 assembled skateboards can park
+    here during testing)
+
+  -----------------------------------------------------------------------
+  Zone B — Inventory Storage (30% of floor space)
+
+  -----------------------------------------------------------------------
+
+  - Rack shelving system — labeled bins for every module type
+  - Initial inventory (per city seed):
+
+    Skateboard frames:          8 (7 active + 1 spare)
+    Wheel modules:             40 (32 active + 8 spares)
+    Battery packs:             12 (7 active + 5 spares/rotation)
+    Compute modules:           10 (7 active + 3 spares)
+    Motor driver boards:       10 (7 active + 3 spares)
+    Sensor harnesses:          10 (7 active + 3 spares)
+
+    Survey toolheads:           2 (1 active + 1 spare)
+    Excavator toolheads:        2 (1 active + 1 spare)
+    Fabricator toolheads:       2 (1 active + 1 spare)
+    Verification toolheads:     1
+    Assembly toolheads:         2 (1 active + 1 spare)
+    Sealer toolheads:           1
+    Logistics toolheads:        2 (1 active + 1 spare)
+
+    Lime stabilizer:          500kg (for CSEB stabilization)
+    Sealant compound:         200L (for Sealer refills)
+    UTI connectors (spare):    10
+    Dock contact pads (spare):  5
+    LED module replacements:   50 assorted
+
+  - Inventory tracking: barcode or QR scan on every bin, linked to
+    House Brain inventory system
+  - Reorder thresholds set per module type — when inventory drops
+    below threshold, House Brain generates procurement advisory
+
+  -----------------------------------------------------------------------
+  Zone C — House Brain Server Room (15% of floor space)
+
+  -----------------------------------------------------------------------
+
+  - Rack-mounted server or ruggedized mini-PC
+  - Running: PostgreSQL database, Express.js API, scheduler, WebSocket
+  - WiFi access point: site-wide coverage (mesh repeaters deployed as
+    construction area expands)
+  - Ethernet switch for local wired connections
+  - UPS battery backup: minimum 2 hours runtime on server loss of power
+  - Backup: automated daily database dump to encrypted local storage +
+    cloud sync when internet available
+  - Network: satellite internet terminal (Starlink or equivalent) for
+    remote monitoring, cloud backup, and procurement communication
+
+  -----------------------------------------------------------------------
+  The House Brain instance for this city runs HERE. Not in a remote
+  cloud. The latency between robot and brain must be milliseconds, not
+  seconds. Cloud is for backup and remote monitoring only.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Zone D — Repair Hub (15% of floor space)
+
+  -----------------------------------------------------------------------
+
+  - Repair workbench with ESD mat
+  - Red-tagged module intake bin
+  - Diagnostic tools: multimeter, oscilloscope, logic analyzer,
+    soldering station
+  - Magnification lamp for PCB inspection
+  - Firmware flashing station (USB programmer + test jig)
+  - Repaired module output bin (tagged Green after passing bench test)
+  - Repair log: every module repair documented in House Brain with
+    failure mode, fix applied, technician ID
+
+  -----------------------------------------------------------------------
+  This is where Red boxes become Green boxes again. And where the
+  site's most technically talented residents emerge.
+
+  -----------------------------------------------------------------------
+
+3. Deployment Sequence
+
+Day Zero — Container arrives at site.
+
+  Hour 0–2: Container offloaded, positioned, leveled on jacks
+  Hour 2–3: Solar array connections verified, battery bank charged
+            from solar (or pre-charged at origin)
+  Hour 3–4: Interior systems powered on — HVAC, lights, HEPA
+  Hour 4–5: House Brain server booted, database initialized,
+            WiFi network live
+  Hour 5–8: First robot cluster assembled:
+            - 7 Skateboard chassis assembled from kits
+            - 7 toolheads mounted (one per role)
+            - All robots powered on, self-test, register with House
+              Brain
+
+Day One — First physical operation.
+
+  The first thing the seed cluster builds is NOT a house.
+
+  -----------------------------------------------------------------------
+  Bootstrap Mission: Earth Block Perimeter Wall
+
+  -----------------------------------------------------------------------
+
+  The seed cluster builds a perimeter wall around the Factory-in-a-Box
+  container using the full robot pipeline:
+
+  1. Survey robot surveys the ground immediately surrounding the
+     container
+  2. Excavator extracts and processes local soil
+  3. Fabricator produces earth blocks from the local soil
+  4. Verification certifies the blocks
+  5. Assembly places the blocks into a simple rectangular perimeter
+  6. Sealer coats the perimeter for weather protection
+  7. Logistics supports material transport between stations
+
+  Purpose of the perimeter wall:
+  - Insulates and protects the container from direct sun and wind
+  - Tests the FULL robot pipeline with real local soil
+  - Produces first real-world force-depth curves, soil signatures,
+    blade wear data, compression profiles
+  - Calibrates all feedback loops against actual terrain
+  - Lower stakes than a house — a perimeter wall has no occupant
+
+  -----------------------------------------------------------------------
+  The first thing the robots build is a fortress around their own
+  factory. That is simultaneously a system test, a calibration run,
+  and content for the world to watch.
+
+  -----------------------------------------------------------------------
+
+Day 2–7: System calibration from perimeter wall data.
+
+  - Survey model updated with real soil signatures
+  - Fabricator recipes tuned for local soil composition
+  - Blade wear baselines established
+  - Assembly insertion profiles calibrated against real block geometry
+  - Sealer formulation validated against local conditions
+  - Any Red modules identified and repaired
+
+Day 7+: First house construction begins.
+
+  - House Brain schedules first residential house
+  - Full pipeline operates with calibrated parameters from perimeter
+    wall data
+  - First house completion: proof of concept for the deployment site
+
+4. Container Replication Model
+
+Deploying a new city does not require redesigning anything. It requires
+shipping one more container.
+
+  -----------------------------------------------------------------------
+  One container = one city seed.
+
+  Standardize the container contents and deploying a new city becomes
+  a checklist operation:
+
+  □ Container loaded with standard inventory manifest
+  □ House Brain server pre-configured with site coordinates
+  □ Solar array pre-tested
+  □ Battery bank pre-charged
+  □ Satellite internet terminal included
+  □ First 500kg lime stabilizer loaded
+  □ First 200L sealant loaded
+  □ Assembly jigs and test bench mounted
+  □ Ship to deployment coordinates
+
+  -----------------------------------------------------------------------
+
+  Container Naming: SEED-[CITY]-[SEQ]
+  Example: SEED-BERBERA-001, SEED-HARGEISA-001
+
+  Every container reports its status to a global operations dashboard:
+  - Inventory levels
+  - Robot fleet status (via local House Brain)
+  - Solar generation and power network status
+  - Construction progress (houses completed, in progress, planned)
+  - Module failure rates and procurement advisories
+
+5. Growth Trajectory
+
+5.1 Phase 1 — Single Container, Single Cluster
+
+  - 1 container, 7 robots, 1 toolhead set
+  - Output: ~1 house per week (conservative, including calibration)
+  - Power: container solar only + first house as it completes
+  - Team: 3–5 local residents trained on assembly and Red/Green
+    maintenance
+
+5.2 Phase 2 — Single Container, Multiple Clusters
+
+  - Same container, ordered additional Skateboard kits + toolheads
+  - Assemble 2nd, 3rd cluster from container inventory
+  - 2–3 clusters operating from one Factory-in-a-Box
+  - Output: 2–3 houses per week
+  - Power: growing parasitic network from completed houses
+  - Team: 8–12 local residents, some specializing in repair hub
+
+5.3 Phase 3 — Multiple Containers, Multiple Sites
+
+  - Second container shipped to adjacent site or new city
+  - Each container self-sufficient with own House Brain instance
+  - Global operations dashboard tracks all containers
+  - Output: scales with number of containers × clusters per container
+  - Supply chain: bulk procurement across all containers from same
+    suppliers
+
+5.4 Phase 4 — Local Manufacturing
+
+  - Site team has enough expertise to manufacture some components
+    locally
+  - Simple components first: frames, mounting brackets, wiring harnesses
+  - Complex components still sourced from Shenzhen but volume is large
+    enough for dedicated production line
+  - Toolhead designs published as open protocol — local engineers
+    and global community design new capabilities
+  - Container transitions from sole manufacturing hub to R&D and
+    training center
+
+  -----------------------------------------------------------------------
+  The container starts as the factory. It becomes the school. The city
+  learns to build itself.
+
+  -----------------------------------------------------------------------
+
+6. Integration with System Architecture
+
+6.1 House Brain
+
+  - Container House Brain is the authoritative instance for the site
+  - All robot telemetry, construction scheduling, power routing,
+    inventory tracking runs here
+  - Cloud backup for disaster recovery
+  - Remote monitoring for global operations team
+
+6.2 Skateboard Chassis
+
+  - All chassis assembled from kit in container Assembly Bay
+  - Assembly jigs ensure consistent build quality
+  - Post-assembly self-test validates all systems before field deployment
+
+6.3 Red/Green Protocol
+
+  - Container Repair Hub is the return point for Red-tagged modules
+  - Inventory Zone B is the source for Green replacement modules
+  - Module lifecycle: Factory → Field (Green) → Field (Red) → Repair
+    Hub → Field (Green) or Scrap
+
+6.4 Parasitic Power Network
+
+  - Container is Node Zero in the power network
+  - Container charging docks are the first available charging
+    infrastructure
+  - As houses complete, network grows beyond container — but container
+    remains a reliable backup node
+
+  -----------------------------------------------------------------------
+  The four accelerators are not independent blueprints. They are one
+  integrated system:
+
+  The Skateboard carries the toolhead.
+  The Red/Green Protocol keeps the Skateboard running.
+  The Parasitic Network keeps the Skateboard charged.
+  The Factory-in-a-Box builds the Skateboard, stocks the modules,
+  repairs the Red boxes, and houses the Brain that coordinates it all.
+
+  One container. One chassis. One diagnostic protocol. One power grid.
+  One city.
+
+  -----------------------------------------------------------------------

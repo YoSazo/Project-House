@@ -87,6 +87,9 @@ CREATE TABLE IF NOT EXISTS robots (
   id SERIAL PRIMARY KEY,
   cluster_id INTEGER NOT NULL REFERENCES robot_clusters(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
+  chassis_id TEXT,            -- physical chassis serial (Skateboard identity)
+  toolhead_id TEXT,           -- currently mounted toolhead serial (NULL = bare chassis)
+  toolhead_type TEXT,         -- current toolhead type for quick lookup
   status TEXT NOT NULL CHECK (status IN ('idle', 'moving', 'waiting_component', 'placing')) DEFAULT 'idle',
   pos_x INTEGER NOT NULL DEFAULT 0,
   pos_y INTEGER NOT NULL DEFAULT 0,
@@ -594,3 +597,25 @@ CREATE INDEX IF NOT EXISTS idx_block_verifications_house_mode_created
 CREATE INDEX IF NOT EXISTS idx_site_surveys_house_notes
   ON site_surveys (house_id, surveyed_at DESC)
   WHERE COALESCE(notes, '') NOT LIKE 'scheduler:excavator_ground_truth%';
+
+-- ============================================================
+-- Toolhead pairing history (chassis ↔ toolhead swap tracking)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS toolhead_pairings (
+  id BIGSERIAL PRIMARY KEY,
+  cluster_id INTEGER NOT NULL REFERENCES robot_clusters(id) ON DELETE CASCADE,
+  chassis_id TEXT NOT NULL,
+  toolhead_id TEXT NOT NULL,
+  toolhead_type TEXT NOT NULL,
+  paired_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  unpaired_at TIMESTAMPTZ,
+  paired_by TEXT             -- event that triggered the swap (e.g. 'scheduler', 'manual')
+);
+
+CREATE INDEX IF NOT EXISTS idx_toolhead_pairings_chassis
+  ON toolhead_pairings (chassis_id, paired_at DESC);
+CREATE INDEX IF NOT EXISTS idx_toolhead_pairings_toolhead
+  ON toolhead_pairings (toolhead_id, paired_at DESC);
+CREATE INDEX IF NOT EXISTS idx_toolhead_pairings_active
+  ON toolhead_pairings (chassis_id)
+  WHERE unpaired_at IS NULL;

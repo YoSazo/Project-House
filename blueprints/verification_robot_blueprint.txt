@@ -907,13 +907,65 @@ Those belong to: House Brain, Fabricator, Logistics, and Assembly.
 Verification only says: "This produced part does or does not match the
 trusted process and requested spec."
 
-21. Final Blueprint Summary
+21. Skateboard Integration Addendum — v1.1
 
   -----------------------------------------------------------------------
-   The Verification Robot is a mostly stationary QC and durability-truth
-    system that certifies whether Fabricator produced the House Brain's
-      requested part through a trusted process, matches its required
-     characteristics, and can be given increasing lifetime confidence
-            through accelerated durability learning over time.
+  As of v1.1, the Verification Robot transitions from "mostly stationary"
+  to MOBILE. It is a TOOLHEAD that mounts on the Universal Skateboard
+  Chassis via the Universal Toolhead Interface (UTI) — a self-seating,
+  keyed, normally closed, pressure-released mount with sacrificial wear
+  inserts. Mobility allows it to drive to where blocks are produced
+  rather than requiring a fixed station. See: universal_skateboard_chassis
+  blueprint for full chassis spec. See: Toolhead_Mount_Load_Path_
+  Validation_Stackv1 for the full transmutation chain behind the mount
+  architecture.
+
+  -----------------------------------------------------------------------
+
+  What the Verification Toolhead retains:
+  - Process-trace verification (trusted fabrication record check)
+  - Dimensional and mass QC against House Brain recipe
+  - Inline vs accelerated weathering verification modes
+  - TTL library building from Sealer water stress data
+  - Fill correction and dwell recommendation feedback to Fabricator
+  - Handling damage detection
+  - Convergence limits on dwell increase and TTL extension
+  - Full telemetry and command surface per Master Interface Contract
+
+  What moves to the Skateboard Chassis:
+  - Battery / power system → Skateboard 48V LiFePO4 battery pack
+  - Compute / WiFi / House Brain comms → Skateboard compute module
+  - IMU / UWB localization → Skateboard sensor suite
+  - Navigation and positioning → Skateboard firmware
+
+  What changes:
+  - Previously described as "mostly stationary" — now mobile on
+    Skateboard, can drive to Fabricator output location
+  - Weathering chamber is compact and field-deployable on the toolhead
+  - Power from chassis 48V bus (300W peak)
+
+  Red/Green Diagnostic Modules (LED addresses 16–22):
+  - 16: Inspection cradle actuator
+  - 17: Dimensional sensor
+  - 18: Mass sensor
+  - 19: Camera
+  - 20: Weathering chamber
+  - 21: Toolhead controller
+  - 22: Power regulator
+
+  See: red_green_diagnostic_protocol blueprint for full LED state machine.
+  See: parasitic_power_network blueprint for charging integration.
+  See: factory_in_a_box blueprint for assembly and inventory.
+
+22. Final Blueprint Summary
+
+  -----------------------------------------------------------------------
+  The Verification Robot is a now-mobile QC and durability-truth TOOLHEAD
+  mounted on the Universal Skateboard Chassis that certifies whether
+  Fabricator produced the House Brain's requested part through a trusted
+  process, matches its required characteristics, and can be given
+  increasing lifetime confidence through accelerated durability learning
+  over time — now with mobility, standardized chassis, tool-free
+  swappability, Red/Green module diagnostics, and parasitic charging.
 
   -----------------------------------------------------------------------

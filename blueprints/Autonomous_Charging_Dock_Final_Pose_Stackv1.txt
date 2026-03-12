@@ -1,0 +1,308 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Constraint Transmutation Blueprint                                    |
+| Autonomous Charging Dock + Final-Pose Truth Stack                     |
+|                                                                       |
+| Walk-In Capture, Self-Correction, Final-Pose-Only Contact | v1        |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: Autonomous charging becomes viable when the robot no
+  longer has to perform delicate plug mating, but instead enters a slow
+  self-correcting walk-in dock that converts imperfect approach into one
+  final pose, makes electrical contact physically impossible before full
+  seating, and treats the guide/contact surfaces as TTL maintenance parts.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: Autonomous charging is solved not by better
+  connector insertion, but by replacing plug-mating with walk-in capture
+  geometry that self-corrects imperfect approach into one final docked
+  pose where electrical contact is physically impossible before full
+  convergence, with low-battery slow-approach mode reducing impact wear,
+  session handshake proving intent, and guide/contact surfaces treated
+  as TTL service parts.
+
+  -----------------------------------------------------------------------
+
+0. Purpose
+
+This blueprint captures the full constraint-transmutation sequence used
+to solve the following engineering wall:
+
+How do you make robot charging autonomous when physical connector mating
+is a hard robotics problem, without breaking the autonomy story by
+requiring manual cable plugging?
+
+This is not solved by making the robot better at plugging things in. It
+is solved by trading the precision burden away.
+
+1. Original Wall
+
+The charging protocol is underspecified for autonomy. The blueprint says
+"robot docks charging port to post cable" but that compresses a huge
+robotics problem into one word: docks.
+
+Autonomous charging is not mainly about voltage, current, or software
+handshake. It is mainly about:
+
+  - alignment
+  - connector mating
+  - tolerance
+  - dirt
+  - repeated cycles
+  - approach error
+  - recovery from slight imperfection
+
+If a human must physically plug the cable in, the autonomy story breaks.
+
+The real wall is:
+
+  How do you make autonomous charging work without requiring the robot
+  to perform delicate plug-in precision every single time?
+
+2. Transmutation Chain
+
+  -----------------------------------------------------------------------
+  Transmutation #1 — Turn Plugging Into Walking In
+
+  Constraint: The Blind Person Threading a Needle
+  Autonomous connector mating is like threading a needle blindfolded
+  on an uneven floor. The problem is precision physical mating in the
+  real world, not electricity.
+
+  Trade: Make the charger face outward. As the robot moves forward it
+  comes into contact. The more it moves forward the more it locks in.
+  At a point it is fully locked in and now charging. Simply walk in.
+
+  Old burden: delicate connector mating every cycle
+  New burden: dock geometry must accept imperfect approach
+
+  Progress: 16%
+
+  -----------------------------------------------------------------------
+  Transmutation #2 — Make Wrong Entry Spend Itself Into Right Entry
+
+  Constraint: The Shopping Cart Into the Checkout Cradle
+  Walk-in entry helps, but what if the robot comes in crooked, one
+  wheel on dirt, diagonal, or jams halfway?
+
+  Trade: Self-correcting capture geometry. Rounded corners and funnel
+  geometry use the robot's momentum and forward motion as correction.
+  Whatever the entry angle, the dock actively guides it to the same
+  final spot. The dock manufactures correctness from imperfect approach.
+
+  Old burden: imperfect entry risks jamming or half-seating
+  New burden: correction must happen gently enough for repeated cycles
+
+  Progress: 28%
+
+  -----------------------------------------------------------------------
+  Transmutation #3 — Spend Time to Save Hardware
+
+  Constraint: The Bowling Ball Into the Gutter Funnel
+  Self-correcting dock can still fail through impact energy, abrasion,
+  repeated correction loads, bounce-back, and guide-surface wear.
+
+  Trade: When battery falls below threshold, robot enters low-battery
+  charge-seeking mode — reduced speed, reduced acceleration, gentle
+  final approach. The dock no longer has to correct a fast heavy body.
+  It only has to correct a gentle one.
+
+  Old burden: high-energy entry causes slamming and wear
+  New burden: slow approach still has to guarantee true final seating
+
+  Progress: 40%
+
+  -----------------------------------------------------------------------
+  Transmutation #4 — Let Touch Wake the Final Capture
+
+  Constraint: The Sleepy Person Still Missing the Bed
+  Slow approach prevents violence. It does not guarantee full final
+  seating — still possible to stop too early or end in half-dock.
+
+  Trade: First valid contact pressure allows the dock to finish the
+  last bit of capture. Robot only has to get close enough. The dock
+  handles the last precision.
+
+  Old burden: slow approach may still end in gentle half-dock
+  New burden: must prove first contact became full final charge state
+
+  Progress: 52%
+
+  -----------------------------------------------------------------------
+  Transmutation #5 — Add Intent / Session Communication
+
+  Constraint: The Handshake Is Not the Conversation
+  Touch alone is too ambiguous. Is this a charging event or random
+  bumping?
+
+  Trade: Robot and dock communicate session intent. Dock knows robot
+  identity, battery state, that this approach is intentional. Touch
+  plus session handshake reduces ambiguity.
+
+  Old burden: touch alone too ambiguous
+  New burden: handshake and intent still need physical proof of charging
+
+  Progress: 64%
+
+  -----------------------------------------------------------------------
+  Transmutation #6 — Charging Physically Impossible Until Final Pose
+
+  Constraint: The Card Insert Is Not the Payment
+  Handshake and intent prove context. They do not prove actual power
+  transfer or successful seating.
+
+  Trade: Design the dock so that electrical contact is physically
+  impossible during correction phase. Guide surfaces do the correction.
+  Charging contacts are recessed/isolated during approach. Only the one
+  true final docked pose exposes the charging path. If charging = true,
+  then full seating = true. Current flow becomes physical proof.
+
+  Old burden: handshake does not prove final seated charging
+  New burden: keep final-pose-only contact system reliable over life
+
+  Progress: 88%
+
+  -----------------------------------------------------------------------
+  Transmutation #7 — TTL / Treat Dock Surfaces as Service Parts
+
+  Constraint: The Light Switch That Only Works When Door Fully Closed
+  Final-pose-only charging is excellent, but guide rails, capture
+  faces, and charging contacts wear from dirt, repeated cycles, and
+  outdoor exposure.
+
+  Trade: Stop trying to make guide/contact surfaces eternal. Treat
+  them as TTL-rated service parts — inspectable, cleanable,
+  replaceable. The hard autonomy problem becomes a routine maintenance
+  problem.
+
+  Old burden: keep final-pose contacts perfect forever
+  New burden: inspection cadence, replacement intervals, spare inventory
+
+  Progress: 100%
+
+  -----------------------------------------------------------------------
+
+3. Final Solved Form
+
+The original wall:
+
+  The charging protocol is underspecified for autonomy. "Robot docks"
+  hand-waves over a hard robotics problem.
+
+was traded into:
+
+  A low-speed, self-correcting, walk-in charging dock whose geometry
+  converts imperfect approach into one final seating pose, where
+  electrical contact is physically impossible before full convergence,
+  and whose guide/contact surfaces are TTL maintenance components.
+
+4. Dock Architecture
+
+  A. Charging doctrine
+
+  Do not design charging as delicate plug insertion or fine connector
+  mating. Design charging as: coarse approach, guided capture,
+  geometric correction, final-pose-only contact.
+
+  B. Robot docking doctrine
+
+  When battery falls below threshold, robot enters charge-seeking mode:
+  - reduced speed
+  - reduced acceleration
+  - gentle final approach
+  - session intent broadcast to target dock
+
+  C. Dock physical doctrine
+
+  The dock must:
+  - present outward-facing capture geometry
+  - accept imperfect approach within a correction envelope
+  - use rounded/channeled guide surfaces to self-center
+  - convert diagonal entry into straight final alignment
+  - separate correction surfaces from final charging contact surfaces
+  - make electrical contact physically impossible during approach/
+    correction phase
+
+  D. Final truth doctrine
+
+  Charging is not possible during: crooked entry, half seating,
+  correction phase, almost-there states. Charging is only possible
+  when the robot is in the one true final docked pose.
+
+  If charging = true, then full seating = true.
+
+  E. Session doctrine
+
+  Robot and dock communicate before and during charging:
+  - Robot broadcasts: chassis_id, battery_soc_pct, charge request
+  - Dock confirms: post_id, house_id, available_power_w
+  - Charging begins only after: physical final pose + session handshake
+  - House Brain tracks all charging sessions
+
+  F. Failure doctrine
+
+  The dock fails into NO CHARGE rather than FALSE CHARGE. Degraded
+  alignment or contact should more readily cause refusal to confirm
+  charge than accidental unsafe charging state. Truth stays
+  conservative.
+
+  G. Lifecycle doctrine
+
+  Serviceable dock components:
+  - guide rails / funnel surfaces (TTL by cycle count)
+  - final charging contact pads (TTL by cycle count + resistance check)
+  - centering channel surfaces (TTL by wear inspection)
+  - all front-accessible, modular, removable without disassembling
+    the whole post, standardized across all dock stations
+
+5. What This Obsoletes in the Parasitic Power Network
+
+The previous parasitic_power_network.txt described charging as:
+
+  - "Connector: standardized industrial DC connector, keyed, IP65"
+  - "Cable reach: 1.5m retractable coiled cable"
+  - "Physical connection — robot docks charging port to post cable"
+
+Those descriptions assumed a cable-based plug-in connection.
+
+The walk-in dock architecture replaces this with:
+
+  - No cable. No plug. No retractable cord.
+  - Dock is a fixed geometry mounted on the post.
+  - Robot drives into the dock capture zone.
+  - Final electrical contact is integrated into the dock body,
+    not carried on a cable.
+  - All electrical specs unchanged: 48V DC, 30A, ~1.4kW.
+  - All session/routing logic unchanged.
+  - Physical interface fundamentally different.
+
+6. Remaining Living Constraint
+
+The autonomy gap is closed. What remains is operational:
+
+  - dock guide/contact surface TTL intervals
+  - inspection cadence per dock station
+  - cleaning procedure for guide/capture area
+  - replacement part inventory at Factory-in-a-Box
+  - threshold-based service when correction quality degrades
+  - service logs tied to docking cycle counts
+
+7. Relation to Other Blueprints
+
+  - Feeds into: parasitic_power_network.txt Section 2.2 and 2.3
+    (charging post physical spec and charging protocol rewritten
+    to reflect walk-in dock architecture)
+
+  - Cross-references: universal_skateboard_chassis.txt Section 3.3
+    (battery system charging port location must align with dock
+    final contact position)
+
+  - Cross-references: red_green_diagnostic_protocol.txt
+    (dock guide/contact inserts as Red/Green diagnostic modules)
+
+  - Cross-references: factory_in_a_box.txt
+    (dock service parts in Zone B inventory, dock repair in Zone D)

@@ -3,7 +3,7 @@
 |                                                                       |
 | MASTER INTERFACE CONTRACT                                             |
 |                                                                       |
-| Stigmergic Hive — Digital Nervous System Specification v1.0           |
+| Stigmergic Hive — Digital Nervous System Specification v1.1           |
 +-----------------------------------------------------------------------+
 
 +:---------------------------------------------------------------------:+
@@ -17,10 +17,12 @@
   ------------------------------ ----------------------------------------
   Document                       Master Interface Contract — House Brain
 
-  Version                        1.0 — Derived from running scheduler.js
+  Version                        1.1 — Updated for Skateboard Protocol
 
   Scope                          All 7 robots × 3 contract layers × 10
-                                 feedback paths
+                                 feedback paths + physical architecture
+                                 layer (chassis, diagnostics, power,
+                                 deployment)
 
   Contract Layers                Layer 1: Command (House Brain → Robot)
                                  Layer 2: Telemetry (Robot → House Brain)
@@ -1201,5 +1203,118 @@ commands. No robot ever commands another robot directly.
   signatures. Verification's TTL library grows more accurate with each
   Sealer water stress record. Every robot's telemetry is another robot's
   training data — mediated always by House Brain and the shared database.
+
+  -----------------------------------------------------------------------
+
+Physical Architecture Layer — v1.1 Addendum
+
+As of v1.1, the Master Interface Contract includes a physical
+architecture layer that governs how contract-compliant robots are
+built, maintained, powered, and deployed. The data contracts above
+are unchanged. The physical layer ensures they can be delivered at
+exponential scale.
+
+  -----------------------------------------------------------------------
+  Four Structural Accelerators
+
+  -----------------------------------------------------------------------
+
+  -------------- --------------------- ----------------------------------
+  Accelerator    Blueprint             Key Principle
+
+  Universal      universal_skateboard  One chassis, 7 toolheads. One
+  Skateboard     _chassis.txt          BOM, one SKU, one assembly
+  Chassis                              procedure. Toolheads snap on via
+                                       Universal Toolhead Interface.
+
+  Red/Green      red_green_diagnostic  Every swappable module has an RGB
+  Diagnostic     _protocol.txt         LED. Green = healthy, Amber =
+  Protocol                             degrading, Red = swap now. Field
+                                       maintenance by untrained
+                                       residents in 60 seconds.
+
+  Parasitic      parasitic_power       Every completed house has a
+  Power          _network.txt          standardized charging post. The
+  Network                              swarm builds its own charging
+                                       grid. Robots never commute to
+                                       charge.
+
+  Factory-in-    factory_in_a_box.txt  One 40-foot solar-powered
+  a-Box                                shipping container = one city
+                                       seed. Assembly bay, inventory,
+                                       House Brain server, repair hub.
+  -------------- --------------------- ----------------------------------
+
+  -----------------------------------------------------------------------
+  How the Physical Layer Relates to Data Contracts
+
+  -----------------------------------------------------------------------
+
+  The physical layer does NOT change any data contract. All 3 layers
+  (Command, Telemetry, Feedback), all 10 feedback paths, all 4
+  precondition gates, all telemetry schemas, and all command surfaces
+  remain exactly as defined above.
+
+  What the physical layer adds:
+
+  - chassis_health_record: new Layer 2 telemetry from the Skateboard
+    chassis itself (battery, motors, position, diagnostics)
+
+  - diagnostic_state_record: new Layer 2 telemetry from the Red/Green
+    diagnostic system (module health state transitions)
+
+  - charging_session_record: new Layer 2 telemetry from the Parasitic
+    Power Network (charge sessions, solar generation, grid health)
+
+  - Every existing telemetry record now includes chassis_id and
+    toolhead_id metadata, appended by chassis compute before
+    transmission to House Brain
+
+  - Robot identity = toolhead_id. Chassis is transport infrastructure.
+    A Fabricator is a Fabricator regardless of which Skateboard carries
+    it.
+
+  -----------------------------------------------------------------------
+  The Skateboard is invisible to the data contract layer. It is plumbing.
+  The toolhead is the robot. The contract addresses the robot.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Complete Blueprint Inventory — v1.1
+
+  -----------------------------------------------------------------------
+
+  Data Contracts & Robot Behaviors:
+  - master_interface_contract.txt (this document)
+  - excavator_robot_blueprint.txt (updated with toolhead addendum)
+  - fabricator_robot_blueprint.txt (updated with toolhead addendum)
+  - assembly_robot_blueprint.txt (updated with toolhead addendum)
+  - verification_robot_blueprint.txt (updated with toolhead addendum)
+  - sealer_robot_blueprint.txt (updated with toolhead addendum)
+
+  Physical Architecture:
+  - universal_skateboard_chassis.txt (NEW — chassis + UTI + all 7
+    toolhead specs)
+  - red_green_diagnostic_protocol.txt (NEW — LED diagnostics + module
+    swap procedure + predictive maintenance)
+  - parasitic_power_network.txt (NEW — distributed solar charging +
+    power routing)
+  - factory_in_a_box.txt (NEW — container seed deployment + inventory
+    + repair hub)
+
+  Engineering Validation:
+  - Toolhead_Mount_Load_Path_Validation_Stackv1.txt (NEW — constraint
+    transmutation chain for self-seating mount architecture, load path
+    separation, sacrificial wear insert doctrine)
+  - Tool_Free_Retention_Truth_of_Lock_Stackv1.txt (NEW — constraint
+    transmutation chain for positive retention verification, two-step
+    lock truth, mount_state telemetry)
+  - Autonomous_Charging_Dock_Final_Pose_Stackv1.txt (NEW — constraint
+    transmutation chain for walk-in capture dock, self-correcting
+    geometry, final-pose-only electrical contact)
+
+  -----------------------------------------------------------------------
+  13 documents. One integrated system. From raw earth to finished city.
 
   -----------------------------------------------------------------------

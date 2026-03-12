@@ -1,0 +1,381 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Red/Green Diagnostic Protocol                                         |
+|                                                                       |
+| Zero-Downtime Maintenance via Visual Module Health | v1               |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: A 14-year-old with no electrical engineering training
+  must be able to identify a failing module, remove it, snap in a
+  replacement, and return the robot to service in under 60 seconds. The
+  LED is the interface. The color is the instruction.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: Every major swappable component on the Skateboard
+  chassis and every toolhead carries an addressable RGB LED that the House
+  Brain sets to Green (healthy), Amber (degrading), or Red (failed/swap
+  now), enabling untrained residents to perform field maintenance by
+  replacing the module whose light is not green.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+Maintenance is the silent killer of exponential growth. If a motor burns
+out on a Fabricator and the cluster stops building for 3 days while
+someone debugs the circuit board with a multimeter, the doubling rate
+dies.
+
+The Red/Green Protocol eliminates diagnostic skill as a maintenance
+bottleneck.
+
+  -----------------------------------------------------------------------
+  The robot tells you what's broken. You swap the colored box. The robot
+  goes back to work. The broken box goes to the repair hub.
+
+  -----------------------------------------------------------------------
+
+2. LED State Machine
+
+Every module LED follows the same state machine. No exceptions.
+
+  -----------------------------------------------------------------------
+  State Definitions
+
+  -----------------------------------------------------------------------
+
+  --------- ------- -------------------------------------------------------
+  State     Color   Meaning
+
+  HEALTHY   Green   Module operating within all nominal parameters.
+            (solid) No action required.
+
+  DEGRADING Amber   Module operating but trending toward failure.
+            (solid) Schedule replacement at next convenient opportunity.
+                    Robot continues working.
+
+  FAILED    Red     Module has failed or is outside safe operating
+            (solid) parameters. Robot is impaired. Swap now.
+
+  UPDATING  Blue    Module firmware is being updated. Do not touch.
+            (pulse) Update in progress.
+
+  STARTUP   White   Module is initializing self-test. Wait.
+            (pulse) Transitions to Green, Amber, or Red after test.
+
+  E-STOP    Red     Emergency stop active. Do not approach until
+            (flash) resolved by trained operator.
+
+  NO POWER  Off     Module not receiving power. Check connections.
+  --------- ------- -------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  Rules:
+
+  - Only House Brain or the local chassis compute sets LED state. Modules
+    do not control their own LEDs.
+
+  - LED state is derived from telemetry thresholds, not hardcoded on the
+    module. House Brain can adjust thresholds over time as it learns
+    normal operating ranges.
+
+  - A module transitioning from Green to Amber generates a
+    maintenance_advisory telemetry record.
+
+  - A module transitioning to Red generates a maintenance_critical
+    telemetry record and (if the module is essential for current
+    operation) triggers robot pause.
+
+  -----------------------------------------------------------------------
+
+3. Module Inventory — Skateboard Chassis
+
+Each chassis has these Red/Green swappable modules:
+
+  ---- --------------------- -------------------------------------------
+  LED  Module                Failure Indicators
+  Addr
+
+  0    Front-Left Wheel      Current draw > 150% of baseline for > 5s,
+                             encoder skip, stall detection, temperature
+                             > 80°C
+
+  1    Front-Right Wheel     Same as above
+
+  2    Rear-Left Wheel       Same as above
+
+  3    Rear-Right Wheel      Same as above
+
+  4    Battery Pack          SoC < 10% (Amber), SoC < 3% (Red),
+                             temperature > 55°C, cell imbalance > 200mV,
+                             cycle count > 2000 (Amber)
+
+  5    Compute Module        Heartbeat loss > 5s (Red), WiFi
+                             disconnected > 30s (Amber), CPU temp > 80°C
+
+  6    Motor Driver Board    Over-current protection triggered, channel
+                             fault detected, temperature > 90°C
+
+  7    IMU Sensor            Readings frozen or NaN for > 2s,
+                             calibration drift > threshold
+
+  8-15 Reserved              Future chassis modules
+  ---- --------------------- -------------------------------------------
+
+4. Module Inventory — Toolhead
+
+Each toolhead type has its own LED address map starting at address 16.
+These are defined in the Universal Skateboard Chassis blueprint
+Section 5 per toolhead type.
+
+  -----------------------------------------------------------------------
+  Example: Excavator Toolhead LED Map
+
+  -----------------------------------------------------------------------
+
+  ---- --------------------- -------------------------------------------
+  LED  Module                Failure Indicators
+  Addr
+
+  16   Blade Motor           Current > 200% baseline (jam), current
+                             trending up over hours (wear), stall,
+                             temperature > 90°C
+
+  17   Lift/Suction Motor    Flow rate < 50% expected, current anomaly,
+                             temperature > 85°C
+
+  18   Gate Actuator         Position sensor disagreement, stall,
+                             response time > 2x nominal
+
+  19   Flow Sensor           Readings frozen, disconnected, out of
+                             calibrated range
+
+  20   Backpressure Sensor   Readings frozen, disconnected, reading >
+                             safe limit for > 10s
+
+  21   Hose Connector        Pressure differential indicating leak or
+                             disconnect
+
+  22   Toolhead Controller   Heartbeat loss, firmware fault, UART
+                             communication failure with chassis
+
+  23   Power Regulator       Output voltage out of spec, over-temp,
+                             efficiency < 70%
+  ---- --------------------- -------------------------------------------
+
+5. Physical Module Design Rules
+
+Every Red/Green module must follow these physical design rules to enable
+30-second swap by an untrained person.
+
+5.1 Connection Type
+
+  - Tool-free connections only
+
+  - Acceptable: snap-fits, quarter-turn cam locks, magnetic connectors,
+    slide-rail with spring latch, lever locks
+
+  - NOT acceptable: screws, bolts, wire nuts, solder joints, crimps
+    requiring tools
+
+  - Exception: internal repair at the central hub CAN use tools. Field
+    swap CANNOT.
+
+5.2 Form Factor
+
+  - Every module of the same type is physically identical and
+    interchangeable
+
+  - Keyed connectors prevent wrong-module insertion
+
+  - Module has a visible label: icon + name + LED address number
+
+  - Module has a QR code linking to replacement procedure video
+    (30 seconds, no audio required — visual only)
+
+5.3 LED Placement
+
+  - LED is visible from 5 meters without crouching or disassembling
+    anything
+
+  - LED is on the OUTSIDE of the module enclosure, not hidden inside
+
+  - LED color is visible in direct sunlight (use high-brightness LEDs,
+    minimum 200mcd)
+
+  - LED is protected by clear polycarbonate cover
+
+6. Maintenance Workflow
+
+6.1 Field Swap (by any resident)
+
+  1. Observe robot with a Red or Amber module
+  2. Walk to robot — identify the Red/Amber LED
+  3. Read module label (e.g., "WHEEL-FR" or icon of a wheel)
+  4. Go to site inventory container
+  5. Find matching Green-tagged replacement module
+  6. Return to robot
+  7. Release old module (quarter-turn / slide / snap)
+  8. Remove old module, place in "REPAIR" bin
+  9. Insert new module, lock in place
+  10. LED cycles White (startup) → Green (self-test passed)
+  11. Robot resumes operation
+
+  Total time: 30–60 seconds for trained swap. 2–3 minutes first time.
+
+  -----------------------------------------------------------------------
+  No multimeter. No laptop. No diagnostic software. No electrician.
+  See Red. Swap box. See Green. Walk away.
+
+  -----------------------------------------------------------------------
+
+6.2 Repair Hub (at Factory-in-a-Box or central facility)
+
+  1. Red-tagged modules collected from field bins daily
+
+  2. Technician at repair hub diagnoses actual failure with tools,
+     multimeter, oscilloscope as needed
+
+  3. Component-level repair: replace burnt motor winding, swap failed
+     capacitor, re-flash corrupted firmware
+
+  4. Repaired module goes through full test cycle on bench rig
+
+  5. If passed: module tagged Green, returned to field inventory
+
+  6. If failed: module flagged for scrap or supplier warranty return
+
+  7. Repair technicians are the site's most technically skilled
+     residents — this role emerges naturally from people who are curious
+     about what's inside the Red boxes
+
+  -----------------------------------------------------------------------
+  The repair hub is simultaneously a maintenance facility and a
+  technical training center. The best diagnosticians earn recognition
+  and advance to more complex system roles.
+
+  -----------------------------------------------------------------------
+
+7. House Brain Integration
+
+7.1 Diagnostic Telemetry
+
+The chassis compute emits a diagnostic_state_record to House Brain:
+
+  - Every 10 seconds (included in chassis_health_record)
+  - Immediately on any state transition (Green→Amber, Amber→Red, etc.)
+
+  -----------------------------------------------------------------------
+  diagnostic_state_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source           Chassis Compute (on behalf of all modules)
+
+  Emit Trigger     Every 10s + on state transition
+
+  Required Fields  chassis_id, toolhead_id, module_address, module_type,
+                   previous_state, current_state, trigger_reason,
+                   metric_value, metric_threshold, timestamp
+
+  Enum Constraints previous_state / current_state: healthy | degrading |
+                   failed | updating | startup | e_stop | no_power
+
+                   module_type: wheel | battery | compute | motor_driver
+                   | imu | blade_motor | lift_motor | gate_actuator |
+                   flow_sensor | backpressure_sensor | hose_connector |
+                   toolhead_controller | power_regulator | (extensible)
+  ---------------- ------------------------------------------------------
+
+7.2 Predictive Maintenance
+
+House Brain tracks diagnostic_state_records over time per module serial
+number. Patterns emerge:
+
+  - Module SN WHEEL-2026A-0147 has gone Green→Amber→Green→Amber 3 times
+    in 2 weeks → schedule preventive replacement before next Red
+
+  - All modules from batch WHEEL-2026B show Amber at 800 hours average
+    → supplier quality issue, flag for procurement review
+
+  - Blade motors on Excavators in Zone 3 go Amber 40% faster than
+    Zone 1 → Zone 3 soil is harder, adjust blade wear thresholds for
+    that zone
+
+7.3 Fleet Health Dashboard
+
+House Brain exposes aggregate diagnostic state through API:
+
+  GET /api/fleet-diagnostics
+
+  Returns:
+  {
+    "total_modules": 1247,
+    "healthy": 1198,
+    "degrading": 41,
+    "failed": 8,
+    "modules_by_type": {
+      "wheel": { "healthy": 396, "degrading": 12, "failed": 2 },
+      "battery": { "healthy": 98, "degrading": 7, "failed": 1 },
+      ...
+    },
+    "robots_impaired": 3,
+    "robots_e_stopped": 0
+  }
+
+  -----------------------------------------------------------------------
+  The Contract Health Panel in App.jsx can be extended to show fleet
+  diagnostic health alongside the existing feedback path health. The
+  system's mechanical health is as visible as its data health.
+
+  -----------------------------------------------------------------------
+
+8. Extension — Red/Green for Houses
+
+The same diagnostic philosophy applies to finished house infrastructure.
+
+  -----------------------------------------------------------------------
+  House Infrastructure Diagnostics
+
+  -----------------------------------------------------------------------
+
+  - Solar panel underperforming → Amber LED on panel junction box
+  - Solar panel failed → Red LED on panel junction box
+  - Water filter nearing end of life → Amber LED on filter housing
+  - Water filter expired → Red LED on filter housing
+  - Sealant integrity degraded (detected by scheduled Sealer recoat
+    inspection) → Amber indicator on wall zone
+  - Structural drift detected by re-verification → Red indicator
+
+  -----------------------------------------------------------------------
+  The house communicates its own health state to residents and to the
+  House Brain simultaneously. The city's infrastructure is
+  self-reporting. No manual inspection rounds required.
+
+  -----------------------------------------------------------------------
+
+9. Supply Chain Integration
+
+The Red/Green Protocol has a direct supply chain implication.
+
+  - House Brain tracks module failure rates and replacement velocity
+
+  - When field inventory of any module type drops below threshold →
+    automatic reorder advisory generated
+
+  - Module consumption rate per build-phase is predictable:
+    excavation phase consumes blade motors faster, assembly phase
+    consumes gripper actuators faster
+
+  - Factory-in-a-Box inventory is the buffer. Resupply cadence is
+    set by consumption telemetry, not guesswork.
+
+  -----------------------------------------------------------------------
+  The robots tell you what parts they need, before you run out.
+
+  -----------------------------------------------------------------------

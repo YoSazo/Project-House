@@ -1,0 +1,350 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Parasitic Power Network Blueprint                                     |
+|                                                                       |
+| The Swarm Builds Its Own Charging Grid | v1                           |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: The robots never commute to charge. The houses they
+  build become the charging infrastructure. The power grid expands
+  organically with the city. Every completed house is a new energy node.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: Every completed house includes a standardized
+  exterior charging post powered by its solar array, creating a
+  distributed charging network that grows with construction — eliminating
+  the need for central charging stations and letting robots charge within
+  50 meters of any active build site.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+If 100 robot clusters are running and each must drive 2 miles to a
+central solar farm to charge, they waste 30% of their day commuting
+for energy. The doubling rate dies not from mechanical failure but from
+energy logistics.
+
+The Parasitic Power Network solves this by making every house a
+charging node. The swarm builds its own power grid as it builds the
+city.
+
+  -----------------------------------------------------------------------
+  The first house powers the robots building the second house. The
+  second house powers robots building the third and fourth. The network
+  grows exponentially because the infrastructure IS the output.
+
+  -----------------------------------------------------------------------
+
+2. Architecture
+
+2.1 House Solar Array
+
+Every house design includes rooftop solar panels as a base feature.
+
+  - Array size: scaled to house size, minimum 3kW per house
+  - Inverter/charge controller integrated into house electrical system
+  - House battery bank (LiFePO4, matching Skateboard chemistry) for
+    nighttime use and buffering
+  - Excess daytime generation is available for robot charging
+
+  -----------------------------------------------------------------------
+  During construction hours when the house is unoccupied, the solar
+  panels generate power with no residential load. All excess goes to
+  the charging post.
+
+  -----------------------------------------------------------------------
+
+2.2 Charging Post — Walk-In Dock Architecture
+
+Every house exterior includes one standardized charging dock. Built into
+the house as a base feature during construction — not added after.
+
+  -----------------------------------------------------------------------
+  The charging dock is NOT a cable or plug. It is a fixed walk-in
+  capture geometry that the robot drives into. See: Autonomous Charging
+  Dock + Final-Pose Truth Stack blueprint for the full transmutation
+  chain behind this architecture.
+
+  -----------------------------------------------------------------------
+
+  Physical Specification:
+  - Mounting: bolted to exterior wall or standalone post within 2m of
+    house
+  - Height: 600mm from ground level (matches Skateboard charging port
+    height)
+  - Dock type: walk-in self-correcting capture geometry — no cable, no
+    retractable cord, no plug
+  - Capture envelope: accepts robot approach within ±15° yaw and
+    ±50mm lateral offset, self-corrects to final pose
+  - Guide surfaces: rounded/channeled funnel geometry that converts
+    diagonal or off-center entry into straight final alignment
+  - Final charging contact: recessed DC contact pads, exposed only
+    at true final docked position — physically impossible to energize
+    during approach or correction phase
+  - Voltage: 48V DC (matches Skateboard battery system)
+  - Current: 30A continuous maximum
+  - Charging power: ~1.4kW per post
+  - Status LED: Green (available), Blue (charging), Amber (limited
+    power), Red (fault), Off (no power)
+
+  Protection:
+  - Over-current protection at the post
+  - Ground fault detection
+  - Reverse polarity protection (contact geometry prevents it)
+  - Weather sealed — rated for outdoor exposure in all deployment
+    climates
+  - Guide surfaces and contact pads are IP65 when no robot docked
+  - Failure mode: fails into NO-CHARGE rather than FALSE-CHARGE —
+    degraded contacts refuse to confirm charge rather than risk
+    unsafe charging state
+
+  Serviceable Components (TTL-rated):
+  - Guide rails / funnel capture surfaces — replaceable inserts,
+    TTL by cycle count
+  - Final charging contact pads — replaceable cartridge, TTL by
+    cycle count + contact resistance check
+  - Centering channel surfaces — inspectable, replaceable on wear
+  - All front-accessible, modular, removable without disassembling
+    the whole post, standardized across all dock stations
+  - Dock service parts stocked in Factory-in-a-Box Zone B inventory
+
+  -----------------------------------------------------------------------
+  Same dock. Same voltage. Same protocol. Every house. Every city.
+  Every dock is interchangeable. A robot built in Batch 1 charges at a
+  dock built on House 10,000.
+
+  -----------------------------------------------------------------------
+
+2.3 Charging Protocol
+
+  1. House Brain routes robot to nearest available dock with sufficient
+     power (robot does not choose — House Brain schedules)
+  2. Robot enters charge-seeking mode when battery below threshold:
+     reduced speed, reduced acceleration, gentle final approach
+  3. Robot broadcasts session intent to target dock: chassis_id,
+     battery_soc_pct, requested_charge_w
+  4. Robot approaches dock capture zone (guided by UWB positioning)
+  5. Robot enters self-correcting funnel geometry — dock guide surfaces
+     correct imperfect approach angle into final alignment
+  6. Robot reaches final docked pose — electrical contact pads engage
+     (contact is physically impossible before full seating)
+  7. Dock confirms charging session:
+     - Dock reports: available_power_w, post_id, house_id
+     - Robot confirms: chassis_id, battery_soc_pct, charging = true
+     - charging = true IS the physical proof of final seating
+  8. Charging begins at negotiated rate
+  9. House Brain tracks: which robot, which dock, charge rate, duration
+  10. Charge complete or House Brain reassigns robot → robot backs out
+      of dock under low-speed reverse
+  11. Dock LED returns to Green (available)
+
+  -----------------------------------------------------------------------
+  Charging decision is House Brain's job, not the robot's. House Brain
+  knows which robots need charge, which docks are available, and which
+  robots can afford to pause. Optimal scheduling, not first-come.
+
+  -----------------------------------------------------------------------
+
+3. Network Topology
+
+3.1 Day Zero (Before Any Houses Exist)
+
+  - Factory-in-a-Box container has its own solar array (roof-mounted)
+  - Container provides initial charging posts (2–4) for seed cluster
+  - Seed cluster operates within range of container charging
+  - Battery swap also available from container inventory as backup
+
+3.2 After House #1 Complete
+
+  - House #1 solar array goes live
+  - House #1 charging post becomes active node
+  - Robots building House #2 can charge at House #1 (typically 20–50m
+    away)
+  - Container still available as backup
+
+3.3 After N Houses Complete
+
+  - N charging posts active across the emerging neighborhood
+  - Robot assignment considers proximity to nearest available post
+  - As construction front moves away from early houses, power network
+    follows because each new house adds a new post at the frontier
+
+  -----------------------------------------------------------------------
+  The charging frontier always matches the construction frontier. There
+  is never a gap between where robots work and where robots charge.
+
+  -----------------------------------------------------------------------
+
+3.4 Steady State
+
+  - Dense neighborhood: charging posts every 10–30m
+  - Robots charge opportunistically between tasks
+  - House Brain routes to nearest available post with sufficient power
+  - Nighttime: house batteries buffer solar, posts still available
+    (lower rate)
+  - Grid resilience: no single point of failure — dust storm takes out
+    20% of panels, swarm routes to remaining posts automatically
+
+4. Battery Sizing Implication
+
+The Parasitic Power Network changes the Skateboard battery design
+calculus.
+
+  Without parasitic charging:
+  - Robot must carry enough battery for full work shift (8+ hours)
+  - Large battery = heavy robot = slower = more power per meter
+  - Battery is 30-40% of chassis weight and cost
+
+  With parasitic charging (post every 50m):
+  - Robot needs battery for 30-60 minutes of operation between charges
+  - 5-10 minute top-off charges during natural task transitions
+  - Small battery = lighter robot = faster = less power per meter
+  - Battery is 15-20% of chassis weight and cost
+  - More battery budget goes to toolhead power delivery
+
+  -----------------------------------------------------------------------
+  Smaller batteries. Lighter robots. Faster movement. Lower cost. Longer
+  fleet life. All because the charging infrastructure is everywhere.
+
+  -----------------------------------------------------------------------
+
+5. Power Routing Intelligence
+
+House Brain manages the power network as a resource, not just a
+collection of individual posts.
+
+5.1 Inputs to Power Router
+
+  - Solar generation per house (from house energy telemetry)
+  - Current robot charge states (from chassis_health_record)
+  - Post availability (from post status telemetry)
+  - Construction schedule (which robots need to be where, when)
+  - Weather forecast (cloud cover affects solar generation)
+  - Time of day (solar generation curve)
+
+5.2 Routing Decisions
+
+  - Which post should this robot charge at? (nearest available with
+    sufficient power)
+  - Should this robot charge now or finish current task first? (SoC
+    threshold vs task remaining time)
+  - Should this house reduce residential load to prioritize
+    construction charging? (only with homeowner consent via House Brain
+    dashboard)
+  - Should the swarm pause non-critical tasks during low-generation
+    hours? (cloudy days, late afternoon)
+
+5.3 Telemetry
+
+  -----------------------------------------------------------------------
+  charging_session_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source           Charging Post (via house energy system)
+
+  Emit Trigger     On charge session complete
+
+  Required Fields  post_id, house_id, chassis_id, start_soc_pct,
+                   end_soc_pct, charge_duration_s, avg_charge_rate_w,
+                   solar_generation_w_during, grid_available_w,
+                   timestamp
+
+  Optional Fields  queue_wait_s, interrupted, interrupt_reason
+  ---------------- ------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  charge_network_health_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source           House Brain (aggregated)
+
+  Emit Trigger     Every 60 seconds
+
+  Required Fields  total_posts, posts_available, posts_charging,
+                   posts_faulted, total_generation_w,
+                   total_consumption_w, avg_robot_soc_pct,
+                   robots_below_20_pct, robots_below_5_pct
+
+  Optional Fields  estimated_hours_until_sunset, cloud_cover_pct
+  ---------------- ------------------------------------------------------
+
+6. Resilience
+
+6.1 Single Post Failure
+
+  - Post LED goes Red
+  - House Brain removes from available pool
+  - Robots rerouted to next nearest post
+  - Repair advisory generated (Red/Green Protocol)
+
+6.2 House Solar Failure
+
+  - House energy system reports reduced generation
+  - Post LED goes Amber (limited power) or Off (no power)
+  - House Brain reduces charging rate or removes post
+  - Adjacent house posts absorb demand
+
+6.3 Weather Event (Dust Storm, Extended Cloud Cover)
+
+  - All posts report reduced generation
+  - House Brain enters power-conservation mode:
+    - Non-critical robots park and sleep
+    - Critical-path robots (active Assembly, active Sealer) prioritized
+    - Battery swap from Factory-in-a-Box inventory deployed as backup
+  - Swarm resumes normal operation when generation recovers
+
+6.4 Night Operations
+
+  - Solar generation drops to zero
+  - House batteries provide reduced-rate charging
+  - House Brain schedules non-time-critical tasks (Logistics lane
+    maintenance, Verification idle weathering) for daytime
+  - Night shift: only robots with sufficient charge continue critical
+    tasks
+  - Pre-dawn: robots park at posts for sunrise charging burst
+
+  -----------------------------------------------------------------------
+  The system degrades gracefully. It never hard-fails from a power
+  shortage — it slows down, prioritizes, and waits for energy.
+
+  -----------------------------------------------------------------------
+
+7. Integration with Existing Architecture
+
+7.1 House Brain
+
+  - Charging posts register as infrastructure nodes in House Brain
+  - Power routing is a new scheduling dimension alongside construction
+    task scheduling
+  - Dashboard shows power network health alongside construction
+    progress
+
+7.2 Skateboard Chassis
+
+  - Charging port is standard equipment on every chassis (already
+    defined in Skateboard blueprint Section 3.3)
+  - Battery BMS handles charge negotiation at the electrical level
+  - Chassis compute handles logical handshake with post
+
+7.3 Factory-in-a-Box
+
+  - Container solar array provides the Day Zero charging backbone
+  - Container battery inventory provides emergency swap capability
+  - Container itself is the first node in the parasitic network
+
+  -----------------------------------------------------------------------
+  The power network is not a separate system. It is embedded in the
+  construction output. Every house is simultaneously shelter for a
+  family and infrastructure for the swarm. The city powers itself into
+  existence.
+
+  -----------------------------------------------------------------------

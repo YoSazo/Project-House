@@ -1183,17 +1183,77 @@ Fabricator only says: "Given this earth feed and this recipe, I can
 produce dimensionally consistent blocks and converge on the correct
 density with Verification's guidance."
 
-22. Final Blueprint Summary
+22. Skateboard Integration Addendum — v1.1
 
   -----------------------------------------------------------------------
-  The Fabricator Robot is a ground-anchored, earth-pressing machine that
-    ingests the Excavator's coarse-qualified soil feed, applies minimum
-  moisture conditioning via a two-condition gate, confirms anchor seating
-   before every compression cycle, compresses to a fixed geometry using
-      the Earth as the anvil, tunes fill volume dynamically through a
-      Verification feedback loop bounded by a hard convergence limit,
-  protects freshly-pressed blocks in an ejection cradle, and feeds batch
-    quality data back to the Excavator to improve its gate calibration
-                         across all future builds.
+  As of v1.1, the Fabricator is no longer a standalone wheeled machine. It
+  is a TOOLHEAD that mounts on the Universal Skateboard Chassis via the
+  Universal Toolhead Interface (UTI) — a self-seating, keyed, normally
+  closed, pressure-released mount with sacrificial wear inserts. The
+  Skateboard carries the toolhead between cells; the toolhead self-grounds
+  its work loads into the soil via its own anchor feet. The mount never
+  sees active compression reaction forces. See: universal_skateboard_chassis
+  blueprint for full chassis spec. See: Toolhead_Mount_Load_Path_Validation_
+  Stackv1 for the full transmutation chain behind the mount architecture.
+
+  -----------------------------------------------------------------------
+
+  What the Fabricator Toolhead retains:
+  - All 8 constraint transmutations (C1–C8)
+  - Earth Anvil doctrine — compression force through ground anchor
+  - Fixed geometry / variable fill volume paradigm
+  - Moisture conditioning gate
+  - Full Verification feedback loop
+  - Convergence limit hard exit
+  - All sensor stack components specific to fabrication
+  - Full telemetry and command surface per Master Interface Contract
+
+  What moves to the Skateboard Chassis:
+  - Wheels / tracks / drive system → Skateboard 4-wheel drive
+  - Battery / power system → Skateboard 48V LiFePO4 battery pack
+  - Compute / WiFi / House Brain comms → Skateboard compute module
+  - IMU / UWB localization → Skateboard sensor suite
+  - Navigation and positioning → Skateboard firmware
+
+  Critical design note — Load Path Separation:
+  - Chassis does NOT absorb compression reaction force. The ground anchor
+    transmits force directly into the earth. The self-seating UTI mount
+    sees transport dead-load only. Active press forces loop through:
+    toolhead → anchor feet → soil. This is the core transmutation from
+    the Toolhead Mount + Load Path Validation Stack.
+  - Fabricator toolhead is the HEAVIEST (~120kg) and HIGHEST power draw
+    (~1200W peak). The UTI mount self-seating geometry and chassis frame
+    are rated for this worst-case TRANSPORT load. Every other toolhead
+    runs with margin on both transport mass and power budget.
+
+  Red/Green Diagnostic Modules (LED addresses 16–25):
+  - 16: Anchor motor
+  - 17: Press actuator
+  - 18: Moisture probe
+  - 19: Conditioning valve
+  - 20: Hopper sensor
+  - 21: Ejection mechanism
+  - 22: Force sensor
+  - 23: Depth encoder
+  - 24: Toolhead controller
+  - 25: Power regulator
+
+  See: red_green_diagnostic_protocol blueprint for full LED state machine.
+  See: parasitic_power_network blueprint for charging integration.
+  See: factory_in_a_box blueprint for assembly and inventory.
+
+23. Final Blueprint Summary
+
+  -----------------------------------------------------------------------
+  The Fabricator Robot is a ground-anchored, earth-pressing TOOLHEAD
+  mounted on the Universal Skateboard Chassis that ingests the Excavator's
+  coarse-qualified soil feed, applies minimum moisture conditioning via a
+  two-condition gate, confirms anchor seating before every compression
+  cycle, compresses to a fixed geometry using the Earth as the anvil,
+  tunes fill volume dynamically through a Verification feedback loop
+  bounded by a hard convergence limit, protects freshly-pressed blocks
+  in an ejection cradle, and feeds batch quality data back to the
+  Excavator — now with standardized chassis, tool-free swappability,
+  Red/Green module diagnostics, and parasitic charging.
 
   -----------------------------------------------------------------------

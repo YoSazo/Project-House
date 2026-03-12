@@ -1,0 +1,252 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Constraint Transmutation Blueprint                                    |
+| Tool-Free Retention + Truth-of-Lock Stack                             |
+|                                                                       |
+| Positive Retention, Physical Verification, TTL Service | v1           |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: A tool-free quick-lock does not need to be a structural
+  hero. It needs to be a load-relieved positive-retention keeper whose
+  true lock state is verified by keyed recessed pressure-and-dwell logic,
+  and whose wear-prone judging surfaces are TTL service modules.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: The way to make "tool-free" credible is not to
+  hope a quarter-turn cam lock survives as a forever-perfect structural
+  clamp, but to demote it into a load-relieved positive-retention keeper
+  whose true lock state is verified by keyed recessed pressure-and-dwell
+  logic, and whose wear-prone judging surfaces are treated as TTL service
+  modules rather than eternal precision parts.
+
+  -----------------------------------------------------------------------
+
+0. Purpose
+
+This blueprint captures the full constraint-transmutation sequence used
+to solve the following engineering wall:
+
+How do you make a tool-free quick-lock system remain reliable under
+vibration, thermal cycling, dust, repeated field abuse, and long-term
+wear, without turning it into a fragile fantasy or a tool-required
+maintenance nightmare?
+
+This is not a "magic latch" solution. This is a constraint trade.
+
+The original impossible demand is not eliminated. It is traded into:
+
+  - smaller structural burden,
+  - better geometry,
+  - positive retention,
+  - physical truth verification,
+  - bounded service life.
+
+1. Original Wall
+
+The blueprint's "tool-free" vision sounds elegant, but quarter-turn cam
+locks in a real robot worksite face:
+
+  - vibration loosening
+  - thermal expansion/contraction
+  - repeated impacts
+  - dust and mud contamination
+  - wear at locking and contact surfaces
+  - preload decay over time
+  - field abuse across many cycles
+
+If the lock is treated like the main structural hero, the architecture
+is weak. The real wall is:
+
+  How do you make a tool-free retention system survive real-world abuse
+  while still keeping the speed advantage of fast swapping?
+
+2. Inherited Wins From the Previous Chain
+
+This problem does not start at 0%. The Toolhead Mount + Load Path
+Validation Stack (v1) already traded away the worst burdens.
+
+  Inherited win #1 — The Skateboard is just the Uber
+  The mobile base does not absorb full working loads. The toolhead
+  self-grounds during operation. So the lock is no longer being asked
+  to survive full active compression and work reaction loads.
+
+  Inherited win #2 — Stress seats the structure
+  The geometry is shaped so load drives the structure tighter into
+  seating surfaces. The lock becomes a closure initiator and retention
+  keeper, not the full structural truth-maker.
+
+  Inherited win #3 — Protected / serviceable interface logic
+  The sensitive parts of the interface are protected, recessed, and
+  localized into replaceable service surfaces.
+
+  Starting progress from inherited wins: 44%
+
+3. Transmutation Chain
+
+  -----------------------------------------------------------------------
+  Transmutation #1 — Auto-Lock on Insertion, Deliberate Vehicle Release
+
+  Constraint: The Seatbelt Buckle on a Dirt Bike
+  Even as a retention keeper (not structural hero), the lock still
+  faces transport vibration, thermal cycling, dust, and wear.
+
+  Trade: Change from "stays put because snug enough" to "once seated,
+  it positively locks; release only by deliberate chassis command."
+  Vibration now fights a positive lock state, not just friction.
+
+  Old burden: lock must resist back-out through preload alone
+  New burden: system must guarantee reliable commanded lock/release truth
+
+  Progress: 56%
+
+  -----------------------------------------------------------------------
+  Transmutation #2 — Two-Step Verification
+
+  Constraint: The Car Door That Auto-Locks
+  How do you know it really locked? What if the signal lies? What if
+  dirt creates a half-latch?
+
+  Trade: Separate unlock intent from unlock action. Release is a
+  guarded two-step action, not a one-signal event. Rejects electrical
+  noise, accidental commands, one-point failure.
+
+  Old burden: one bad signal could cause unsafe release
+  New burden: two-step check must confirm real physical state
+
+  Progress: 70%
+
+  -----------------------------------------------------------------------
+  Transmutation #3 — Physical Alignment + Pressure as Truth
+
+  Constraint: The Bank Vault With Two Keys
+  Two steps solve bad command logic. They don't solve bad physical
+  truth — is it actually seated, actually locked, or half-latched?
+
+  Trade: Tie truth to physical reality itself. "Safe" becomes correct
+  keyed alignment + correct depth/path + correct internal contact +
+  real force through the intended route. Only right geometry can begin
+  the truth event.
+
+  Old burden: two-step verification could validate logic not physical state
+  New burden: keep physical truth signal trustworthy over life
+
+  Progress: 82%
+
+  -----------------------------------------------------------------------
+  Transmutation #4 — Geometry-Gated Pressure + Duration
+
+  Constraint: The Bathroom Door That Only Counts When It Clicks
+  A click is good proof. But springs soften, frames shift, edges wear.
+  Can the truth signal stay trustworthy?
+
+  Trade: Combine geometry + pressure + dwell time. Truth requires:
+  (1) correct keyed access geometry, (2) recessed internal contact
+  path, (3) pressure threshold reached, (4) pressure sustained for
+  dwell time. This rejects accidental impacts, brief spikes, transient
+  bumps, partial contacts.
+
+  Old burden: pressure alone can lie, duration alone can lie
+  New burden: keep full truth mechanism trustworthy over wear
+
+  Progress: 97%
+
+  -----------------------------------------------------------------------
+  Transmutation #5 — TTL / Replace the Judge Before It Lies
+
+  Constraint: The Good Lock That Ages Into a Bad Judge
+  After enough wear and dirt, the logic is still good but the judge
+  has aged. The final wall is lifecycle reliability.
+
+  Trade: Stop trying to make the truth mechanism eternal. Treat it as
+  a service module with a known life, inspected and replaced before
+  its truth becomes untrustworthy. Wear exists in a bounded,
+  serviceable, predictable layer.
+
+  Old burden: make truth mechanism immortal
+  New burden: define TTL, inspection cadence, replacement threshold
+
+  Progress: 100%
+
+  -----------------------------------------------------------------------
+
+4. Final Solved Form
+
+The original wall:
+
+  "Tool-free" everything is aspirational. Quarter-turn cam locks
+  holding 120kg under 1200W compression loads — that's a real
+  mechanical engineering challenge.
+
+was traded into:
+
+  A load-relieved, positively retained, physically verified,
+  TTL-bounded tool-free lock system.
+
+  - The quarter-turn lock is NOT the primary structural hero.
+  - Once inserted, the interface positively locks — not by friction.
+  - Release requires deliberate vehicle command, not passive back-out.
+  - Unlock authority is hardened by two-step verification.
+  - Truth of seated state verified by: keyed alignment, recessed
+    access, pressure threshold, dwell duration.
+  - Truth mechanism has a TTL — replaced before unreliable.
+
+5. Blueprint Doctrine
+
+  A. Structural doctrine
+
+  The quick lock is never the main structural element. That burden
+  is already moved elsewhere. The lock is for: final capture,
+  retention, anti-rattle preload, release control, state truth.
+
+  B. Retention doctrine
+
+  The interface should: auto-lock when correctly inserted, resist
+  vibration through positive capture, only release under deliberate
+  command.
+
+  C. Verification doctrine
+
+  A "locked" state is not trusted unless:
+  1. Keyed geometry alignment confirmed
+  2. Recessed access path reached
+  3. Internal pressure threshold crossed
+  4. Pressure maintained for dwell time
+
+  This makes physical truth harder to fake than command truth.
+
+  D. Lifecycle doctrine
+
+  The verification mechanism is not immortal. It is a service layer.
+  The system defines: TTL cycles, contamination threshold, acceptable
+  force window, acceptable dwell-response window, scheduled
+  replacement rule.
+
+6. Remaining Living Constraint
+
+The contradiction is gone. What remains is operational:
+
+  - TTL interval
+  - inspection cadence
+  - spare module inventory
+  - replacement procedure in dirty field conditions
+  - threshold definition for "replace before lying"
+
+  That is a far better burden than "hope the latch is magical."
+
+7. Relation to Other Blueprints
+
+  - Inherits from: Toolhead_Mount_Load_Path_Validation_Stackv1.txt
+    (load path separation, self-grounding, self-seating geometry)
+
+  - Feeds into: universal_skateboard_chassis.txt Section 4.1
+    (mechanical interface retention and verification doctrine)
+
+  - Cross-references: red_green_diagnostic_protocol.txt
+    (wear insert as Red/Green diagnostic module with TTL)
+
+  - Cross-references: factory_in_a_box.txt
+    (wear insert spare inventory in Zone B, repair in Zone D)

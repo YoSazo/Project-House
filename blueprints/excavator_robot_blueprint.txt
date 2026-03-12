@@ -1182,14 +1182,69 @@ Assembly.
 Excavator only says: "I can turn the ground into a coarse-qualified feed
 stream and a workable site."
 
-20. Final Blueprint Summary
+20. Skateboard Integration Addendum — v1.1
 
   -----------------------------------------------------------------------
-  The Excavator Robot is a penetrate–process–lift machine that pre-loads
-   Survey depth and moisture profiles before engaging each zone, breaks
-    and lifts ground material through a binary intake gate, pauses lift
-  against a container-ready handshake, tracks blade wear as a predictive
-    indicator, and emits post-zone ground-truth records that calibrate
-         Survey classification accuracy across all future builds.
+  As of v1.1, the Excavator is no longer a standalone wheeled machine. It
+  is a TOOLHEAD that mounts on the Universal Skateboard Chassis via the
+  Universal Toolhead Interface (UTI) — a self-seating, keyed, normally
+  closed, pressure-released mount with sacrificial wear inserts. The
+  Skateboard carries the toolhead between cells; the toolhead self-grounds
+  its work loads into the soil. The mount never sees active work reaction
+  forces. See: universal_skateboard_chassis blueprint for full chassis
+  spec. See: Toolhead_Mount_Load_Path_Validation_Stackv1 for the full
+  transmutation chain behind the mount architecture.
+
+  -----------------------------------------------------------------------
+
+  What the Excavator Toolhead retains:
+  - All 9 constraint transmutations (C1–C9)
+  - All 5 refinements (Survey handoff, wet ground, blade wear, container
+    backpressure, cross-system ground truth)
+  - Full excavation head: pole, shredder blades, suction, binary gate
+  - All sensor stack components specific to excavation
+  - Full telemetry and command surface per Master Interface Contract
+
+  What moves to the Skateboard Chassis:
+  - Wheels / tracks / drive system → Skateboard 4-wheel drive
+  - Battery / power system → Skateboard 48V LiFePO4 battery pack
+  - Compute / WiFi / House Brain comms → Skateboard compute module
+  - IMU / UWB localization → Skateboard sensor suite
+  - Navigation and positioning → Skateboard firmware
+
+  What changes:
+  - Surface sorting container is now a separate field asset connected
+    via detachable flex hose — not part of the toolhead or chassis
+  - Power regulated locally on toolhead from chassis 48V bus
+  - Blade motor + lift motor draw from UTI power bus (800W peak)
+  - All telemetry routed through chassis compute to House Brain
+  - Toolhead announces as { "toolhead": "excavator", "version": "1.0" }
+    on UTI handshake
+
+  Red/Green Diagnostic Modules (LED addresses 16–23):
+  - 16: Blade motor
+  - 17: Lift/suction motor
+  - 18: Gate actuator
+  - 19: Flow sensor
+  - 20: Backpressure sensor
+  - 21: Hose connector
+  - 22: Toolhead controller
+  - 23: Power regulator
+
+  See: red_green_diagnostic_protocol blueprint for full LED state machine.
+  See: parasitic_power_network blueprint for charging integration.
+  See: factory_in_a_box blueprint for assembly and inventory.
+
+21. Final Blueprint Summary
+
+  -----------------------------------------------------------------------
+  The Excavator Robot is a penetrate–process–lift TOOLHEAD mounted on the
+  Universal Skateboard Chassis that pre-loads Survey depth and moisture
+  profiles before engaging each zone, breaks and lifts ground material
+    through a binary intake gate, pauses lift against a container-ready
+  handshake, tracks blade wear as a predictive indicator, and emits post-
+  zone ground-truth records that calibrate Survey classification accuracy
+  across all future builds — now with standardized chassis, tool-free
+  swappability, Red/Green module diagnostics, and parasitic charging.
 
   -----------------------------------------------------------------------

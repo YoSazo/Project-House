@@ -789,12 +789,66 @@ Those belong to: House Brain, Verification, Fabricator, and Logistics.
 Assembly only says: "Given this approved part and this target cell, I
 can or cannot seat it correctly."
 
-21. Final Blueprint Summary
+21. Skateboard Integration Addendum — v1.1
 
   -----------------------------------------------------------------------
-   The Assembly Robot is a constrained placement machine that uses House
-   Brain-provided target geometry and expected insertion corridors, then
-  treats deviation from that corridor as the touch signal needed to seat
-  approved parts accurately without expensive human-like tactile systems.
+  As of v1.1, the Assembly Robot is no longer a fixed-rail gantry or
+  standalone machine. It is a TOOLHEAD (articulated placement arm +
+  gripper) that mounts on the Universal Skateboard Chassis via the
+  Universal Toolhead Interface (UTI) — a self-seating, keyed, normally
+  closed, pressure-released mount with sacrificial wear inserts. The
+  Skateboard carries the toolhead and locks wheels to provide a stable
+  base during placement. See: universal_skateboard_chassis blueprint for
+  full chassis spec. See: Toolhead_Mount_Load_Path_Validation_Stackv1
+  for the full transmutation chain behind the mount architecture.
+
+  -----------------------------------------------------------------------
+
+  What the Assembly Toolhead retains:
+  - Motor impedance as force proxy for insertion quality
+  - Pre-insertion drift scan protocol
+  - Post-seat micro-load check
+  - Neighbor drift telemetry detection and emission
+  - Constrained work envelope (not general-purpose manipulator)
+  - Full telemetry and command surface per Master Interface Contract
+
+  What moves to the Skateboard Chassis:
+  - Fixed-rail gantry ELIMINATED — Skateboard + arm = mobile placement
+  - Battery / power system → Skateboard 48V LiFePO4 battery pack
+  - Compute / WiFi / House Brain comms → Skateboard compute module
+  - IMU / UWB localization → Skateboard sensor suite
+  - Navigation and positioning → Skateboard firmware
+
+  Critical design note:
+  - During active placement, Skateboard ENGAGES WHEEL LOCKS to provide
+    a stable base. The arm operates from a stationary platform.
+  - Movement and placement NEVER happen simultaneously.
+  - Skateboard positions robot at target cell, locks wheels, arm places
+    block, arm retracts, wheels unlock, Skateboard moves to next cell.
+
+  Red/Green Diagnostic Modules (LED addresses 16–23):
+  - 16: Arm base motor
+  - 17: Arm extension motor
+  - 18: Gripper actuator
+  - 19: Drift scanner
+  - 20: Micro-load actuator
+  - 21: Depth encoder
+  - 22: Toolhead controller
+  - 23: Power regulator
+
+  See: red_green_diagnostic_protocol blueprint for full LED state machine.
+  See: parasitic_power_network blueprint for charging integration.
+  See: factory_in_a_box blueprint for assembly and inventory.
+
+22. Final Blueprint Summary
+
+  -----------------------------------------------------------------------
+  The Assembly Robot is a constrained placement TOOLHEAD mounted on the
+  Universal Skateboard Chassis that uses House Brain-provided target
+  geometry and expected insertion corridors, then treats deviation from
+  that corridor as the touch signal needed to seat approved parts
+  accurately without expensive human-like tactile systems — now mobile
+  via Skateboard, with standardized chassis, tool-free swappability,
+  Red/Green module diagnostics, and parasitic charging.
 
   -----------------------------------------------------------------------

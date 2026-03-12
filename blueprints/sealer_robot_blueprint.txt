@@ -1067,15 +1067,70 @@ Assembly.
 Sealer only says: "Given the vulnerability map and zone plan, I can
 protect this shell with the required coating intensity."
 
-20. Final Blueprint Summary
+20. Skateboard Integration Addendum — v1.1
 
   -----------------------------------------------------------------------
-        The Sealer Robot is a mobile coating system that uses House
-  Brain-generated vulnerability zoning — based on gravity-corrected broad
-    spray data, sensor-confirmed dry/reset sequencing, focused pressure
-  testing, and Verification durability intelligence — to apply the right
-    amount of protective coating to the right areas of the house shell,
-  while feeding real-world field durability data back to Verification to
-             improve TTL confidence across all future builds.
+  As of v1.1, the Sealer is no longer a standalone mobile unit. It is a
+  TOOLHEAD that mounts on the Universal Skateboard Chassis via the
+  Universal Toolhead Interface (UTI) — a self-seating, keyed, normally
+  closed, pressure-released mount with sacrificial wear inserts. The
+  Skateboard carries the toolhead to wall surfaces; spray reaction forces
+  are minimal and within mount transport rating. See: universal_skateboard
+  _chassis blueprint for full chassis spec. See: Toolhead_Mount_Load_Path
+  _Validation_Stackv1 for the full transmutation chain behind the mount
+  architecture.
+
+  -----------------------------------------------------------------------
+
+  What the Sealer Toolhead retains:
+  - Four-phase sealing protocol (broad spray → dry reset → pressure
+    spray → zone coat)
+  - Moisture baseline reset confirmation
+  - Gravity bias detection and correction
+  - Zone scoring (NW/NE/SW/SE quadrants)
+  - Edge band coat class logic
+  - Water stress record emission
+  - All constraint transmutations
+  - Full telemetry and command surface per Master Interface Contract
+
+  What moves to the Skateboard Chassis:
+  - Wheels / drive system → Skateboard 4-wheel drive
+  - Battery / power system → Skateboard 48V LiFePO4 battery pack
+  - Compute / WiFi / House Brain comms → Skateboard compute module
+  - IMU / UWB localization → Skateboard sensor suite
+  - Navigation and positioning → Skateboard firmware
+
+  What changes:
+  - Sealant reservoir is a refillable module with standard quick-connect
+    — not permanently integrated into a custom chassis
+  - Skateboard positions robot at wall surface; spray system handles
+    vertical coverage
+  - Power from chassis 48V bus (400W peak for spray pump + pressure)
+
+  Red/Green Diagnostic Modules (LED addresses 16–22):
+  - 16: Pump motor
+  - 17: Broad spray valve
+  - 18: Pressure spray valve
+  - 19: Moisture sensor
+  - 20: Reservoir level sensor
+  - 21: Toolhead controller
+  - 22: Power regulator
+
+  See: red_green_diagnostic_protocol blueprint for full LED state machine.
+  See: parasitic_power_network blueprint for charging integration.
+  See: factory_in_a_box blueprint for assembly and inventory.
+
+21. Final Blueprint Summary
+
+  -----------------------------------------------------------------------
+  The Sealer Robot is a mobile coating TOOLHEAD mounted on the Universal
+  Skateboard Chassis that uses House Brain-generated vulnerability zoning
+  — based on gravity-corrected broad spray data, sensor-confirmed dry/
+  reset sequencing, focused pressure testing, and Verification durability
+  intelligence — to apply the right amount of protective coating to the
+  right areas of the house shell, while feeding real-world field
+  durability data back to Verification — now with standardized chassis,
+  tool-free swappability, Red/Green module diagnostics, and parasitic
+  charging.
 
   -----------------------------------------------------------------------

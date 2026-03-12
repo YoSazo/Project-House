@@ -1,0 +1,518 @@
+===========================================================================
+  PROJECT HOUSE — FULL CONTEXT PROMPT FOR LLM SESSIONS
+===========================================================================
+
+You are being given context on Project House, an autonomous house-
+building robot swarm system. This prompt covers the full system
+architecture, the engineering methodology used to solve hard design
+walls, and the current state of all blueprints and code.
+
+Read everything below before responding. Do not summarize it back. Use
+it as your working knowledge.
+
+===========================================================================
+  PART 1 — WHAT PROJECT HOUSE IS
+===========================================================================
+
+Project House is building an autonomous construction system where robot
+swarms build houses from raw earth, then scale exponentially — each
+completed house powers the robots building the next ones.
+
+Core architecture:
+- A "House Brain" server (Node.js + PostgreSQL + React dashboard)
+  orchestrates all robots through stigmergic mediation — robots never
+  talk to each other directly. They write truth to a shared database.
+  The House Brain reads that truth and dispatches work.
+- One Universal Skateboard Chassis — a standardized 4-wheel-drive base
+  carrying power (48V LiFePO4), compute, mobility, localization (UWB),
+  and Red/Green LED diagnostics.
+- 7 swappable toolheads snap onto the Skateboard via a single Universal
+  Toolhead Interface (UTI): Survey, Excavator, Fabricator, Verification,
+  Assembly, Sealer, Logistics.
+- A Parasitic Power Network where every completed house includes a solar
+  array and exterior walk-in charging dock, creating a distributed power
+  grid that grows with construction.
+- A Factory-in-a-Box (40-foot shipping container) that serves as the
+  deployment seed: assembly bay, spare parts, initial charging docks,
+  repair hub.
+- A Red/Green Diagnostic Protocol: every replaceable module on every
+  robot is either Green (good) or Red (needs service), verified by LED
+  state, enabling field swap by non-experts.
+
+The system is designed so that Batch 1 robots charge at docks built on
+House 10,000. Same chassis. Same dock. Same voltage. Same protocol.
+Infinite interchangeability.
+
+===========================================================================
+  PART 2 — THE BLUEPRINT SYSTEM (13 DOCUMENTS)
+===========================================================================
+
+All specifications live as plain-text blueprint files. The current
+inventory:
+
+  Data Contracts & Robot Behaviors:
+  1.  master_interface_contract.txt — command/telemetry/feedback schemas
+      for all 7 robots, architectural principles, 10 feedback paths
+  2.  excavator_robot_blueprint.txt — toolhead addendum
+  3.  fabricator_robot_blueprint.txt — toolhead addendum
+  4.  assembly_robot_blueprint.txt — toolhead addendum
+  5.  verification_robot_blueprint.txt — toolhead addendum
+  6.  sealer_robot_blueprint.txt — toolhead addendum
+
+  Physical Architecture:
+  7.  universal_skateboard_chassis.txt — chassis + UTI + all 7 toolhead
+      physical specs
+  8.  red_green_diagnostic_protocol.txt — LED diagnostics + module swap
+      + predictive maintenance
+  9.  parasitic_power_network.txt — distributed solar charging + power
+      routing + walk-in dock architecture
+  10. factory_in_a_box.txt — container seed deployment + inventory +
+      repair hub
+
+  Engineering Validation (Constraint Transmutation Chains):
+  11. Toolhead_Mount_Load_Path_Validation_Stackv1.txt
+  12. Tool_Free_Retention_Truth_of_Lock_Stackv1.txt
+  13. Autonomous_Charging_Dock_Final_Pose_Stackv1.txt
+
+The code lives in:
+  - server/src/contracts.js — machine-readable schemas for all 7 robots
+  - server/src/scheduler.js — House Brain dispatch logic
+  - db/schema.sql — PostgreSQL schema (robots, houses, grid_cells,
+    toolhead_pairings, telemetry tables, etc.)
+  - web/src/App.jsx — React dashboard
+
+===========================================================================
+  PART 3 — WHAT CONSTRAINT TRANSMUTATION IS
+===========================================================================
+
+Constraint transmutation is the engineering problem-solving methodology
+used throughout this project. It is NOT brainstorming, NOT elimination,
+NOT compromise, and NOT the standard "trade study" method.
+
+Here is exactly how it works:
+
+A. You start with an engineering wall — a problem that looks impossible
+   because it compresses too many contradictory demands into one point.
+
+B. You do NOT try to solve the wall directly. You do NOT try to find a
+   clever component that does everything at once. You do NOT compromise
+   by weakening your requirements.
+
+C. Instead, you TRADE the constraint. You identify what specific burden
+   makes the wall impossible, and you move that burden — not eliminate
+   it — into a form that is more manageable. The total difficulty is
+   conserved. You are not getting something for nothing. You are
+   choosing WHERE the difficulty lives.
+
+D. Each trade creates a new, smaller wall. You repeat. Each step is
+   called a "transmutation."
+
+E. The chain continues until the remaining burden is operational and
+   manageable — things like maintenance intervals, spare part inventory,
+   inspection cadence, service procedures. Those are good burdens.
+   "Hope the latch is magical" is a bad burden.
+
+F. Progress is tracked as a percentage. Each transmutation is assigned
+   a progress score reflecting how much of the original impossible
+   demand has been traded into manageable form.
+
+G. Transmutation chains can INHERIT from prior chains. If Chain A
+   already solved part of the problem space, Chain B starts at a
+   nonzero percentage ("inherited wins").
+
+Key properties of transmutation:
+- It is explicit. Every step names the old burden and the new burden.
+- It is auditable. You can trace backward through the chain.
+- It uses analogies to make each constraint viscerally clear before the
+  trade (e.g., "backpack on a broomstick," "sword in a sheath,"
+  "Chinese finger trap," "blind person threading a needle").
+- The final form is never "perfect." It is always "the remaining burden
+  is manageable and honestly stated."
+- Each chain produces a doctrine — a set of design rules that encode
+  the trades made so that future work respects them.
+
+===========================================================================
+  PART 4 — THE THREE TRANSMUTATION CHAINS AND WHAT THEY SOLVED
+===========================================================================
+
+The project started with conventional blueprint specifications that
+described the system's intent but contained several engineering walls —
+places where the spec hand-waved over real physical difficulty. An AI
+review identified 6 concerns. Three of those required transmutation
+chains to resolve.
+
+---------------------------------------------------------------------------
+  CHAIN 1: Toolhead Mount + Load Path Validation Stack (11 transmutations)
+---------------------------------------------------------------------------
+
+  ORIGINAL SPEC (before transmutation):
+  The skateboard chassis had a "cam-lock" quick-swap system where the
+  toolhead snapped onto the chassis. All loads — transport AND active
+  work — flowed through this mount into the chassis. The spec claimed
+  "tool-free" swap and stated numbers like 120kg toolhead mass and
+  1200W working power without engineering validation of how a quick-
+  swap latch survives those loads under vibration, dirt, and thermal
+  cycling.
+
+  THE WALL:
+  "How do you let a robot swap heavy working toolheads quickly, while
+  ensuring the mount and load path remain field-worthy under real
+  abuse?"
+
+  HOW TRANSMUTATION SOLVED IT (in contrast to the original):
+
+  The original spec treated the chassis mount as a structural hero —
+  it had to do everything: carry the toolhead, absorb work reaction
+  forces, survive impacts, release quickly. That is too many jobs for
+  one interface.
+
+  The transmutation chain traded that impossible demand through 11
+  steps:
+
+  1.  "The Skateboard is just the Uber" — Split transport from work.
+      The toolhead self-grounds during operation (deploys anchor feet
+      to soil). Active forces bypass the chassis entirely. The mount
+      only sees dead-weight transport loads.
+
+  2.  "iPhone case" — Change from deep insertion sleeve to side-
+      clamping geometry, reducing jamming sensitivity.
+
+  3.  "Wolff's Law grip" — Shape the mount so work loads drive the
+      toolhead tighter into seating surfaces instead of loosening it.
+      Stress seats the structure.
+
+  4.  "External reset" — Move release from chaotic field conditions to
+      a controlled unlock mechanism.
+
+  5.  "Put the unlock on the body" — Distribute unlock capability to
+      every chassis instead of bottlenecking at stations.
+
+  6.  "Key appears only during contact" — Unlock mechanism is dormant
+      until proper insertion begins.
+
+  7.  "iPhone 12 case outline" — Keyed geometry so only the correct
+      toolhead shape can initiate unlock. Random loads cannot.
+
+  8.  "Kenya outlet" — Interface stays normally closed. Opens only when
+      the correct keyed process actuates it. Dirt blocked.
+
+  9.  "Pressure, not choreography" — Opening mechanism is force-
+      threshold based, not precision-timed. Field-robust.
+
+  10. "Coin slot recessed trigger" — Activation requires access path +
+      recessed reach + internal pressure. Random impacts cannot trigger.
+
+  11. "Give the slot a TTL" — Stop trying to make the wear surface
+      eternal. Make it a sacrificial replaceable insert with a known
+      service life.
+
+  FINAL FORM (what the spec says NOW):
+  "A self-grounding, self-seating, keyed, normally closed, pressure-
+  opened, recessed-trigger, sacrificial-interface toolhead mount."
+
+  The chassis is a taxi. The toolhead does the work. The mount is a
+  service interface with bounded wear, not a structural fantasy.
+
+  WHAT CHANGED IN THE BLUEPRINTS:
+  - universal_skateboard_chassis.txt Section 4.1 completely rewritten
+  - universal_skateboard_chassis.txt Section 7 (assembly procedure)
+    updated
+  - All 5 robot addendums updated with self-seating mount references
+  - master_interface_contract.txt inventory updated
+
+---------------------------------------------------------------------------
+  CHAIN 2: Tool-Free Retention + Truth-of-Lock Stack (5 transmutations)
+  (Inherits from Chain 1 — starts at 44%)
+---------------------------------------------------------------------------
+
+  ORIGINAL SPEC (before transmutation):
+  The spec said "tool-free" quick-swap with quarter-turn cam locks.
+  It sounded fast and elegant but did not address how a tool-free
+  lock remains reliable under vibration loosening, thermal cycling,
+  dust contamination, and wear over thousands of cycles.
+
+  THE WALL:
+  "How do you make a tool-free quick-lock system remain reliable under
+  real-world abuse without turning it into a fragile fantasy?"
+
+  HOW THIS DIFFERS FROM CHAIN 1:
+  Chain 1 solved the LOAD PATH — where forces go. Chain 2 solves the
+  RETENTION TRUTH — how do you know it is actually locked, and how do
+  you keep that answer trustworthy?
+
+  Chain 2 inherits 44% progress from Chain 1 because the load path
+  separation already de-loaded the lock. The lock no longer has to be
+  the structural hero. But it still has to positively retain, resist
+  vibration, verify its own state, and age gracefully.
+
+  TRANSMUTATION CHAIN:
+
+  1.  Auto-lock on insertion, deliberate vehicle release — Lock is a
+      positive state, not friction. Vibration fights a locked geometry,
+      not preload.
+
+  2.  Two-step verification — Release requires two independent
+      confirmation steps, rejecting electrical noise and accidental
+      commands.
+
+  3.  Physical alignment + pressure as truth — "Locked" means correct
+      keyed geometry + correct depth + real force through intended
+      route. Physical truth harder to fake than command truth.
+
+  4.  Geometry-gated pressure + duration — Truth requires: keyed access
+      geometry + recessed contact path + pressure threshold + sustained
+      dwell time. Rejects accidental impacts, brief spikes, transient
+      bumps.
+
+  5.  TTL / replace the judge before it lies — The truth mechanism is a
+      service module with known life. Inspected and replaced before
+      unreliable. Wear exists in a bounded, serviceable layer.
+
+  FINAL FORM:
+  "A load-relieved, positively retained, physically verified, TTL-
+  bounded tool-free lock system."
+
+  WHAT CHANGED IN THE BLUEPRINTS:
+  - universal_skateboard_chassis.txt Section 4.1 gained "Retention
+    Verification (Truth-of-Lock)" subsection with 4-point physical
+    verification criteria and mount_state UNCERTAIN reporting
+
+---------------------------------------------------------------------------
+  CHAIN 3: Autonomous Charging Dock + Final-Pose Truth Stack
+  (7 transmutations)
+---------------------------------------------------------------------------
+
+  ORIGINAL SPEC (before transmutation):
+  The parasitic power network spec described charging as: "Connector:
+  standardized industrial DC connector, keyed, IP65" with "Cable reach:
+  1.5m retractable coiled cable" and "Physical connection — robot docks
+  charging port to post cable." This assumed a cable-based plug-in
+  connection. Autonomous connector mating is a hard robotics problem.
+  The spec hand-waved over it. If a human must plug the cable in, the
+  autonomy story breaks.
+
+  THE WALL:
+  "How do you make robot charging autonomous when physical connector
+  mating is a hard robotics problem?"
+
+  HOW THIS DIFFERS FROM CHAINS 1 AND 2:
+  Chains 1 and 2 dealt with the toolhead-to-chassis interface. Chain 3
+  deals with a completely different interface: robot-to-infrastructure
+  charging. But the METHOD is identical — trade the impossible demand
+  step by step.
+
+  The original spec's approach was to make the robot good at plugging
+  things in. The transmutation approach was to eliminate plugging
+  entirely.
+
+  TRANSMUTATION CHAIN:
+
+  1.  Turn plugging into walking in — Robot doesn't mate a connector.
+      It drives into an outward-facing capture geometry. Simply walk in.
+
+  2.  Make wrong entry spend itself into right entry — Self-correcting
+      funnel geometry. The dock manufactures correctness from imperfect
+      approach.
+
+  3.  Spend time to save hardware — Low-battery mode: reduced speed,
+      reduced acceleration, gentle approach. The dock corrects a gentle
+      body, not a fast heavy one.
+
+  4.  Let touch wake the final capture — First valid contact lets the
+      dock finish the last bit of alignment. Robot only has to get
+      close enough.
+
+  5.  Add intent / session communication — Robot and dock communicate
+      session intent before and during charging. Touch + handshake
+      reduces ambiguity.
+
+  6.  Charging physically impossible until final pose — Guide surfaces
+      do correction. Charging contacts are recessed/isolated during
+      approach. Only the one true final docked pose exposes the
+      charging path. If charging = true, then full seating = true.
+
+  7.  TTL / treat dock surfaces as service parts — Guide rails, capture
+      surfaces, and contact pads are TTL-rated modules. The hard
+      autonomy problem becomes routine maintenance.
+
+  FINAL FORM:
+  "A low-speed, self-correcting, walk-in charging dock whose geometry
+  converts imperfect approach into one final seating pose, where
+  electrical contact is physically impossible before full convergence,
+  and whose guide/contact surfaces are TTL maintenance components."
+
+  WHAT CHANGED IN THE BLUEPRINTS:
+  - parasitic_power_network.txt Sections 2.2 and 2.3 completely
+    rewritten (cable/connector language replaced with walk-in dock)
+  - universal_skateboard_chassis.txt Section 3.3 updated (charging port
+    → charging contacts for dock mating)
+  - factory_in_a_box.txt updated (charging docks, spare contact pads
+    instead of cables)
+  - master_interface_contract.txt inventory updated to 13 documents
+
+===========================================================================
+  PART 5 — HOW TRANSMUTATION DIFFERS FROM CONVENTIONAL ENGINEERING
+===========================================================================
+
+A conventional engineering approach to these problems would have been:
+
+  Original problem: "The latch might not hold 120kg under vibration."
+  Conventional answer: "Use a stronger latch. Add bolts. Over-engineer
+  the mount. Do FEA."
+
+  Original problem: "Tool-free might not be reliable."
+  Conventional answer: "Add more latches. Add redundancy. Tighten
+  tolerances."
+
+  Original problem: "Autonomous charging connector mating is hard."
+  Conventional answer: "Use a robotic arm for plug insertion. Add
+  camera guidance. Use magnetic alignment."
+
+The transmutation approach is fundamentally different:
+
+  It does not try to solve the problem at the same level of abstraction
+  where it was stated. It asks: "What specific burden makes this
+  impossible?" and trades that burden into a different form. It accepts
+  that total difficulty is conserved — you cannot make hard problems
+  free. But you CAN choose where the difficulty lives.
+
+  - Instead of a stronger latch → make the latch not carry the load
+  - Instead of more latches → make one lock whose truth is physically
+    verified
+  - Instead of a smarter plug → eliminate the plug entirely
+
+  The convention strengthens solutions. Transmutation changes what the
+  solution IS.
+
+  The convention optimizes within constraints. Transmutation trades the
+  constraints themselves.
+
+  The result is not "a better version of the original." It is a
+  fundamentally different architecture that inherits the original's
+  goals but refuses to inherit its structural assumptions.
+
+===========================================================================
+  PART 6 — COMMON PATTERNS ACROSS ALL THREE CHAINS
+===========================================================================
+
+Several recurring moves appear across all three chains:
+
+  1. LOAD SEPARATION — Don't make one interface do two jobs. Split
+     transport from work. Split correction from contact. Split
+     retention from structural truth.
+
+  2. GEOMETRY AS TRUTH — Physical geometry replaces electronic signals
+     as the primary proof of correct state. If the shape is right, the
+     state is right. Geometry is harder to fake than data.
+
+  3. SELF-CORRECTING SYSTEMS — Design accepts imperfect input and
+     manufactures correct output. The mount self-seats under load. The
+     dock self-corrects approach angle. Perfection is not required at
+     entry.
+
+  4. NORMALLY CLOSED / FAIL SAFE — Interfaces stay closed, locked, or
+     de-energized when not actively engaged. Dirt cannot attack what is
+     protected. Failure mode is NO-ACTION, not WRONG-ACTION.
+
+  5. TTL OVER IMMORTALITY — Stop trying to make precision parts last
+     forever. Treat them as service modules with known lifespans.
+     Inspect, replace, continue. Every chain ends with a TTL
+     transmutation as the final step.
+
+  6. DELIBERATE ACTUATION — Nothing activates on accident. Locks require
+     deliberate command. Docks require deliberate approach. Truth
+     requires deliberate geometry + force + dwell time.
+
+  7. ANALOGY-FIRST REASONING — Every constraint is made viscerally clear
+     through a physical analogy before any trade is proposed. This
+     prevents abstract hand-waving and forces the engineer to feel the
+     problem before solving it.
+
+===========================================================================
+  PART 7 — WHAT THE ORIGINAL SPECS LOOKED LIKE vs. NOW
+===========================================================================
+
+  BEFORE (original specs):
+  - Toolhead mount: "cam-lock quick-swap" — one phrase covering an
+    entire structural engineering challenge
+  - Retention: "tool-free quarter-turn" — aspirational statement
+  - Charging: "robot docks charging port to post cable" — one sentence
+    hiding a hard robotics problem
+  - Architecture assumed: strong latch, tight tolerances, cable plug-in
+
+  AFTER (post-transmutation specs):
+  - Toolhead mount: self-grounding toolhead, self-seating geometry,
+    keyed normally-closed interface, pressure-opened recessed trigger,
+    sacrificial wear insert with TTL — a complete mechanical doctrine
+  - Retention: positive auto-lock, two-step verification, geometry-gated
+    pressure + dwell truth, TTL service surfaces — every failure mode
+    addressed with a specific trade
+  - Charging: walk-in capture dock, self-correcting funnel geometry,
+    low-battery slow approach, final-pose-only electrical contact,
+    session handshake, TTL service surfaces — the plug is gone entirely
+  - Architecture assumes: managed wear, scheduled service, field-robust
+    geometry, honest remaining burdens
+
+  The difference is not incremental improvement. It is a different class
+  of specification — one that names its remaining burdens instead of
+  hiding its assumptions.
+
+===========================================================================
+  PART 8 — DATABASE SCHEMA (KEY TABLES)
+===========================================================================
+
+The schema reflects the chassis/toolhead separation:
+
+  robots table:
+  - id, cluster_id, name, status
+  - chassis_id (physical chassis serial — Skateboard identity)
+  - toolhead_id (currently mounted toolhead serial, NULL = bare chassis)
+  - toolhead_type (current toolhead type for quick lookup)
+  - pos_x, pos_y, pos_z, busy_until, active_house_id
+  - work statistics (total_work_seconds, placements, retries, failures)
+
+  toolhead_pairings table (swap history):
+  - chassis_id, toolhead_id, toolhead_type
+  - paired_at, unpaired_at, paired_by (event that triggered the swap)
+
+This lets the system track which chassis carried which toolhead, when
+swaps happened, and who/what triggered them.
+
+===========================================================================
+  PART 9 — HOW TO WORK WITH THIS CONTEXT
+===========================================================================
+
+When working on this project:
+
+  1. Respect the transmutation chains. They are not suggestions — they
+     are load-bearing engineering decisions. If you change the mount
+     architecture, the charging dock, or the retention system, trace
+     your change through the relevant chain to confirm it doesn't
+     reintroduce a burden that was already traded away.
+
+  2. The remaining burdens are documented. Each chain ends with a
+     "Remaining Living Constraint" section listing what is NOT solved —
+     that is the honest frontier. Work there, not behind it.
+
+  3. Analogies are load-bearing. They are not decoration. If you cannot
+     explain a new constraint through a physical analogy, you may not
+     fully understand it yet.
+
+  4. TTL is doctrine, not laziness. Every precision surface in the
+     system is a service part. This is a deliberate engineering choice,
+     not a failure to build something permanent.
+
+  5. The House Brain is the only coordinator. Robots read and write to
+     the database. They do not negotiate with each other. If you add a
+     new robot behavior, it must go through the stigmergic mediation
+     pattern: robot writes truth → House Brain reads → House Brain
+     dispatches.
+
+  6. "Solved" means "remaining burden is manageable and named." It does
+     not mean "no difficulty remains." If someone says a problem is
+     solved, look for the remaining living constraint to understand what
+     honest burden was accepted.
+
+===========================================================================
+  END OF CONTEXT PROMPT
+===========================================================================

@@ -1,0 +1,890 @@
++:---------------------------------------------------------------------:+
+| HOUSE BRAIN                                                           |
+|                                                                       |
+| Universal Skateboard Chassis Blueprint                                |
+|                                                                       |
+| The One Base That Carries Every Role | v1                             |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  Core Doctrine: Build one machine. Ship seven toolheads. The chassis is
+  the platform. The toolhead is the purpose. The interface between them
+  is sacred and universal.
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  One-Sentence Summary: The Universal Skateboard Chassis is a single
+  standardized 4-wheel drive base carrying power, compute, mobility,
+  localization, and diagnostics — onto which any of the 7 robot toolheads
+  (Survey, Excavator, Fabricator, Verification, Assembly, Sealer,
+  Logistics) snap via one mechanical-electrical-data interface connector.
+
+  -----------------------------------------------------------------------
+
+1. Purpose
+
+The Skateboard exists because building 7 different robots is a supply
+chain nightmare that kills exponential scaling.
+
+If every robot type has its own wheels, its own batteries, its own motor
+drivers, its own compute board, and its own frame — then at 10 clusters
+you're managing 7 different BOMs. At 1,000 clusters you're managing
+7,000 different part inventories across continents.
+
+The Skateboard collapses this into one BOM.
+
+  -----------------------------------------------------------------------
+  One chassis. One battery. One motor driver. One compute board. One
+  wheel assembly. One assembly procedure. Seven swappable toolheads.
+
+  -----------------------------------------------------------------------
+
+2. Strategic Multipliers
+
+Supply Chain Compression
+
+- One SKU for the drive base, ordered in massive volume from one
+  supplier
+
+- Volume discount on identical components across every cluster
+
+- Predictable lead times — no custom parts per robot type
+
+- Simple quality control — one incoming inspection procedure
+
+Training Compression
+
+- Local team learns one machine deeply instead of seven superficially
+
+- A resident who maintains skateboards for three months becomes expert
+  at the one system that underlies every robot in every cluster
+
+- That expertise transfers instantly to every robot everywhere
+
+Maintenance Compression
+
+- Every spare wheel, battery, motor driver, and compute board is
+  interchangeable across the entire fleet
+
+- No "we need the Fabricator-specific motor" delays
+
+- Broken skateboard swapped whole; repaired at central hub
+
+Capability Extension
+
+- New toolhead = new robot capability on existing fleet
+
+- Glass production attachment, furniture fabricator, agricultural planter
+  — all work on existing skateboards immediately
+
+- Network capability expands without hardware replacement
+
+- You don't upgrade the robot. You ship a new toolhead.
+
+3. Mechanical Architecture
+
+3.1 Frame
+
+- Rectangular steel or aluminum chassis plate
+
+- Dimensions: approximately 800mm × 600mm × 150mm (tuned to carry
+  heaviest toolhead — Fabricator press)
+
+- Four mounting points for wheel/drive modules at corners
+
+- Center-top flat mounting surface for toolhead interface plate
+
+- Lifting handles or forklift slots on both ends
+
+- Frame rated for minimum 500kg combined payload (toolhead + work
+  material)
+
+  -----------------------------------------------------------------------
+  Design rule: The frame is a table. Flat top. Wheels underneath.
+  Toolhead sits on top and locks down. Nothing clever.
+
+  -----------------------------------------------------------------------
+
+3.2 Drive System
+
+- 4 independently driven wheels (skid-steer or Mecanum for
+  omnidirectional movement)
+
+- All 4 wheel assemblies are identical and interchangeable
+
+- Each wheel module: brushless DC motor + planetary gearbox + wheel +
+  mounting bracket + encoder
+
+- Wheel modules attach to frame via 4-bolt pattern — tool-free quick
+  release if using quarter-turn locks
+
+- Designed for outdoor terrain: pneumatic or solid rubber tires, minimum
+  200mm diameter
+
+- Speed: 0.5–2.0 m/s operational (not racing — precision matters more
+  than speed)
+
+- Turning: zero-radius turn capability required for tight site
+  maneuvering
+
+3.3 Battery System
+
+- Single standardized battery pack per skateboard
+
+- Chemistry: LiFePO4 (lithium iron phosphate) — chosen for safety,
+  cycle life, temperature tolerance in field conditions
+
+- Capacity: sized for 2–4 hours of continuous operation under heaviest
+  toolhead (Excavator or Fabricator)
+
+- Voltage: 48V nominal system voltage
+
+- Battery pack is a self-contained module with BMS (battery management
+  system) integrated
+
+- Pack mounts into chassis via slide-rail + latch — tool-free swap in
+  under 30 seconds
+
+- Charging contacts on chassis rear — recessed DC contact pads that
+  mate with Parasitic Power walk-in dock capture geometry (see:
+  Autonomous Charging Dock + Final-Pose Truth Stack blueprint)
+
+- Battery health telemetry: voltage, current, temperature, state of
+  charge, cycle count — all reported to House Brain
+
+  -----------------------------------------------------------------------
+  The battery is not bolted in. It slides in like a magazine. A resident
+  swaps a depleted battery for a charged one and the robot continues
+  working in 30 seconds. Zero downtime for charging if spare packs are
+  available.
+
+  -----------------------------------------------------------------------
+
+3.4 Compute Module
+
+- Single-board computer: ESP32-S3 or Raspberry Pi CM4 class
+
+- WiFi + Bluetooth for House Brain communication
+
+- USB/UART/SPI interfaces for toolhead data bus
+
+- Runs the local robot controller firmware
+
+- Receives commands from House Brain via API
+
+- Emits telemetry per contract Layer 2
+
+- Stores no persistent state — House Brain database is truth
+
+- Compute module mounts in a sealed enclosure on the chassis
+
+- Enclosure is IP65 minimum — dust and water resistant
+
+- Compute module is a Red/Green swappable module (see Diagnostic
+  Protocol)
+
+3.5 Motor Driver Board
+
+- Dual or quad motor driver handling all 4 wheel motors
+
+- 48V input from battery system
+
+- Current sensing per motor channel — feeds House Brain telemetry and
+  diagnostic LED system
+
+- Over-current, over-temperature, and stall protection built in
+
+- Motor driver is a Red/Green swappable module
+
+3.6 Sensor Suite (Chassis-Level)
+
+Every skateboard carries these sensors regardless of toolhead:
+
+- IMU (accelerometer + gyroscope) — orientation, tilt, vibration
+  signature
+
+- UWB anchor receivers — site-level localization (x, y position)
+
+- Wheel encoders — odometry backup
+
+- Battery state sensors — voltage, current, temperature, SoC
+
+- Ambient temperature sensor — environmental baseline
+
+- Chassis vibration sensor — anomaly detection for drive system health
+
+- GPS module (optional, for inter-site navigation only)
+
+  -----------------------------------------------------------------------
+  Toolhead-specific sensors live on the toolhead, not the chassis. The
+  chassis knows where it is, how it's moving, and whether it's healthy.
+  The toolhead knows what it's doing.
+
+  -----------------------------------------------------------------------
+
+4. Universal Toolhead Interface (UTI)
+
+This is the most critical specification in the entire Skateboard design.
+Every toolhead connects to the chassis through one standardized
+interface. No exceptions. No per-type variants.
+
+4.1 Mechanical Interface — Self-Seating Mount Architecture
+
+  -----------------------------------------------------------------------
+  Mount doctrine: The mount is NOT the structural hero. The toolhead
+  self-grounds its active work loads into the soil. The mount handles
+  transport, alignment, and retention only. See: Toolhead Mount + Load
+  Path Validation Stack blueprint for the full transmutation chain.
+  See: Tool-Free Retention + Truth-of-Lock Stack blueprint for the
+  retention verification doctrine.
+
+  -----------------------------------------------------------------------
+
+  Load Path Separation:
+
+  - TRANSPORT loads (dead weight of toolhead during mobility): carried
+    by mount → chassis → wheels → ground
+
+  - ACTIVE WORK loads (compression, vibration, torque during operation):
+    carried by toolhead → toolhead anchor feet → soil. Bypasses chassis
+    entirely.
+
+  - The mount never sees full active work reaction forces. It is a
+    carriage interface, alignment interface, and retention interface —
+    not a structural spine.
+
+  Mount Geometry:
+
+  - Toolhead mounting surface: 400mm × 400mm centered on chassis top
+
+  - Self-seating taper geometry: mount faces are angled so that
+    transport loads (gravity, vibration, deceleration) push the toolhead
+    INTO the seat rather than loosening it. Wolff's Law principle —
+    stress tightens the joint, not loosens it.
+
+  - Keyed profile: toolhead base and chassis cradle share a unique
+    asymmetric outline (like a phone case) that prevents incorrect
+    orientation and prevents random work impacts from imitating the
+    release path.
+
+  Interface Protection:
+
+  - Normally closed: the precision engagement surfaces are covered /
+    sealed when no toolhead is mounted. Dirt, dust, and rain do not
+    attack the critical geometry while idle.
+
+  - Interface opens only when correct keyed toolhead body is presented
+    and seated.
+
+  Release Mechanism:
+
+  - Recessed pressure trigger: release is NOT an exposed button or
+    external lever. It is a recessed internal actuation point accessible
+    only through the correct keyed access path.
+
+  - Activation requires: correct geometry alignment + insertion into
+    recessed access + force threshold. Random vibration, impacts, and
+    debris cannot accidentally trigger release.
+
+  - Force-threshold based, not precision-choreography based — works
+    even with moderate dust or wear present.
+
+  Retention Verification (Truth-of-Lock):
+
+  - Once toolhead is seated, the mount POSITIVELY LOCKS — not by
+    friction or preload alone, but by a physical lock state.
+
+  - Release requires DELIBERATE CHASSIS COMMAND — vibration, thermal
+    cycling, dust, and impacts cannot cause passive back-out.
+
+  - Unlock authority is hardened by two-step verification: unlock
+    intent signal + physical release action must both occur.
+
+  - True lock state is verified by physical reality, not software
+    belief. A mounted toolhead is not trusted as "locked" unless:
+    1. Keyed geometry alignment confirmed
+    2. Recessed access path reached
+    3. Internal pressure threshold crossed
+    4. Pressure maintained for dwell time
+
+  - If any verification step fails, the chassis reports mount_state
+    as UNCERTAIN to House Brain and does not proceed with operations.
+
+  - See: Tool_Free_Retention_Truth_of_Lock_Stackv1 for the full
+    transmutation chain behind the retention verification doctrine.
+
+  Sacrificial Wear Insert:
+
+  - The keyed access geometry and precision seating surfaces are
+    contained in a REPLACEABLE INSERT MODULE — not machined into the
+    chassis frame itself.
+
+  - Insert has a defined TTL (service life in mount/unmount cycles and
+    operating hours).
+
+  - Insert is a Red/Green diagnostic module: Green (within service
+    life), Amber (approaching replacement threshold), Red (replace now).
+
+  - Replacement: slide out old insert, slide in new insert. Field-
+    serviceable. Tracked in House Brain inventory like any other module.
+
+  Load Rating:
+
+  - Transport dead load: rated for 150kg static (covers Fabricator,
+    heaviest toolhead at ~120kg, with margin)
+
+  - Transport dynamic load: rated for 100kg equivalent dynamic
+    (acceleration, braking, rough terrain vibration during mobility)
+
+  - Active work loads: NOT rated through the mount. Active work loads
+    are the toolhead's responsibility via its own ground anchor / feet.
+
+  - If mount sees active work loads, the toolhead's self-grounding
+    system has failed — that is a Red diagnostic condition.
+
+  Swap Time:
+
+  - Toolhead removal: 60 seconds maximum by one person for standard
+    toolheads. Fabricator may require two people due to mass.
+
+  - No tools required for swap. No screwdriver, no wrench, no laptop.
+
+  -----------------------------------------------------------------------
+  If you need a screwdriver to change a toolhead, the interface is wrong.
+  If the mount is absorbing press reaction loads, the toolhead design is
+  wrong. If the wear insert needs replacing, that is planned maintenance
+  — not failure.
+
+  -----------------------------------------------------------------------
+
+4.2 Electrical Interface
+
+- Single multi-pin connector (industrial grade, keyed, IP65)
+
+- Power bus: 48V DC, 30A continuous from chassis battery to toolhead
+
+- 12V auxiliary: 5A for sensors, LEDs, low-power actuators
+
+- 5V logic: 2A for microcontrollers, sensors
+
+- Motor control channels: 4 configurable H-bridge outputs for toolhead
+  actuators (shared from motor driver expansion)
+
+- Analog inputs: 8 channels, 12-bit ADC — load cells, potentiometers,
+  temperature sensors
+
+- Digital I/O: 8 configurable GPIO — limit switches, encoders,
+  solenoids
+
+- Emergency stop: dedicated pin — toolhead can trigger chassis e-stop,
+  chassis can trigger toolhead e-stop
+
+  -----------------------------------------------------------------------
+  One connector. Power, data, control, safety. Plug it in and the
+  toolhead is live. Unplug it and the toolhead is inert.
+
+  -----------------------------------------------------------------------
+
+4.3 Data Interface
+
+- UART serial bus: primary communication between chassis compute and
+  toolhead controller
+
+- Protocol: JSON-over-serial at 115200 baud (matches existing House
+  Brain telemetry format)
+
+- Toolhead identifies itself on connection via handshake message:
+  { "toolhead": "excavator", "version": "1.0", "serial": "EXC-0042" }
+
+- Chassis compute routes toolhead telemetry to House Brain with
+  chassis_id and toolhead_id metadata appended
+
+- Toolhead firmware update: triggered via House Brain command, delivered
+  over UART from chassis compute
+
+  -----------------------------------------------------------------------
+  The chassis doesn't know what the toolhead does. It knows what the
+  toolhead IS. The toolhead announces itself. The House Brain routes
+  commands accordingly.
+
+  -----------------------------------------------------------------------
+
+4.4 Diagnostic Interface
+
+- Addressable RGB LED strip connector: dedicated 5V data line to
+  toolhead LED array
+
+- Chassis diagnostic LEDs and toolhead diagnostic LEDs are on the same
+  addressable bus but different address ranges
+
+- Chassis LEDs: addresses 0–15 (wheels, battery, compute, motor driver)
+
+- Toolhead LEDs: addresses 16–47 (toolhead-specific module diagnostics)
+
+- See Red/Green Diagnostic Protocol blueprint for full LED state machine
+
+5. Toolhead Specifications Per Robot Type
+
+Every toolhead listed below connects through the Universal Toolhead
+Interface defined in Section 4. No exceptions.
+
+5.1 Survey Toolhead
+
+  -----------------------------------------------------------------------
+  Mounts on: Universal Skateboard Chassis
+  UTI Connection: Standard mechanical + electrical + data
+  Weight: ~25kg
+  Power draw: ~200W peak
+
+  -----------------------------------------------------------------------
+
+  Components:
+  - Vertical probe deployment mechanism (linear actuator, 500mm stroke)
+  - Outer stabilization sleeve with foot pads
+  - Inner penetrometer probe rod with conical tip
+  - S-type load cell (inline force measurement)
+  - Depth encoder (linear potentiometer on actuator)
+  - Sleeve pressure sensors (foot balance)
+  - Probe tip temperature sensor
+  - Toolhead controller (ESP32 or equivalent)
+  - Addressable RGB LED strip (6 modules: probe actuator, sleeve
+    actuator, load cell, depth encoder, controller, power regulator)
+
+  Retained from existing blueprint:
+  - Foot deployment and equalization sequence
+  - Outer sleeve seating and bracing
+  - Inner probe penetration with force-depth curve capture
+  - Point classification (BUILDABLE / MARGINAL / REJECT)
+  - Reference patch stamping
+  - Heatmap generation per site
+
+  What changes:
+  - Mobility is now the Skateboard's job, not the toolhead's
+  - Positioning is now UWB from chassis, not toolhead-local
+  - Power comes from chassis 48V bus, regulated on toolhead
+  - All telemetry routed through chassis compute to House Brain
+
+5.2 Excavator Toolhead
+
+  -----------------------------------------------------------------------
+  Mounts on: Universal Skateboard Chassis
+  UTI Connection: Standard mechanical + electrical + data
+  Weight: ~80kg (heaviest toolhead after Fabricator)
+  Power draw: ~800W peak (blade motor + suction motor + lift)
+
+  -----------------------------------------------------------------------
+
+  Components:
+  - Vertical excavation pole / intake head
+  - Internal shredding blades with curved deflection geometry
+  - Suction/air lift motor and impeller
+  - Coarse binary intake gate (mesh/screen, adjustable aperture)
+  - Flexible hose connector to surface sorting container (detachable)
+  - Reject stream outlet
+  - Blade motor with current sensing (blade load + wear index)
+  - Flow rate sensors (good stream + reject stream)
+  - Clog/jam detection sensor
+  - Hose backpressure sensor
+  - Toolhead controller (ESP32 or equivalent)
+  - Addressable RGB LED strip (8 modules: blade motor, lift motor,
+    gate actuator, flow sensor, backpressure sensor, hose connector,
+    controller, power regulator)
+
+  Retained from existing blueprint:
+  - Full penetrate–process–lift cycle
+  - Binary gate coarse separation
+  - Survey penetration curve pre-loading
+  - Moisture-adjusted lift speed
+  - Slurry risk detection and flagging
+  - Blade wear index tracking
+  - Container backpressure monitoring
+  - Ground truth record emission to Survey library
+  - All 9 constraint transmutations (C1–C9)
+
+  What changes:
+  - Drive base eliminated from toolhead — Skateboard provides mobility
+  - Surface sorting container is a separate field asset, not part of
+    the toolhead (connected via detachable hose)
+  - Power from chassis 48V bus, regulated locally for blade and lift
+    motors
+  - Positioning and navigation delegated to chassis
+
+5.3 Fabricator Toolhead
+
+  -----------------------------------------------------------------------
+  Mounts on: Universal Skateboard Chassis
+  UTI Connection: Standard mechanical + electrical + data
+  Weight: ~120kg (heaviest toolhead — press mechanism + mold)
+  Power draw: ~1200W peak (compression actuator + anchor motor)
+
+  -----------------------------------------------------------------------
+
+  Components:
+  - Ground anchor deployment system (screw-type, motor-driven)
+  - Mold / press cavity (fixed target geometry per recipe)
+  - Compression actuator (ball screw or toggle joint)
+  - Feed hopper intake
+  - Inline moisture probe at feed intake
+  - Conditioning system (water reservoir + dosing valve + optional
+    heat/air element)
+  - Ejection cradle with dwell timer
+  - Anchor motor with current sensing (seat quality signal)
+  - Compression force sensor (load cell on press plate)
+  - Press depth encoder
+  - Temperature sensor at mold
+  - Toolhead controller (ESP32 or equivalent)
+  - Addressable RGB LED strip (10 modules: anchor motor, press
+    actuator, moisture probe, conditioning valve, hopper sensor,
+    ejection mechanism, force sensor, depth encoder, controller,
+    power regulator)
+
+  Retained from existing blueprint:
+  - Earth Anvil doctrine — borrow planet mass for compression
+  - Anchor seating confirmation before every press cycle
+  - Fixed geometry / variable fill volume paradigm
+  - Moisture conditioning gate (water dose / dry pass / proceed)
+  - Verification feedback loop for fill volume correction
+  - Dwell time adjustment from Verification handling damage signal
+  - Calibration block planned waste (first 3–5 blocks per new soil)
+  - Convergence limit hard exit to House Brain
+  - All constraint transmutations (C1–C8)
+
+  What changes:
+  - Chassis does NOT absorb compression reaction force — the ground
+    anchor transmits force directly into the earth. Chassis is the
+    transport platform only. This is the core load-path separation
+    defined in UTI Section 4.1 and the Toolhead Mount + Load Path
+    Validation Stack blueprint.
+  - Drive base eliminated from toolhead
+  - Feed hopper connects to surface sorting container (field asset)
+  - Power from chassis 48V bus, regulated locally for anchor and press
+
+  -----------------------------------------------------------------------
+  Critical note: The Fabricator toolhead is the heaviest (~120kg) and
+  highest power draw (~1200W peak). The Skateboard frame and battery are
+  sized to accommodate this worst-case TRANSPORT dead load. The mount
+  self-seating geometry is rated for Fabricator transport mass. Active
+  compression loads never reach the mount — they loop through the
+  ground anchor and soil. Every other toolhead runs with margin on both
+  transport load and power budget.
+
+  -----------------------------------------------------------------------
+
+5.4 Verification Toolhead
+
+  -----------------------------------------------------------------------
+  Mounts on: Universal Skateboard Chassis
+  UTI Connection: Standard mechanical + electrical + data
+  Weight: ~35kg
+  Power draw: ~300W peak
+
+  -----------------------------------------------------------------------
+
+  Components:
+  - Block inspection cradle / fixture
+  - Dimensional measurement sensors (calipers or structured light)
+  - Mass measurement (load cell platform)
+  - Surface quality camera (basic machine vision)
+  - Accelerated weathering chamber (small enclosure with water spray
+    + UV lamp + heat element — for idle-time durability testing)
+  - Toolhead controller (ESP32 or equivalent)
+  - Addressable RGB LED strip (7 modules: inspection cradle actuator,
+    dimensional sensor, mass sensor, camera, weathering chamber,
+    controller, power regulator)
+
+  Retained from existing blueprint:
+  - Process-trace verification (trusted fabrication record check)
+  - Dimensional and mass QC against House Brain recipe
+  - Inline vs accelerated weathering verification modes
+  - TTL library building from Sealer water stress data
+  - Fill correction and dwell recommendation feedback to Fabricator
+  - Handling damage detection
+  - Convergence limits on dwell increase and TTL extension
+
+  What changes:
+  - Previously described as "mostly stationary" — now mobile on
+    Skateboard, can drive to where blocks are produced
+  - Weathering chamber is compact and field-deployable
+  - Power from chassis 48V bus
+
+5.5 Assembly Toolhead
+
+  -----------------------------------------------------------------------
+  Mounts on: Universal Skateboard Chassis
+  UTI Connection: Standard mechanical + electrical + data
+  Weight: ~90kg (placement arm + gripper)
+  Power draw: ~600W peak
+
+  -----------------------------------------------------------------------
+
+  Components:
+  - Articulated placement arm (3–4 DOF, NOT humanoid)
+  - End effector / gripper designed for known block geometry
+  - Passive alignment features on gripper
+  - Motor current sensing per joint (impedance = force proxy)
+  - Pre-insertion drift scanner (structured light or LiDAR profile)
+  - Post-seat micro-load actuator (small push-test mechanism)
+  - Depth tracking encoder on placement axis
+  - Toolhead controller (ESP32 or equivalent)
+  - Addressable RGB LED strip (8 modules: arm base motor, arm
+    extension motor, gripper actuator, drift scanner, micro-load
+    actuator, depth encoder, controller, power regulator)
+
+  Retained from existing blueprint:
+  - Pre-insertion drift scan protocol
+  - Motor impedance as force proxy for insertion quality
+  - Post-seat micro-load check
+  - Neighbor drift telemetry detection and emission
+  - Placement report emission with full insertion result data
+  - Escalation on geometry failure
+  - Constrained work envelope (not general-purpose manipulator)
+
+  What changes:
+  - Fixed-rail gantry option eliminated — Skateboard + arm replaces
+    gantry with mobile placement
+  - Chassis provides stable base for arm operations (Skateboard locks
+    wheels during placement for stability)
+  - Power from chassis 48V bus
+
+  -----------------------------------------------------------------------
+  Design rule: During active placement, Skateboard engages wheel locks
+  to provide stable base. The arm operates from a stationary platform.
+  Movement and placement never happen simultaneously.
+
+  -----------------------------------------------------------------------
+
+5.6 Sealer Toolhead
+
+  -----------------------------------------------------------------------
+  Mounts on: Universal Skateboard Chassis
+  UTI Connection: Standard mechanical + electrical + data
+  Weight: ~45kg
+  Power draw: ~400W peak (spray pump + pressure system)
+
+  -----------------------------------------------------------------------
+
+  Components:
+  - Sealant reservoir tank (refillable, standard quick-connect)
+  - Broad spray nozzle array (wide coverage for initial pass)
+  - Focused pressure spray nozzle (directed for zone coating)
+  - Spray pump motor with pressure regulation
+  - Moisture sensor (surface-contact type for baseline measurement)
+  - Spray pattern controller (solenoid valves per nozzle zone)
+  - Gravity bias correction logic (compensate bottom-heavy coating)
+  - Toolhead controller (ESP32 or equivalent)
+  - Addressable RGB LED strip (7 modules: pump motor, broad spray
+    valve, pressure spray valve, moisture sensor, reservoir level
+    sensor, controller, power regulator)
+
+  Retained from existing blueprint:
+  - Four-phase sealing protocol (broad spray → dry reset → pressure
+    spray → zone coat)
+  - Moisture baseline reset confirmation between phases
+  - Gravity bias detection and correction
+  - Zone scoring (NW/NE/SW/SE quadrants)
+  - Edge band coat class (always one above highest adjacent zone)
+  - Water stress record emission
+  - Recoat triggered by Verification TTL signal, not calendar
+  - All constraint transmutations
+
+  What changes:
+  - Mobility now from Skateboard, not toolhead-specific base
+  - Sealant reservoir is refillable module with standard connector
+  - Skateboard positions robot at wall surface; spray arm handles
+    vertical coverage
+  - Power from chassis 48V bus
+
+5.7 Logistics Toolhead
+
+  -----------------------------------------------------------------------
+  Mounts on: Universal Skateboard Chassis
+  UTI Connection: Standard mechanical + electrical + data
+  Weight: ~30kg (lightest toolhead — mostly cargo platform)
+  Power draw: ~150W peak
+
+  -----------------------------------------------------------------------
+
+  Components:
+  - Cargo platform / payload bay (flat bed with tie-down points)
+  - Body gauge grading blade (deployable, motor-driven)
+  - Lane condition sensors (ground contact sensors, vibration analysis)
+  - Payload presence sensor (weight or proximity)
+  - Reference relay receiver (cross-checks Survey reference patch)
+  - Toolhead controller (ESP32 or equivalent)
+  - Addressable RGB LED strip (5 modules: grading blade motor,
+    payload sensor, lane sensor, controller, power regulator)
+
+  Retained from existing blueprint:
+  - Body gauge creates road as it travels
+  - Lane segment conditioning and scoring
+  - Reference relay age monitoring and restamp triggering
+  - Travel factor emission to Assembly
+  - Yield protocol for multi-robot lane sharing
+
+  What changes:
+  - Logistics toolhead is the lightest — Skateboard runs most
+    efficiently in this configuration (lighter = faster, longer range)
+  - Cargo platform doubles as block/material transport between
+    Fabricator and Assembly locations
+  - Power from chassis 48V bus
+
+6. Version Control Protocol
+
+The Skateboard design will improve over time. This must not fragment the
+fleet into incompatible hardware generations.
+
+6.1 Versioning Scheme
+
+  SKATEBOARD v[MAJOR].[MINOR]
+
+  - MINOR version change: backwards compatible with all existing
+    toolheads. Better motors, larger battery, improved sensors —
+    same UTI connector. Example: v1.0 → v1.1 → v1.2
+
+  - MAJOR version change: UTI connector modified. Existing toolheads
+    require an adapter plate to function. Example: v1.x → v2.0
+
+6.2 Compatibility Rules
+
+  - All v1.x skateboards work with all v1.x toolheads. No exceptions.
+
+  - A v2.0 skateboard MUST ship with a v1-to-v2 adapter plate so
+    existing toolheads continue to function.
+
+  - Toolhead versions are independent of skateboard versions. A
+    toolhead v2.0 Excavator works on a v1.0 skateboard if power and
+    data requirements are within v1.0 UTI limits.
+
+  - Maximum adapter chain: one. You cannot stack v1-to-v2 + v2-to-v3
+    adapters. At that point, toolhead is redesigned for current UTI.
+
+6.3 Fleet Inventory Tracking
+
+  - Every chassis has a unique serial: SKT-[BATCH]-[SEQ]
+    Example: SKT-2026A-0001
+
+  - Every toolhead has a unique serial: [TYPE]-[BATCH]-[SEQ]
+    Example: EXC-2026A-0042
+
+  - House Brain tracks chassis ↔ toolhead pairings in robot registry
+
+  - Toolhead swap events are logged with timestamp, chassis_id,
+    old_toolhead_id, new_toolhead_id
+
+7. Assembly Procedure
+
+One procedure. For every robot.
+
+7.1 Skateboard Assembly (from shipped components)
+
+  1. Lay frame plate on flat surface
+  2. Snap in 4 wheel modules (quarter-turn lock each)
+  3. Slide battery pack into rail slot, latch closed
+  4. Seat compute module in sealed enclosure, close clips
+  5. Seat motor driver board in enclosure, connect harness
+  6. Connect sensor harness (single multi-pin connector)
+  7. Power on — chassis self-tests, LEDs go through startup sequence
+  8. Chassis reports to House Brain via WiFi: "SKT-XXXX online, no
+     toolhead attached"
+
+  Time: ~15 minutes by one trained person. No tools required.
+
+7.2 Toolhead Mounting
+
+  1. Position toolhead over chassis mounting surface — keyed profile
+     guides alignment (only one orientation fits)
+  2. Lower toolhead into self-seating taper — toolhead weight settles
+     it into contact with seating faces
+  3. Confirm seated: toolhead profile engages cradle, retention
+     activates (audible/tactile confirmation)
+  4. Connect UTI multi-pin connector (single plug)
+  5. Toolhead powers up, sends handshake to chassis compute
+  6. Chassis reports to House Brain: "SKT-XXXX now carrying EXC-0042"
+
+  Time: ~60 seconds. No tools required.
+
+7.3 Toolhead Swap (in field)
+
+  1. Chassis parks and powers down toolhead via command
+  2. Disconnect UTI connector
+  3. Access recessed release trigger through keyed path
+  4. Apply pressure to release — retention disengages
+  5. Lift off old toolhead (may require two people for Fabricator)
+  6. Set new toolhead into cradle, keyed profile seats it, connect UTI
+  7. New toolhead handshake — chassis reports new pairing to House Brain
+
+  Time: ~2 minutes. No tools required.
+
+  -----------------------------------------------------------------------
+  A cluster of 7 skateboards with 7 toolheads can be reconfigured to
+  any combination of roles in under 15 minutes. Need more Excavators
+  during site prep? Move toolheads. Need more Assembly during the wall
+  phase? Move toolheads. The fleet adapts to the build phase without
+  buying more robots.
+
+  -----------------------------------------------------------------------
+
+8. Telemetry — Chassis-Level
+
+The Skateboard emits its own telemetry to House Brain independent of
+whatever toolhead is mounted. This is Layer 2 contract data from the
+chassis itself.
+
+  -----------------------------------------------------------------------
+  chassis_health_record
+
+  -----------------------------------------------------------------------
+
+  ---------------- ------------------------------------------------------
+  Source           Universal Skateboard Chassis
+
+  Emit Trigger     Every 10 seconds during operation
+
+  Required Fields  chassis_id, toolhead_id, battery_soc_pct,
+                   battery_voltage, battery_temp_c, motor_current_fl,
+                   motor_current_fr, motor_current_rl, motor_current_rr,
+                   imu_tilt_deg, position_x, position_y,
+                   wheel_odometry_m, ambient_temp_c, uptime_seconds,
+                   diagnostic_state
+
+  Optional Fields  gps_lat, gps_lon, vibration_anomaly_score
+
+  Enum Constraints diagnostic_state: all_green | has_amber | has_red |
+                   e_stopped
+  ---------------- ------------------------------------------------------
+
+9. Integration with Existing Contract Architecture
+
+The Skateboard does not change the Master Interface Contract. It changes
+how contracts are physically delivered.
+
+  -----------------------------------------------------------------------
+  What stays the same:
+
+  - All 3 contract layers (Command, Telemetry, Feedback)
+  - All 10 feedback paths
+  - All 4 precondition gates
+  - All telemetry schemas
+  - All command surfaces per robot type
+  - validateTelemetry() — unchanged
+  - getFeedbackPathHealth() — unchanged
+
+  What changes:
+
+  - Every telemetry record now includes chassis_id + toolhead_id
+    metadata (appended by chassis compute before transmission)
+  - House Brain robot registry tracks chassis ↔ toolhead pairings
+  - Toolhead swap events create a registry update, not a new robot
+    entry
+  - Robot identity = toolhead_id. Chassis is transport infrastructure.
+  - A Fabricator is a Fabricator regardless of which Skateboard carries
+    it
+
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  The Skateboard is invisible to the contract layer. It is plumbing.
+  The toolhead is the robot. The contract addresses the robot.
+
+  -----------------------------------------------------------------------
